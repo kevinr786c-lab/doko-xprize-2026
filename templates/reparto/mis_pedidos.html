@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Doko | Mis rutas{% endblock %}
+{% block page_title %}Mis rutas de entrega{% endblock %}
+{% block contenido %}
+<style>
+    .delivery-hero {
+        align-items: center;
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        padding: 20px;
+    }
+    .delivery-hero h2 { margin: 4px 0 6px; }
+    .delivery-hero p { color: var(--color-texto-suave); margin: 0; }
+    .delivery-hero strong {
+        background: var(--color-primario-suave);
+        border: 1px solid #d8e2ee;
+        border-radius: 999px;
+        color: var(--color-primario);
+        padding: 8px 12px;
+        white-space: nowrap;
+    }
+    .delivery-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    .delivery-card {
+        border-left: 5px solid var(--color-confirmado) !important;
+        display: grid;
+        gap: 14px;
+        padding: 20px;
+    }
+    .delivery-card h2 {
+        font-size: 1.15rem;
+        margin: 10px 0 4px;
+    }
+    .delivery-address {
+        background: var(--color-fondo-alt);
+        border: 1px solid var(--color-borde);
+        border-radius: 12px;
+        color: var(--color-texto-medio);
+        padding: 12px;
+    }
+    .delivery-products {
+        background: #fff;
+        border: 1px solid var(--color-borde);
+        border-radius: 12px;
+        padding: 12px;
+    }
+    .delivery-products strong { color: var(--color-primario); }
+    .delivery-products ul {
+        color: var(--color-texto-suave);
+        margin: 8px 0 0;
+        padding-left: 18px;
+    }
+    .delivery-evidence {
+        background: var(--color-fondo-alt);
+        border: 1px dashed var(--color-borde);
+        border-radius: 12px;
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+    }
+    .delivery-evidence label {
+        color: var(--color-texto-medio);
+        font-size: .84rem;
+        font-weight: 800;
+    }
+    .delivery-evidence input {
+        background: #fff;
+        border: 1px solid var(--color-borde);
+        border-radius: 10px;
+        padding: 9px;
+        width: 100%;
+    }
+    .delivery-actions {
+        display: grid;
+        gap: 10px;
+    }
+    .delivery-actions a,
+    .delivery-actions button {
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+    }
+    @media (max-width: 640px) {
+        .delivery-hero { align-items: flex-start; flex-direction: column; }
+        .delivery-grid { grid-template-columns: 1fr; }
+        .delivery-card { padding: 16px; }
+    }
+</style>
+
+<section class="panel-card delivery-hero">
+    <div>
+        <p class="eyebrow">Reparto</p>
+        <h2>Entregas asignadas</h2>
+        <p>Abre Maps, revisa productos, sube evidencia y marca la entrega cuando el consultorio reciba el pedido.</p>
+    </div>
+    <strong>{{ pedidos|length }} entrega{{ 's' if pedidos|length != 1 else '' }}</strong>
+</section>
+
+<div class="delivery-grid">
+{% for p in pedidos %}
+    <article class="panel-card delivery-card">
+        <div>
+            <span class="status-pill">En camino</span>
+            <h2>{{ p.nombre_doctor }}</h2>
+            <small style="color:var(--color-texto-suave);">Pedido {{ p.id_pedido|string|truncate(10, True, '') }}</small>
+        </div>
+
+        <div class="delivery-address">
+            <strong>Direcci&oacute;n</strong>
+            <p style="margin:6px 0 0;">{{ p.direccion_consultorio or 'Direcci&oacute;n no registrada' }}</p>
+        </div>
+
+        <div class="delivery-products">
+            <strong>Productos</strong>
+            <ul>
+            {% for item in p.productos %}
+                <li>{{ item.cantidad }} x {{ item.nombre_comercial }}</li>
+            {% else %}
+                <li>Sin detalle de productos</li>
+            {% endfor %}
+            </ul>
+        </div>
+
+        <div class="delivery-actions">
+            {% if p.maps_url %}
+            <a href="{{ p.maps_url }}" target="_blank" rel="noopener" class="btn-secundario" style="text-decoration:none;">Abrir en Maps</a>
+            {% endif %}
+            <div class="delivery-evidence">
+                <label for="foto-{{ p.id_pedido }}">Evidencia de entrega</label>
+                <input id="foto-{{ p.id_pedido }}" type="file" accept="image/png,image/jpeg,image/webp">
+                <button type="button" onclick="subirFoto('{{ p.id_pedido }}')" class="btn-secundario">Subir evidencia</button>
+            </div>
+            <button onclick="entregar('{{ p.id_pedido }}')" class="btn-primario">Marcar como entregado</button>
+        </div>
+    </article>
+{% else %}
+    <div class="panel-card" style="padding:24px;color:var(--color-texto-suave);">No tienes pedidos en camino.</div>
+{% endfor %}
+</div>
+
+<script>
+async function subirFoto(id) {
+    const input = document.getElementById('foto-' + id);
+    if (!input.files[0]) return alert('Selecciona una foto de evidencia');
+    const fd = new FormData();
+    fd.append('foto', input.files[0]);
+    const res = await fetch('/reparto/pedido/' + id + '/foto', { method: 'POST', body: fd });
+    const data = await res.json();
+    alert(data.ok ? 'Foto registrada' : (data.error || 'No se pudo subir'));
+}
+async function entregar(id) {
+    const confirmado = await window.dokoConfirmar('Confirma que el pedido ya fue entregado al consultorio.', {
+        titulo: 'Cerrar entrega',
+        textoConfirmar: 'Marcar entregado'
+    });
+    if (!confirmado) return;
+    const res = await fetch('/reparto/pedido/' + id + '/entregado', { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) location.reload();
+    else alert(data.error || 'No se pudo entregar');
+}
+</script>
+{% endblock %}

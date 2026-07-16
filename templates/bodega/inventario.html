@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Doko | Inventario{% endblock %}
+{% block page_title %}Inventario y lotes{% endblock %}
+{% block contenido %}
+<div class="panel-card" style="padding:22px;overflow-x:auto;">
+    <p class="eyebrow">Bodega</p>
+    <h2 style="margin:4px 0 16px;">Lotes activos y caducidades</h2>
+    <table style="width:100%;border-collapse:collapse;">
+        <thead>
+            <tr>
+                <th style="padding:12px;text-align:left;">Producto</th>
+                <th style="padding:12px;text-align:left;">Lote</th>
+                <th style="padding:12px;text-align:left;">Piezas</th>
+                <th style="padding:12px;text-align:left;">Caducidad</th>
+                <th style="padding:12px;text-align:left;">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for l in lotes %}
+            <tr>
+                <td style="padding:12px;font-weight:700;">{{ l.nombre_comercial }}</td>
+                <td style="padding:12px;font-family:var(--fuente-codigo);">{{ l.lote_proveedor }}</td>
+                <td style="padding:12px;">{{ l.cantidad_piezas_actual }}</td>
+                <td style="padding:12px;">{{ l.fecha_caducidad or '—' }}</td>
+                <td style="padding:12px;">
+                    {% if l.alerta_caducidad %}
+                    <span class="status-pill" style="background:var(--color-alerta-bg);color:var(--color-alerta);">Caducidad proxima</span>
+                    {% else %}
+                    <span class="status-pill" style="background:var(--color-confirmado-bg);color:var(--color-confirmado);">Activo</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5" style="padding:24px;text-align:center;color:var(--color-texto-suave);">Sin lotes activos</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

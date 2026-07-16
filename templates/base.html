@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Doko{% endblock %}</title>
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/img/doko-icon-192.png">
+    <link rel="apple-touch-icon" href="/static/img/doko-icon-192.png">
+    <meta name="theme-color" content="#163661">
+    {% if session.tipo == 'interno' %}
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Doko">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    {% endif %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/main.css?v=20260711-roles-v1">
+    <link rel="stylesheet" href="/static/css/responsive.css?v=20260711-roles-v1">
+    {% if session.tipo == 'interno' %}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {% endif %}
+    {% block head %}{% endblock %}
+</head>
+<body class="app-shell">
+    <button class="mobile-menu-btn" type="button" onclick="document.body.classList.toggle('nav-open')">Men&uacute;</button>
+    <div class="nav-backdrop" onclick="document.body.classList.remove('nav-open')"></div>
+    <script>
+        (function() {
+            try {
+                if (window.matchMedia('(min-width: 901px)').matches && localStorage.getItem('doko_admin_sidebar_collapsed') === '1') {
+                    document.body.classList.add('sidebar-collapsed');
+                }
+            } catch (error) {}
+        })();
+    </script>
+
+    <aside class="sidebar">
+        <div class="brand-lockup">
+            <img src="/static/img/logo-pwa.svg" alt="Doko" class="brand-logo">
+            <div>
+                <strong>Doko</strong>
+                <span>Centro operativo</span>
+            </div>
+        </div>
+        {% if session.tipo == 'interno' and session.rol == 'admin' %}
+        <button class="sidebar-toggle" type="button" aria-label="Contraer o expandir menu" title="Contraer o expandir">
+            <span class="sidebar-toggle-icon">&lt;</span>
+            <span class="sidebar-toggle-text">Contraer</span>
+        </button>
+        {% endif %}
+
+        <nav class="nav-stack nav-stack-modules" aria-label="Navegaci&oacute;n principal de Mi Centro">
+            {% if session.tipo == 'interno' %}
+                {% if session.rol == 'admin' %}
+                    <a href="/admin" class="nav-link" title="Inicio" data-short="IN" data-module-root="/admin">Inicio</a>
+                    <a href="/admin/doctores" class="nav-link" title="M&eacute;dicos" data-short="MD" data-module-root="/admin/doctores">M&eacute;dicos</a>
+                    <a href="/admin/presencia-digital" class="nav-link" title="Presencia digital / doko.lat" data-short="PD" data-module-root="/admin/presencia-digital">Presencia digital / doko.lat</a>
+                    <a href="/admin/catalogo" class="nav-link" title="Doko Suffy" data-short="SF" data-module-root="/admin/catalogo,/admin/pedidos,/admin/proveedores,/admin/suffy">Doko Suffy</a>
+                    <a href="/bodega/pedidos" class="nav-link" title="Bodega e inventario" data-short="BG" data-module-root="/bodega,/admin/inventario">Bodega e inventario</a>
+                    <a href="/reparto/mis_pedidos" class="nav-link" title="Reparto" data-short="RP" data-module-root="/reparto">Reparto</a>
+                    <a href="/admin/facturas" class="nav-link" title="Administraci&oacute;n" data-short="AD" data-module-root="/admin/facturas,/admin/contabilidad,/admin/usuarios,/admin/administracion">Administraci&oacute;n</a>
+                    <a href="/admin/supervisor" class="nav-link" title="Sistema" data-short="SI" data-module-root="/admin/supervisor,/admin/auditoria,/admin/agentes,/admin/uso-ia">Sistema</a>
+                {% elif session.rol == 'bodeguero' %}
+                    <div class="nav-group">
+                        <span class="nav-group-label">Bodega</span>
+                        <a href="/bodega/inventario" class="nav-link">Inventario</a>
+                        <a href="/bodega/pedidos" class="nav-link">Preparar pedidos</a>
+                        <a href="/bodega/movimientos" class="nav-link">Movimientos</a>
+                    </div>
+                {% elif session.rol == 'repartidor' %}
+                    <div class="nav-group">
+                        <span class="nav-group-label">Reparto</span>
+                        <a href="/reparto/mis_pedidos" class="nav-link">Mis rutas</a>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="/logout" class="nav-link danger" data-short="SA">Cerrar sesi&oacute;n</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Doko</p>
+                <h1>{% block page_title %}Centro de Mando{% endblock %}</h1>
+            </div>
+            <div class="topbar-pill">Operaci&oacute;n Doko</div>
+        </header>
+
+        {% if session.tipo == 'interno' and session.rol == 'admin' %}
+        {% set current_path = request.path %}
+        {% if current_path == '/admin' %}
+        <section class="admin-module-context">
+            <div><strong>Inicio operativo</strong><span>Estado, prioridades y acceso a cada &aacute;rea de Doko.</span></div>
+        </section>
+        {% elif current_path.startswith('/admin/doctores') %}
+        <section class="admin-module-context">
+            <div><strong>M&eacute;dicos</strong><span>Perfiles, actividad mensual y pol&iacute;ticas de confirmaci&oacute;n.</span></div>
+            <nav class="admin-module-tabs" aria-label="Acciones de M&eacute;dicos">
+                <a href="/admin/doctores">Doctores</a>
+                <a href="/admin/doctores#rendimiento">Rendimiento</a>
+                <a href="/admin/doctores/implementacion">Implementaci&oacute;n</a>
+            </nav>
+        </section>
+        {% elif current_path.startswith('/admin/presencia-digital') %}
+        <section class="admin-module-context presence-module-context">
+        <div><strong>Presencia digital / doko.lat</strong><span>Sitios m&eacute;dicos, contenido p&uacute;blico, SEO y resultados.</span></div>
+        <nav class="admin-module-tabs" aria-label="Acciones de Presencia Digital">
+            <a class="presence-admin-action" href="/admin/presencia-digital">Administrar p&aacute;ginas</a>
+            <a class="presence-admin-action" href="/admin/presencia-digital#pd-directorio-local">Tarjetas en doko.lat</a>
+            <a class="presence-admin-action" href="/admin/presencia-digital/seo-local">Especialidades y SEO local</a>
+            <a class="presence-external-action" href="/" target="_blank" rel="noopener">Ver doko.lat &#8599;</a>
+            <a class="presence-external-action" href="/sitemap.xml" target="_blank" rel="noopener">Abrir sitemap &#8599;</a>
+        </nav></section>
+        {% elif current_path.startswith('/admin/catalogo') or current_path.startswith('/admin/pedidos') or current_path.startswith('/admin/proveedores') or current_path.startswith('/admin/suffy') %}
+        <section class="admin-module-context">
+        <div><strong>Doko Suffy</strong><span>Cat&aacute;logo B2B, pedidos, proveedores y oportunidades comerciales.</span></div>
+        <nav class="admin-module-tabs" aria-label="Acciones de Doko Suffy">
+            <a href="/admin/catalogo">Cat&aacute;logo</a>
+            <a href="/admin/pedidos">Pedidos</a>
+            <a href="/admin/proveedores">Proveedores</a>
+            <a href="/admin/suffy/comercial">Comercial</a>
+        </nav></section>
+        {% elif current_path.startswith('/bodega') or current_path.startswith('/admin/inventario') %}
+        <section class="admin-module-context">
+        <div><strong>Bodega e inventario</strong><span>Preparaci&oacute;n, existencias, movimientos, compras y reparto.</span></div>
+        <nav class="admin-module-tabs" aria-label="Acciones de Bodega e Inventario">
+            <a href="/bodega/pedidos">Preparar pedidos</a>
+            <a href="/bodega/inventario">Inventario</a>
+            <a href="/bodega/movimientos">Movimientos</a>
+            <a href="/admin/inventario/compras">Compras</a>
+        </nav></section>
+        {% elif current_path.startswith('/reparto') %}
+        <section class="admin-module-context">
+        <div><strong>Reparto</strong><span>Entregas asignadas, evidencia, rutas y cierre de pedidos en campo.</span></div>
+        <nav class="admin-module-tabs" aria-label="Acciones de Reparto">
+            <a href="/reparto/mis_pedidos">Mis rutas</a>
+            <a href="/admin/pedidos">Pedidos Suffy</a>
+        </nav></section>
+        {% elif current_path.startswith('/admin/facturas') or current_path.startswith('/admin/contabilidad') or current_path.startswith('/admin/usuarios') or current_path.startswith('/admin/administracion') %}
+        <section class="admin-module-context">
+        <div><strong>Administraci&oacute;n</strong><span>Entradas, contabilidad, accesos y lectura financiera.</span></div>
+        <nav class="admin-module-tabs" aria-label="Acciones de Administraci&oacute;n">
+            <a href="/admin/facturas">Facturas</a>
+            <a href="/admin/contabilidad">Contabilidad</a>
+            <a href="/admin/usuarios">Usuarios y accesos</a>
+            <a href="/admin/administracion/finanzas">Finanzas</a>
+        </nav></section>
+        {% elif current_path.startswith('/admin/supervisor') or current_path.startswith('/admin/auditoria') or current_path.startswith('/admin/agentes') or current_path.startswith('/admin/uso-ia') %}
+        <section class="admin-module-context">
+        <div><strong>Sistema</strong><span>Salud de Doko, jobs, Google, correo y auditor&iacute;a.</span></div>
+        <nav class="admin-module-tabs" aria-label="Acciones de Sistema">
+            <a href="/admin/supervisor">Supervisor</a>
+            <a href="/admin/auditoria">Auditor&iacute;a</a>
+            <a href="/admin/uso-ia">Uso de IA</a>
+        </nav></section>
+        {% endif %}
+        {% endif %}
+
+        <section class="content-surface">
+            {% block contenido %}{% block content %}{% endblock %}{% endblock %}
+        </section>
+
+        <footer class="legal-footer">
+            <span>Doko</span>
+            <span>Powered by KB-Tech</span>
+            <a href="/privacidad">Pol&iacute;tica de Privacidad</a>
+            <a href="/terminos">T&eacute;rminos y Condiciones</a>
+        </footer>
+    </main>
+
+    <div id="doko-notifications" class="doko-notifications" aria-live="polite" aria-atomic="true"></div>
+    <div id="doko-confirm-dialog" class="doko-confirm-backdrop" hidden>
+        <div class="doko-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="doko-confirm-title" aria-describedby="doko-confirm-message">
+            <p class="doko-confirm-kicker">Doko</p>
+            <h2 id="doko-confirm-title">Confirmar acci&oacute;n</h2>
+            <p id="doko-confirm-message"></p>
+            <div class="doko-confirm-actions">
+                <button type="button" class="doko-confirm-cancel" id="doko-confirm-cancel">Cancelar</button>
+                <button type="button" class="doko-confirm-accept" id="doko-confirm-accept">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const tokenEl = document.querySelector('meta[name="csrf-token"]');
+            const token = tokenEl ? tokenEl.content : '';
+            if (!token || window.__dokoCsrfFetch) return;
+            window.__dokoCsrfFetch = true;
+            const originalFetch = window.fetch;
+            window.fetch = function(input, init) {
+                const method = String((init && init.method) || (input instanceof Request ? input.method : 'GET') || 'GET').toUpperCase();
+                const url = typeof input === 'string' ? input : ((input && input.url) || '');
+                const sameOrigin = !/^https?:\/\//i.test(url) || url.startsWith(window.location.origin);
+                if (sameOrigin && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+                    init = init || {};
+                    const headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
+                    if (!headers.has('X-CSRF-Token')) headers.set('X-CSRF-Token', token);
+                    init.headers = headers;
+                }
+                return originalFetch(input, init);
+            };
+        })();
+        window.dokoNotificar = function(mensaje, tipo = 'info') {
+            const contenedor = document.getElementById('doko-notifications');
+            if (!contenedor || !mensaje) return;
+            const aviso = document.createElement('div');
+            aviso.className = `doko-notification doko-notification-${tipo}`;
+            const texto = document.createElement('span');
+            texto.textContent = String(mensaje);
+            const cerrar = document.createElement('button');
+            cerrar.type = 'button';
+            cerrar.className = 'doko-notification-close';
+            cerrar.setAttribute('aria-label', 'Cerrar notificacion');
+            cerrar.textContent = 'x';
+            cerrar.addEventListener('click', () => aviso.remove());
+            aviso.append(texto, cerrar);
+            contenedor.appendChild(aviso);
+            window.setTimeout(() => aviso.remove(), 5200);
+        };
+        window.alert = function(mensaje) {
+            window.dokoNotificar(mensaje, 'info');
+        };
+        window.dokoConfirmar = function(mensaje, opciones = {}) {
+            const fondo = document.getElementById('doko-confirm-dialog');
+            const titulo = document.getElementById('doko-confirm-title');
+            const detalle = document.getElementById('doko-confirm-message');
+            const aceptar = document.getElementById('doko-confirm-accept');
+            const cancelar = document.getElementById('doko-confirm-cancel');
+            if (!fondo || !titulo || !detalle || !aceptar || !cancelar) {
+                return Promise.resolve(false);
+            }
+
+            titulo.textContent = opciones.titulo || 'Confirmar accion';
+            detalle.textContent = String(mensaje || 'Deseas continuar?');
+            aceptar.textContent = opciones.textoConfirmar || 'Confirmar';
+            fondo.hidden = false;
+            cancelar.focus();
+
+            return new Promise((resolver) => {
+                const cerrar = (resultado) => {
+                    fondo.hidden = true;
+                    aceptar.removeEventListener('click', aceptarAccion);
+                    cancelar.removeEventListener('click', cancelarAccion);
+                    fondo.removeEventListener('click', cerrarFondo);
+                    document.removeEventListener('keydown', cerrarEscape);
+                    resolver(resultado);
+                };
+                const aceptarAccion = () => cerrar(true);
+                const cancelarAccion = () => cerrar(false);
+                const cerrarFondo = (evento) => {
+                    if (evento.target === fondo) cerrar(false);
+                };
+                const cerrarEscape = (evento) => {
+                    if (evento.key === 'Escape') cerrar(false);
+                };
+                aceptar.addEventListener('click', aceptarAccion);
+                cancelar.addEventListener('click', cancelarAccion);
+                fondo.addEventListener('click', cerrarFondo);
+                document.addEventListener('keydown', cerrarEscape);
+            });
+        };
+        (function() {
+            const toggle = document.querySelector('.sidebar-toggle');
+            const toggleText = document.querySelector('.sidebar-toggle-text');
+            const syncSidebarLabel = () => {
+                const collapsed = document.body.classList.contains('sidebar-collapsed');
+                if (toggleText) toggleText.textContent = collapsed ? 'Expandir' : 'Contraer';
+                if (toggle) toggle.setAttribute('aria-expanded', String(!collapsed));
+            };
+            if (toggle) {
+                syncSidebarLabel();
+                toggle.addEventListener('click', () => {
+                    if (window.matchMedia('(max-width: 900px)').matches) return;
+                    const collapsed = document.body.classList.toggle('sidebar-collapsed');
+                    try { localStorage.setItem('doko_admin_sidebar_collapsed', collapsed ? '1' : '0'); } catch (error) {}
+                    syncSidebarLabel();
+                });
+                window.addEventListener('resize', () => {
+                    if (window.matchMedia('(max-width: 900px)').matches) document.body.classList.remove('sidebar-collapsed');
+                    else {
+                        try {
+                            if (localStorage.getItem('doko_admin_sidebar_collapsed') === '1') document.body.classList.add('sidebar-collapsed');
+                        } catch (error) {}
+                    }
+                    syncSidebarLabel();
+                });
+            }
+
+            const path = window.location.pathname;
+            let best = null;
+            document.querySelectorAll('.nav-link').forEach((link) => {
+                const href = link.getAttribute('href') || '';
+                const exact = href === path;
+                const nested = href !== '/' && href !== '/admin' && path.startsWith(href + '/');
+                if (exact || nested) {
+                    if (!best || href.length > (best.getAttribute('href') || '').length) best = link;
+                }
+            });
+            document.querySelectorAll('.nav-link[data-module-root]').forEach((link) => {
+                const roots = (link.dataset.moduleRoot || '').split(',').map((item) => item.trim()).filter(Boolean);
+                const isModule = roots.some((root) => root === '/admin' ? path === '/admin' : (path === root || path.startsWith(root + '/') || path.startsWith(root)));
+                if (isModule) link.classList.add('active');
+            });
+            if (best && !document.querySelector('.nav-link.active')) best.classList.add('active');
+            document.querySelectorAll('.admin-module-tabs a').forEach((link) => {
+                const href = link.getAttribute('href') || '';
+                if (href === path || (href !== '/' && path.startsWith(href + '/'))) link.classList.add('active');
+            });
+        })();
+    </script>
+    {% block scripts %}{% endblock %}
+    {% if session.tipo == 'interno' %}
+    <script src="/static/js/pwa_experience.js?v=20260711-roles-v1"></script>
+    {% endif %}
+</body>
+</html>

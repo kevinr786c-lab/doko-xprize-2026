@@ -1,0 +1,11 @@
+-- Avisos operativos por doctora para portal/chatbot/presencia digital.
+
+ALTER TABLE DOCTORES
+    ADD COLUMN IF NOT EXISTS aviso_consultorio TEXT,
+    ADD COLUMN IF NOT EXISTS aviso_activo BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE FAQ_CHATBOT
+    ADD COLUMN IF NOT EXISTS visible_en_pagina BOOLEAN NOT NULL DEFAULT TRUE,
+    ADD COLUMN IF NOT EXISTS visible_en_chatbot BOOLEAN NOT NULL DEFAULT TRUE,
+    ADD COLUMN IF NOT EXISTS categoria TEXT DEFAULT 'GENERAL';
+

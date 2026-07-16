@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}Doko | Cat&aacute;logo Suffy{% endblock %}
+{% block page_title %}Cat&aacute;logo Suffy{% endblock %}
+{% block contenido %}
+<style>
+    #form-producto label:has(input[name="marca"]),
+    #form-producto label:has(input[name="unidad_venta"]),
+    #form-producto label:has(textarea[name="caracteristicas"]) {
+        display: none;
+    }
+    .catalogo-table th:nth-child(3),
+    .catalogo-table td:nth-child(3) {
+        display: none;
+    }
+    .catalogo-actions {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .catalogo-actions button,
+    .catalogo-actions label {
+        border: none;
+        border-radius: var(--radio-btn);
+        cursor: pointer;
+        font-size: 0.85em;
+        font-weight: 700;
+        padding: 7px 12px;
+    }
+    .btn-foto-producto {
+        background: var(--color-primario-suave);
+        color: var(--color-primario);
+    }
+    .btn-desactivar-producto {
+        background: var(--color-cancelado-bg);
+        color: var(--color-cancelado);
+    }
+</style>
+
+<section class="admin-page-toolbar">
+    <div>
+        <p class="admin-page-kicker">Doko Suffy</p>
+        <h2>Catálogo de productos</h2>
+        <p>{{ productos|length }} producto{{ 's' if productos|length != 1 else '' }} para venta B2B y entrega a consultorio.</p>
+    </div>
+    <button onclick="document.getElementById('modal-producto').style.display='block';document.body.style.overflow='hidden'"
+        class="btn-primario">
+        Nuevo producto
+    </button>
+</section>
+
+<section class="admin-data-card">
+    <table class="catalogo-table" style="width:100%;border-collapse:collapse;">
+        <thead>
+            <tr style="background:var(--color-fondo-alt);border-bottom:2px solid var(--color-borde);">
+                <th style="padding:14px 16px;text-align:left;font-size:0.8em;color:var(--color-texto-suave);text-transform:uppercase;letter-spacing:0.05em;">Producto</th>
+                <th style="padding:14px 16px;text-align:left;font-size:0.8em;color:var(--color-texto-suave);text-transform:uppercase;letter-spacing:0.05em;">Precio venta</th>
+                <th style="padding:14px 16px;text-align:left;font-size:0.8em;color:var(--color-texto-suave);text-transform:uppercase;letter-spacing:0.05em;">Unidad</th>
+                <th style="padding:14px 16px;text-align:left;font-size:0.8em;color:var(--color-texto-suave);text-transform:uppercase;letter-spacing:0.05em;">Estatus</th>
+                <th style="padding:14px 16px;text-align:left;font-size:0.8em;color:var(--color-texto-suave);text-transform:uppercase;letter-spacing:0.05em;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in productos %}
+        <tr style="border-bottom:1px solid var(--color-borde);"
+            onmouseover="this.style.background='var(--color-fondo-hover)'"
+            onmouseout="this.style.background='white'">
+            <td style="padding:14px 16px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    {% if p.galeria_fotos and p.galeria_fotos[0] %}
+                    <img src="{{ p.galeria_fotos[0] }}" alt="{{ p.nombre_comercial }}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;background:var(--color-primario-suave);">
+                    {% else %}
+                    <img src="/static/img/logo-pwa.svg" alt="Doko" style="width:40px;height:40px;object-fit:cover;border-radius:8px;background:var(--color-primario-suave);">
+                    {% endif %}
+                    <div>
+                    <div style="font-weight:500;color:var(--color-texto-base);">{{ p.nombre_comercial }}</div>
+                    {% if p.marca %}<div style="font-size:0.8em;color:var(--color-texto-suave);">{{ p.marca }}</div>{% endif %}
+                    </div>
+                </div>
+            </td>
+            <td style="padding:14px 16px;font-weight:600;color:var(--color-texto-base);">${{ '%.2f'|format(p.precio_venta|float) }} MXN</td>
+            <td style="padding:14px 16px;color:var(--color-texto-medio);">{{ p.unidad_venta or '—' }}</td>
+            <td style="padding:14px 16px;">
+                <span style="padding:4px 12px;border-radius:var(--radio-badge);font-size:0.8em;font-weight:600;
+                    background:{{ 'var(--color-confirmado-bg)' if p.estatus_producto == 'activo' else 'var(--color-cancelado-bg)' }};
+                    color:{{ 'var(--color-confirmado)' if p.estatus_producto == 'activo' else 'var(--color-cancelado)' }};">
+                    {{ p.estatus_producto or 'activo' }}
+                </span>
+            </td>
+            <td style="padding:14px 16px;">
+                <div class="catalogo-actions">
+                    <label class="btn-foto-producto" for="foto-producto-{{ p.id_producto }}">Cambiar foto</label>
+                    <input id="foto-producto-{{ p.id_producto }}" type="file" accept="image/*" style="display:none;" onchange="subirFotoProducto('{{ p.id_producto }}', this)">
+                    <button class="btn-desactivar-producto" onclick="desactivarProducto('{{ p.id_producto }}')">Desactivar</button>
+                </div>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="padding:48px;text-align:center;color:var(--color-texto-suave);">
+            Sin productos en el catálogo
+        </td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<!-- MODAL NUEVO PRODUCTO -->
+<div id="modal-producto" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;overflow-y:auto;">
+    <div style="background:white;width:100%;max-width:520px;margin:40px auto;padding:32px;border-radius:var(--radio-card);box-shadow:var(--sombra-modal);position:relative;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+            <h2 style="margin:0;font-family:var(--fuente-titulo);">Nuevo producto</h2>
+            <button onclick="cerrarModalProducto()" style="background:none;border:none;font-size:1.5em;cursor:pointer;color:var(--color-texto-suave);">×</button>
+        </div>
+        <form id="form-producto" method="POST" action="/admin/catalogo">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+                <div>
+                    <label style="display:block;margin-bottom:4px;font-size:0.9em;font-weight:500;color:var(--color-texto-medio);">Nombre comercial *</label>
+                    <input name="nombre_comercial" required placeholder="Guantes de látex talla M"
+                        style="width:100%;padding:10px;border:1px solid var(--color-borde);border-radius:var(--radio-btn);box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="display:block;margin-bottom:4px;font-size:0.9em;font-weight:500;color:var(--color-texto-medio);">Marca</label>
+                    <input name="marca" placeholder="Kimberly-Clark"
+                        style="width:100%;padding:10px;border:1px solid var(--color-borde);border-radius:var(--radio-btn);box-sizing:border-box;">
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+                <div>
+                    <label style="display:block;margin-bottom:4px;font-size:0.9em;font-weight:500;color:var(--color-texto-medio);">Precio de venta (MXN) *</label>
+                    <input name="precio_venta" type="number" step="0.01" min="0" required placeholder="0.00"
+                        style="width:100%;padding:10px;border:1px solid var(--color-borde);border-radius:var(--radio-btn);box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="display:block;margin-bottom:4px;font-size:0.9em;font-weight:500;color:var(--color-texto-medio);">Unidad de venta</label>
+                    <input name="unidad_venta" placeholder="caja, pieza, paquete"
+                        style="width:100%;padding:10px;border:1px solid var(--color-borde);border-radius:var(--radio-btn);box-sizing:border-box;">
+                </div>
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block;margin-bottom:4px;font-size:0.9em;font-weight:500;color:var(--color-texto-medio);">Descripción</label>
+                <textarea name="descripcion_suffy" rows="2" placeholder="Descripción breve del producto..."
+                    style="width:100%;padding:10px;border:1px solid var(--color-borde);border-radius:var(--radio-btn);box-sizing:border-box;resize:vertical;font-family:var(--fuente-cuerpo);"></textarea>
+            </div>
+            <div style="margin-bottom:24px;">
+                <label style="display:block;margin-bottom:4px;font-size:0.9em;font-weight:500;color:var(--color-texto-medio);">Características</label>
+                <textarea name="caracteristicas" rows="2" placeholder="Estéril, hipoalergénico, etc."
+                    style="width:100%;padding:10px;border:1px solid var(--color-borde);border-radius:var(--radio-btn);box-sizing:border-box;resize:vertical;font-family:var(--fuente-cuerpo);"></textarea>
+            </div>
+            <div style="margin-bottom:24px;">
+                <label style="display:block;margin-bottom:4px;font-size:0.9em;font-weight:500;color:var(--color-texto-medio);">Foto del producto</label>
+                <input id="foto-producto" type="file" accept="image/*"
+                    style="width:100%;padding:8px;border:1px solid var(--color-borde);border-radius:var(--radio-btn);box-sizing:border-box;">
+                <p style="margin:6px 0 0;color:var(--color-texto-suave);font-size:0.82em;">Describe la presentación comercial dentro de la descripción del producto.</p>
+            </div>
+            <div id="error-producto" style="display:none;background:var(--color-cancelado-bg);color:var(--color-cancelado);padding:10px;border-radius:8px;margin-bottom:16px;font-size:0.9em;"></div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;">
+                <button type="button" onclick="cerrarModalProducto()"
+                    style="background:var(--color-fondo-alt);color:var(--color-texto-medio);border:1px solid var(--color-borde);padding:10px 20px;border-radius:var(--radio-btn);cursor:pointer;font-family:var(--fuente-titulo);font-weight:600;">Cancelar</button>
+                <button type="submit" id="btn-prod"
+                    style="background:var(--color-primario);color:white;border:none;padding:10px 24px;border-radius:var(--radio-btn);cursor:pointer;font-family:var(--fuente-titulo);font-weight:600;">Guardar producto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function cerrarModalProducto() {
+    document.getElementById('modal-producto').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('form-producto').reset();
+}
+document.getElementById('modal-producto').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalProducto();
+});
+document.getElementById('form-producto').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-prod');
+    const errDiv = document.getElementById('error-producto');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+    errDiv.style.display = 'none';
+    const body = Object.fromEntries(new FormData(e.target).entries());
+    try {
+        const res = await fetch('/admin/catalogo', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+        const data = await res.json();
+        if (data.ok) {
+            const foto = document.getElementById('foto-producto').files[0];
+            if (foto && data.id_producto) {
+                const fotoData = new FormData();
+                fotoData.append('foto', foto);
+                const fotoRes = await fetch(`/admin/catalogo/${data.id_producto}/foto`, { method: 'POST', body: fotoData });
+                const fotoJson = await fotoRes.json();
+                if (!fotoRes.ok || !fotoJson.ok) throw new Error(fotoJson.error || 'El producto se creó, pero no se pudo subir la foto.');
+            }
+            cerrarModalProducto();
+            location.reload();
+        }
+        else { errDiv.textContent = data.error || 'Error al guardar'; errDiv.style.display = 'block'; }
+    } catch { errDiv.textContent = 'Error de conexión'; errDiv.style.display = 'block'; }
+    finally { btn.disabled = false; btn.textContent = 'Guardar producto'; }
+});
+async function subirFotoProducto(id, input) {
+    const foto = input.files && input.files[0];
+    if (!foto) return;
+    const fd = new FormData();
+    fd.append('foto', foto);
+    const res = await fetch(`/admin/catalogo/${id}/foto`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.ok) location.reload();
+    else {
+        alert(data.error || 'No se pudo subir la foto.');
+        input.value = '';
+    }
+}
+async function desactivarProducto(id) {
+    if (!await dokoConfirmar('¿Desactivar este producto? Ya no aparecerá en la tienda.', {
+        titulo: 'Desactivar producto',
+        textoConfirmar: 'Desactivar'
+    })) return;
+    const res = await fetch(`/admin/catalogo/${id}`, { method:'DELETE' });
+    const data = await res.json();
+    if (data.ok) location.reload();
+    else alert('Error: ' + (data.error || 'No se pudo desactivar'));
+}
+</script>
+{% endblock %}

@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% block title %}Doko | Facturas{% endblock %}
+{% block page_title %}Facturas{% endblock %}
+{% block contenido %}
+<section class="admin-page-toolbar">
+    <div>
+        <p class="admin-page-kicker">Administraci&oacute;n</p>
+        <h2>Facturas de compra</h2>
+        <p>Registra entradas de insumos. Cada rengl&oacute;n crea stock real en lotes de inventario.</p>
+    </div>
+    <button type="button" class="btn-primario" onclick="abrirFactura()">Registrar factura</button>
+</section>
+
+<section class="admin-summary-grid">
+    <article class="admin-work-card invoice-summary-card">
+        <span>Facturas registradas</span>
+        <strong>{{ facturas|length }}</strong>
+    </article>
+    <article class="admin-work-card invoice-summary-card">
+        <span>Proveedores disponibles</span>
+        <strong>{{ proveedores|length }}</strong>
+    </article>
+    <article class="admin-work-card invoice-summary-card">
+        <span>Cat&aacute;logo para entradas</span>
+        <strong>{{ productos|length }}</strong>
+    </article>
+</section>
+
+<section class="admin-data-card invoice-table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Folio</th>
+                <th>Proveedor</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Detalle</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for f in facturas %}
+            <tr>
+                <td><strong>{{ f.folio_factura }}</strong></td>
+                <td>{{ f.nombre_fiscal }}</td>
+                <td>{{ f.fecha_factura }}</td>
+                <td><strong>${{ f.total }}</strong></td>
+                <td><button type="button" class="btn-secundario btn-mini" onclick="verDetalleFactura('{{ f.id_factura }}', '{{ f.folio_factura }}')">Ver insumos</button></td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5"><div class="admin-empty-state">Sin facturas registradas.</div></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<div id="modal-detalle-factura" class="admin-modal-backdrop" style="display:none;">
+    <section class="admin-modal-card admin-modal-card-wide">
+        <div class="admin-modal-head">
+            <div>
+                <p class="admin-page-kicker">Detalle de compra</p>
+                <h2 id="detalle-factura-titulo">Factura</h2>
+            </div>
+            <button type="button" class="admin-modal-close" onclick="cerrarDetalleFactura()" aria-label="Cerrar">&times;</button>
+        </div>
+        <div id="detalle-factura-contenido" class="invoice-detail-list">Cargando insumos...</div>
+    </section>
+</div>
+
+<div id="modal-factura" class="admin-modal-backdrop" style="display:none;">
+    <section class="admin-modal-card admin-modal-card-xl">
+        <div class="admin-modal-head">
+            <div>
+                <p class="admin-page-kicker">Nueva entrada</p>
+                <h2>Nueva factura</h2>
+            </div>
+            <button type="button" class="admin-modal-close" onclick="cerrarFactura()" aria-label="Cerrar">&times;</button>
+        </div>
+
+        <form id="form-factura" method="POST" action="/admin/facturas" class="invoice-form">
+            <div class="invoice-form-grid">
+                <label>Proveedor
+                    <select name="id_proveedor" required>
+                        <option value="">Seleccionar proveedor</option>
+                        {% for prov in proveedores %}
+                            <option value="{{ prov.id_provider }}">{{ prov.nombre_fiscal }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>Folio
+                    <input name="folio_factura" required>
+                </label>
+                <label>Fecha
+                    <input name="fecha_factura" type="date" required>
+                </label>
+                <label>Subtotal
+                    <input name="subtotal" type="number" step="0.01" min="0" id="fac_subtotal" required>
+                </label>
+                <label>IVA
+                    <input name="iva" type="number" step="0.01" min="0" id="fac_iva" value="0">
+                </label>
+                <label>Total
+                    <input name="total" type="number" step="0.01" min="0" id="fac_total" required>
+                </label>
+            </div>
+
+            <label class="invoice-notes">Notas
+                <textarea name="notas" rows="2"></textarea>
+            </label>
+
+            <div class="invoice-lines-head">
+                <div>
+                    <p class="admin-page-kicker">Stock</p>
+                    <h3>Renglones de insumos</h3>
+                </div>
+                <button type="button" class="btn-secundario" onclick="agregarRenglon()">Agregar rengl&oacute;n</button>
+            </div>
+
+            <div id="renglones-factura" class="invoice-lines"></div>
+            <div id="error-factura" class="invoice-error" style="display:none;"></div>
+
+            <div class="admin-modal-actions">
+                <button type="button" class="btn-secundario" onclick="cerrarFactura()">Cancelar</button>
+                <button type="submit" id="btn-factura" class="btn-primario">Registrar factura y stock</button>
+            </div>
+        </form>
+    </section>
+</div>
+
+<template id="tpl-renglon">
+    <div class="renglon-factura invoice-line-card">
+        <div class="invoice-line-head">
+            <strong>Insumo comprado</strong>
+            <button type="button" onclick="quitarRenglon(this)" class="btn-line-remove">Quitar</button>
+        </div>
+        <div class="invoice-form-grid">
+            <label>Producto existente
+                <select data-field="id_producto" onchange="toggleProductoNuevo(this)">
+                    <option value="">Crear producto nuevo</option>
+                    {% for producto in productos %}
+                        <option value="{{ producto.id_producto }}">{{ producto.nombre_comercial }} - ${{ producto.precio_venta }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Nombre comercial nuevo
+                <input data-field="nombre_comercial" placeholder="Si no seleccionaste producto">
+            </label>
+            <label>Descripci&oacute;n
+                <input data-field="descripcion" placeholder="Opcional para producto nuevo">
+            </label>
+            <label>Precio venta nuevo
+                <input data-field="precio_venta" type="number" step="0.01" min="0" placeholder="0.00">
+            </label>
+            <label>Lote proveedor
+                <input data-field="lote_proveedor" required>
+            </label>
+            <label>Fecha caducidad
+                <input data-field="fecha_caducidad" type="date" required>
+            </label>
+            <label>Cantidad presentaciones
+                <input data-field="cantidad_presentaciones" type="number" min="1" step="1" required>
+            </label>
+            <label>Tipo presentaci&oacute;n
+                <select data-field="tipo_presentacion" required>
+                    <option value="pieza">pieza</option>
+                    <option value="caja">caja</option>
+                    <option value="paquete">paquete</option>
+                    <option value="bolsa">bolsa</option>
+                    <option value="kit">kit</option>
+                </select>
+            </label>
+            <label>Piezas por presentaci&oacute;n
+                <input data-field="piezas_por_presentacion" type="number" min="1" step="1" value="1" required>
+            </label>
+            <label>Precio compra presentaci&oacute;n
+                <input data-field="precio_compra_presentacion" type="number" min="0" step="0.01" required>
+            </label>
+        </div>
+    </div>
+</template>
+
+<script>
+function cerrarDetalleFactura() {
+    document.getElementById('modal-detalle-factura').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+async function verDetalleFactura(idFactura, folio) {
+    const modal = document.getElementById('modal-detalle-factura');
+    const contenido = document.getElementById('detalle-factura-contenido');
+    document.getElementById('detalle-factura-titulo').textContent = `Factura ${folio}`;
+    contenido.textContent = 'Cargando insumos...';
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    try {
+        const res = await fetch(`/admin/facturas/${idFactura}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error('No se pudo cargar el detalle.');
+        const movimientos = data.movimientos || [];
+        if (!movimientos.length) {
+            contenido.textContent = 'No hay movimientos de inventario vinculados a esta factura.';
+            return;
+        }
+        contenido.innerHTML = movimientos.map(m => `
+            <article class="invoice-detail-item">
+                <strong>${m.nombre_comercial || 'Insumo'}</strong>
+                <div>
+                    <span><b>Lote:</b> ${m.lote_proveedor || 'Sin lote'}</span>
+                    <span><b>Caducidad:</b> ${m.fecha_caducidad || 'No registrada'}</span>
+                    <span><b>Entrada:</b> ${m.cantidad || 0} piezas</span>
+                    <span><b>Costo por pieza:</b> $${Number(m.precio_compra || 0).toFixed(2)}</span>
+                </div>
+                <p>${m.detalle || 'Entrada por factura de compra'}</p>
+            </article>
+        `).join('');
+    } catch (err) {
+        contenido.textContent = err.message || 'No se pudo cargar el detalle.';
+    }
+}
+
+function abrirFactura() {
+    document.getElementById('modal-factura').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    if (!document.querySelector('.renglon-factura')) agregarRenglon();
+}
+
+function cerrarFactura() {
+    document.getElementById('modal-factura').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('form-factura').reset();
+    document.getElementById('renglones-factura').innerHTML = '';
+    document.getElementById('error-factura').style.display = 'none';
+}
+
+function agregarRenglon() {
+    const tpl = document.getElementById('tpl-renglon');
+    document.getElementById('renglones-factura').appendChild(tpl.content.cloneNode(true));
+}
+
+function quitarRenglon(btn) {
+    btn.closest('.renglon-factura').remove();
+}
+
+function toggleProductoNuevo(select) {
+    const card = select.closest('.renglon-factura');
+    const creandoNuevo = !select.value;
+    ['nombre_comercial', 'descripcion', 'precio_venta'].forEach(field => {
+        const input = card.querySelector(`[data-field="${field}"]`);
+        input.disabled = !creandoNuevo;
+        input.style.opacity = creandoNuevo ? '1' : '0.55';
+    });
+}
+
+['fac_subtotal','fac_iva'].forEach(id => document.getElementById(id).addEventListener('input', () => {
+    const s = parseFloat(document.getElementById('fac_subtotal').value) || 0;
+    const i = parseFloat(document.getElementById('fac_iva').value) || 0;
+    document.getElementById('fac_total').value = (s + i).toFixed(2);
+}));
+
+document.getElementById('form-factura').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-factura');
+    const err = document.getElementById('error-factura');
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    body.renglones = [...document.querySelectorAll('.renglon-factura')].map(card => {
+        const renglon = {};
+        card.querySelectorAll('[data-field]').forEach(input => {
+            renglon[input.dataset.field] = input.disabled ? '' : input.value;
+        });
+        return renglon;
+    });
+
+    btn.disabled = true;
+    btn.textContent = 'Registrando...';
+    err.style.display = 'none';
+
+    try {
+        const res = await fetch('/admin/facturas', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+            err.textContent = data.error || 'No se pudo registrar la factura';
+            err.style.display = 'block';
+            return;
+        }
+        location.reload();
+    } catch {
+        err.textContent = 'Error de conexion';
+        err.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Registrar factura y stock';
+    }
+});
+</script>
+
+<style>
+.invoice-summary-card{display:grid;gap:5px}.invoice-summary-card span{color:var(--color-texto-suave);font-size:.84rem}.invoice-summary-card strong{font-family:var(--fuente-titulo);font-size:1.65rem}.invoice-table-card{margin-bottom:18px}.btn-mini{padding:7px 10px}.admin-modal-backdrop{background:rgba(17,24,39,.46);inset:0;overflow-y:auto;position:fixed;z-index:1000}.admin-modal-card{background:#fff;border:1px solid var(--color-borde);border-radius:18px;box-shadow:var(--sombra-modal);margin:32px auto;padding:26px;width:min(720px,calc(100% - 28px))}.admin-modal-card-wide{width:min(900px,calc(100% - 28px))}.admin-modal-card-xl{width:min(1100px,calc(100% - 28px))}.admin-modal-head{align-items:center;display:flex;gap:16px;justify-content:space-between;margin-bottom:18px}.admin-modal-head h2{margin:2px 0 0}.admin-modal-close{background:#fff;border:1px solid var(--color-borde);border-radius:999px;cursor:pointer;font-size:1.45rem;height:38px;line-height:1;width:38px}.invoice-form{display:grid;gap:16px}.invoice-form-grid{display:grid;gap:13px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}.invoice-form label,.invoice-notes{color:var(--color-texto-medio);font-size:.88rem;font-weight:750}.invoice-form input,.invoice-form select,.invoice-form textarea{margin-top:5px;padding:10px;width:100%}.invoice-notes{display:block}.invoice-lines-head,.invoice-line-head,.admin-modal-actions{align-items:center;display:flex;gap:12px;justify-content:space-between}.invoice-lines-head h3{margin:2px 0 0}.invoice-lines{display:grid;gap:13px}.invoice-line-card{background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:14px;padding:14px}.btn-line-remove{background:var(--color-cancelado-bg);border:0;border-radius:999px;color:var(--color-cancelado);cursor:pointer;font-weight:800;padding:7px 11px}.invoice-error{background:var(--color-cancelado-bg);border-radius:10px;color:var(--color-cancelado);padding:11px}.invoice-detail-list{color:var(--color-texto-suave);display:grid;gap:10px}.invoice-detail-item{background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:12px;padding:14px}.invoice-detail-item strong{color:var(--color-texto-base);display:block}.invoice-detail-item div{display:grid;font-size:.9rem;gap:8px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-top:10px}.invoice-detail-item p{margin:10px 0 0}@media(max-width:720px){.admin-modal-actions,.invoice-lines-head,.invoice-line-head{align-items:stretch;flex-direction:column}.admin-modal-actions>*{width:100%}}
+</style>
+{% endblock %}

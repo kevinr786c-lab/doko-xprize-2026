@@ -1,0 +1,345 @@
+﻿
+   ðŸ”¹ [TABLA]: AUDITORIA_SEGURIDAD
+      â–«ï¸ id_auditoria         | uuid            | NOT NULL
+      â–«ï¸ fecha_evento         | timestamp without time zone | NULL
+      â–«ï¸ tipo_evento          | text            | NOT NULL
+      â–«ï¸ actor                | text            | NULL
+      â–«ï¸ rol_actor            | text            | NULL
+      â–«ï¸ detalle              | jsonb           | NULL
+      â–«ï¸ ip_origen            | text            | NULL
+
+   ðŸ”¹ [TABLA]: CAT_PRODUCTOS_MAESTRO
+      â–«ï¸ id_producto          | uuid            | NOT NULL
+      â–«ï¸ nombre_comercial     | text            | NOT NULL
+      â–«ï¸ descripcion          | text            | NULL
+      â–«ï¸ precio_venta         | numeric         | NOT NULL
+      â–«ï¸ galeria_fotos        | jsonb           | NULL
+      â–«ï¸ estatus_producto     | text            | NULL
+      â–«ï¸ fecha_creacion       | timestamp without time zone | NULL
+
+   ðŸ”¹ [TABLA]: CAT_SERVICIOS_CONSULTORIO
+      â–«ï¸ id_servicio          | uuid            | NOT NULL
+      â–«ï¸ correo_doctor        | text            | NULL
+      â–«ï¸ nombre_servicio      | text            | NOT NULL
+      â–«ï¸ precio               | numeric         | NULL
+      â–«ï¸ tipo_precio          | text            | NOT NULL DEFAULT precio_fijo
+      â–«ï¸ descripcion          | text            | NULL
+      â–«ï¸ activo               | boolean         | NULL
+
+   ðŸ”¹ [TABLA]: CONTABILIDAD_ADMIN
+      â–«ï¸ id_registro          | uuid            | NOT NULL
+      â–«ï¸ tipo                 | text            | NOT NULL
+      â–«ï¸ concepto             | text            | NOT NULL
+      â–«ï¸ monto                | numeric         | NOT NULL
+      â–«ï¸ moneda               | text            | NULL
+      â–«ï¸ archivo_url          | text            | NULL
+      â–«ï¸ fecha_documento      | date            | NULL
+      â–«ï¸ fecha_registro       | timestamp without time zone | NULL
+
+   ðŸ”¹ [TABLA]: DETALLE_VENTA_LOTES
+      â–«ï¸ id_detalle           | uuid            | NOT NULL
+      â–«ï¸ id_pedido            | uuid            | NULL
+      â–«ï¸ id_producto          | uuid            | NULL
+      â–«ï¸ id_lote              | uuid            | NULL
+      â–«ï¸ cantidad             | integer         | NOT NULL
+      â–«ï¸ precio_unitario      | numeric         | NOT NULL
+
+   ðŸ”¹ [TABLA]: DOCTORES
+      â–«ï¸ correo_doctor        | text            | NOT NULL
+      â–«ï¸ nombre_doctor        | text            | NOT NULL
+      â–«ï¸ especialidad         | text            | NULL
+      â–«ï¸ telefono_consultorio | text            | NULL
+      â–«ï¸ id_publico           | text            | NULL
+      â–«ï¸ onboarding_completo  | boolean         | NULL
+      â–«ï¸ foto_perfil_url      | text            | NULL
+      â–«ï¸ calendar_booking_url | text            | NULL
+      â–«ï¸ direccion_consultorio | text            | NULL
+      â–«ï¸ maps_url             | text            | NULL
+      â–«ï¸ aseguradoras_aceptadas | text            | NULL
+      â–«ï¸ metodos_pago_aceptados | text            | NULL
+      â–«ï¸ horarios_atencion      | text            | NULL
+      â–«ï¸ modo_confirmacion      | text            | NOT NULL DEFAULT manual
+      â–«ï¸ color_tema             | text            | NOT NULL DEFAULT marino
+      â–«ï¸ activo               | boolean         | NULL
+      â–«ï¸ fecha_registro       | timestamp without time zone | NULL
+      â–«ï¸ confirmacion_enviada_en | timestamp without time zone | NULL
+      â–«ï¸ confirmacion_error_en | timestamp without time zone | NULL
+      â–«ï¸ confirmacion_error_motivo | text          | NULL
+      â–«ï¸ recordatorio_manana_enviado_en | timestamp without time zone | NULL
+      â–«ï¸ recordatorio_tarde_enviado_en | timestamp without time zone | NULL
+      â–«ï¸ cancelacion_automatica_en | timestamp without time zone | NULL
+      â–«ï¸ motivo_cancelacion   | text            | NULL
+
+   ðŸ”¹ [TABLA]: FACTURAS_COMPRA
+      â–«ï¸ id_factura           | uuid            | NOT NULL
+      â–«ï¸ id_proveedor         | uuid            | NOT NULL
+      â–«ï¸ folio_factura        | text            | NOT NULL
+      â–«ï¸ fecha_factura        | date            | NOT NULL
+      â–«ï¸ subtotal             | numeric         | NOT NULL
+      â–«ï¸ iva                  | numeric         | NOT NULL
+      â–«ï¸ total                | numeric         | NOT NULL
+      â–«ï¸ notas                | text            | NULL
+      â–«ï¸ capturada_por        | text            | NOT NULL
+      â–«ï¸ fecha_registro       | timestamp without time zone | NULL
+
+   ðŸ”¹ [TABLA]: FAQ_CHATBOT
+      â–«ï¸ id_faq               | uuid            | NOT NULL
+      â–«ï¸ id_doctor_app        | character varying | NULL
+      â–«ï¸ palabras_clave       | text            | NOT NULL
+      â–«ï¸ respuesta            | text            | NOT NULL
+      â–«ï¸ orden                | integer         | NULL
+      â–«ï¸ activo               | boolean         | NULL
+
+   ðŸ”¹ [TABLA]: INVENTARIO_LOTES
+      â–«ï¸ id_lote              | uuid            | NOT NULL
+      â–«ï¸ id_producto          | uuid            | NULL
+      â–«ï¸ lote_proveedor       | text            | NULL
+      â–«ï¸ cantidad_piezas_actual | integer         | NOT NULL
+      â–«ï¸ fecha_caducidad      | date            | NOT NULL
+      â–«ï¸ precio_oferta        | numeric         | NULL
+      â–«ï¸ precio_compra        | numeric         | NULL
+      â–«ï¸ activo               | boolean         | NULL
+      â–«ï¸ fecha_ingreso        | timestamp without time zone | NULL
+
+   ðŸ”¹ [TABLA]: LOGS_COMERCIAL
+      â–«ï¸ id_log               | uuid            | NOT NULL
+      â–«ï¸ fecha_deteccion      | timestamp without time zone | NULL
+      â–«ï¸ correo_doctora       | text            | NOT NULL
+      â–«ï¸ tipo_oportunidad     | text            | NOT NULL
+      â–«ï¸ contexto_sql         | jsonb           | NULL
+      â–«ï¸ borrador_correo      | text            | NOT NULL
+      â–«ï¸ estatus              | text            | NULL
+      â–«ï¸ fecha_envio          | timestamp without time zone | NULL
+      â–«ï¸ aprobado_por         | text            | NULL
+
+   ðŸ”¹ [TABLA]: LOGS_COMPRAS
+      â–«ï¸ id_log               | uuid            | NOT NULL
+      â–«ï¸ fecha_generacion     | timestamp without time zone | NULL
+      â–«ï¸ propuesta_texto      | text            | NOT NULL
+      â–«ï¸ propuesta_json       | jsonb           | NULL
+      â–«ï¸ contexto_sql         | jsonb           | NULL
+      â–«ï¸ estatus              | text            | NULL
+      â–«ï¸ fecha_aprobacion     | timestamp without time zone | NULL
+      â–«ï¸ aprobado_por         | text            | NULL
+
+   ðŸ”¹ [TABLA]: LOGS_FIFO
+      â–«ï¸ id_log               | uuid            | NOT NULL
+      â–«ï¸ fecha_verificacion   | timestamp without time zone | NULL
+      â–«ï¸ id_pedido            | uuid            | NULL
+      â–«ï¸ id_lote_correcto     | uuid            | NULL
+      â–«ï¸ id_lote_reportado    | uuid            | NULL
+      â–«ï¸ discrepancia         | boolean         | NULL
+      â–«ï¸ detalle              | text            | NULL
+      â–«ï¸ evidencia_url        | text            | NULL
+
+   ðŸ”¹ [TABLA]: LOGS_FINANCIERO
+      â–«ï¸ id_log               | uuid            | NOT NULL
+      â–«ï¸ fecha_calculo        | timestamp without time zone | NULL
+      â–«ï¸ periodo              | text            | NOT NULL
+      â–«ï¸ facturacion_total    | numeric         | NULL
+      â–«ï¸ costo_total          | numeric         | NULL
+      â–«ï¸ utilidad_total       | numeric         | NULL
+      â–«ï¸ margen_promedio      | numeric         | NULL
+      â–«ï¸ reporte_gemini       | text            | NULL
+      â–«ï¸ detalles_json        | jsonb           | NULL
+
+   ðŸ”¹ [TABLA]: LOGS_INVENTARIO
+      â–«ï¸ id_log               | uuid            | NOT NULL
+      â–«ï¸ fecha_analisis       | timestamp without time zone | NULL
+      â–«ï¸ trigger_evento       | text            | NULL
+      â–«ï¸ productos_lentos     | jsonb           | NULL
+      â–«ï¸ productos_criticos   | jsonb           | NULL
+      â–«ï¸ reporte_gemini       | text            | NULL
+
+   ðŸ”¹ [TABLA]: LOGS_METRICAS
+      â–«ï¸ id_log               | uuid            | NOT NULL
+      â–«ï¸ fecha_ejecucion      | timestamp without time zone | NULL
+      â–«ï¸ resultado_texto      | text            | NULL
+      â–«ï¸ ventas_dia           | numeric         | NULL
+      â–«ï¸ pedidos_nuevos       | integer         | NULL
+      â–«ï¸ doctores_activos     | integer         | NULL
+      â–«ï¸ ticket_promedio      | numeric         | NULL
+      â–«ï¸ detalles_json        | jsonb           | NULL
+
+   ðŸ”¹ [TABLA]: LOGS_REPARTO
+      â–«ï¸ id_log               | uuid            | NOT NULL
+      â–«ï¸ fecha_calculo        | timestamp without time zone | NULL
+      â–«ï¸ id_repartidor        | text            | NULL
+      â–«ï¸ pedidos_incluidos    | jsonb           | NULL
+      â–«ï¸ ruta_sugerida        | text            | NULL
+      â–«ï¸ ruta_json            | jsonb           | NULL
+      â–«ï¸ aprobada_por_admin   | boolean         | NULL
+
+   ðŸ”¹ [TABLA]: LOGS_SUPERVISOR
+      â–«ï¸ id_log               | uuid            | NOT NULL
+      â–«ï¸ fecha_ejecucion      | timestamp without time zone | NULL
+      â–«ï¸ origen               | text            | NULL
+      â–«ï¸ micro_reporte_auditor | text            | NULL
+      â–«ï¸ micro_reporte_metricas | text            | NULL
+      â–«ï¸ micro_reporte_riesgo | text            | NULL
+      â–«ï¸ reporte_gemini       | text            | NULL
+      â–«ï¸ nivel_alerta         | text            | NULL
+      â–«ï¸ duracion_ms          | integer         | NULL
+
+   ðŸ”¹ [TABLA]: LOGS_TRAZABILIDAD
+      â–«ï¸ id_log               | uuid            | NOT NULL
+      â–«ï¸ fecha_busqueda       | timestamp without time zone | NULL
+      â–«ï¸ id_lote_buscado      | uuid            | NOT NULL
+      â–«ï¸ lote_proveedor       | text            | NULL
+      â–«ï¸ doctoras_afectadas   | jsonb           | NULL
+      â–«ï¸ total_piezas         | integer         | NULL
+      â–«ï¸ reporte_gemini       | text            | NULL
+      â–«ï¸ solicitado_por       | text            | NULL
+
+   ðŸ”¹ [TABLA]: MOVIMIENTOS_INVENTARIO
+      â–«ï¸ id_movimiento        | uuid            | NOT NULL
+      â–«ï¸ id_lote              | uuid            | NULL
+      â–«ï¸ tipo_movimiento      | text            | NOT NULL
+      â–«ï¸ cantidad             | integer         | NOT NULL
+      â–«ï¸ referencia_doc       | text            | NULL
+      â–«ï¸ detalle              | text            | NULL
+      â–«ï¸ fecha_movimiento     | timestamp without time zone | NULL
+
+   ðŸ”¹ [TABLA]: PACIENTES
+      â–«ï¸ id_paciente          | uuid            | NOT NULL
+      â–«ï¸ id_doctor_app        | character varying | NOT NULL
+      â–«ï¸ nombre               | text            | NOT NULL
+      â–«ï¸ telefono             | text            | NULL
+      â–«ï¸ correo               | text            | NULL
+      â–«ï¸ fecha_primera_cita   | timestamp without time zone | NULL
+      â–«ï¸ notas_internas       | text            | NULL
+
+   ðŸ”¹ [TABLA]: PROVEEDORES
+      â–«ï¸ id_provider          | uuid            | NOT NULL
+      â–«ï¸ nombre_fiscal        | text            | NOT NULL
+      â–«ï¸ rfc                  | text            | NULL
+      â–«ï¸ correo_ejecutivo     | text            | NULL
+      â–«ï¸ telefono             | text            | NULL
+      â–«ï¸ contacto_nombre      | text            | NULL
+      â–«ï¸ aviso_funcionamiento_url | text            | NULL
+      â–«ï¸ estatus_proveedor    | text            | NULL
+      â–«ï¸ activo               | boolean         | NULL
+      â–«ï¸ fecha_registro       | timestamp without time zone | NULL
+
+   ðŸ”¹ [TABLA]: RADAR_EVENTOS_CITAS
+      â–«ï¸ id_radar             | uuid            | NOT NULL
+      â–«ï¸ correo_doctor        | text            | NULL
+      â–«ï¸ google_event_id      | text            | NULL
+      â–«ï¸ fecha_cita           | timestamp without time zone | NOT NULL
+      â–«ï¸ datos_paciente       | jsonb           | NULL
+      â–«ï¸ estatus_confirmacion | text            | NULL
+      â–«ï¸ segundo_aviso_enviado | boolean         | NULL
+      â–«ï¸ token_confirmacion   | text            | NULL
+      â–«ï¸ token_expiracion     | timestamp without time zone | NULL
+      â–«ï¸ fecha_registro       | timestamp without time zone | NULL
+      - tipo_evento           | text            | NOT NULL DEFAULT CITA_PACIENTE
+      - origen_evento         | text            | NOT NULL DEFAULT google_calendar
+      - creado_por_usuario_id | uuid            | NULL
+      - notas_internas        | text            | NULL
+      - telefono_manual       | text            | NULL
+      - correo_manual         | text            | NULL
+      - servicio_id           | uuid            | NULL
+      - expiracion_apartado   | timestamp without time zone | NULL
+      - liberado_en           | timestamp without time zone | NULL
+      - motivo_liberacion     | text            | NULL
+      - estado_operativo      | text            | NOT NULL DEFAULT activo
+
+   ðŸ”¹ [TABLA]: TOKENS_OAUTH
+      â–«ï¸ correo_doctor        | text            | NOT NULL
+      â–«ï¸ token_data           | jsonb           | NOT NULL
+      â–«ï¸ updated_at           | timestamp without time zone | NULL
+
+   ðŸ”¹ [TABLA]: UBICACIONES
+      â–«ï¸ id_ubicacion         | integer         | NOT NULL
+      â–«ï¸ nombre_ubicacion     | text            | NULL
+      â–«ï¸ codigo_ubicacion     | text            | NULL
+
+   ðŸ”¹ [TABLA]: USUARIOS_INTERNOS
+      â–«ï¸ id_usuario           | uuid            | NOT NULL
+      â–«ï¸ nombre               | text            | NOT NULL
+      â–«ï¸ correo               | text            | NOT NULL
+      â–«ï¸ password_hash        | text            | NOT NULL
+      â–«ï¸ rol                  | text            | NOT NULL
+      â–«ï¸ activo               | boolean         | NULL
+      â–«ï¸ fecha_alta           | timestamp without time zone | NULL
+
+   ðŸ”¹ [TABLA]: ASISTENTES_DOCTORES
+      â–«ï¸ id_usuario           | uuid            | NOT NULL
+      â–«ï¸ correo_doctor        | text            | NOT NULL
+      â–«ï¸ fecha_asignacion     | timestamp without time zone | NOT NULL
+      â–«ï¸ asignado_por         | text            | NULL
+
+   ðŸ”¹ [TABLA]: VENTAS_PEDIDOS_ELITE
+      â–«ï¸ id_pedido            | uuid            | NOT NULL
+      â–«ï¸ correo_doctor        | text            | NULL
+      â–«ï¸ fecha_pedido         | timestamp without time zone | NULL
+      â–«ï¸ total_pedido         | numeric         | NOT NULL
+      â–«ï¸ estatus_entrega      | text            | NULL
+      â–«ï¸ id_repartidor        | text            | NULL
+      â–«ï¸ hora_salida          | timestamp without time zone | NULL
+      â–«ï¸ hora_entrega         | timestamp without time zone | NULL
+      â–«ï¸ evidencia_surtido_url | text            | NULL
+      â–«ï¸ evidencia_entrega_url | text            | NULL
+
+   ðŸ”¹ [TABLA]: SITIOS_MEDICOS
+      â–«ï¸ id_sitio             | uuid            | NOT NULL
+      â–«ï¸ correo_doctor         | text            | NOT NULL
+      â–«ï¸ subdominio            | text            | NOT NULL
+      â–«ï¸ estado                | text            | NOT NULL
+      â–«ï¸ estado_dominio        | text            | NOT NULL
+      â–«ï¸ plantilla             | text            | NOT NULL
+      â–«ï¸ titulo_seo            | text            | NULL
+      â–«ï¸ descripcion_seo       | text            | NULL
+      â–«ï¸ biografia             | text            | NULL
+      â–«ï¸ portada_url           | text            | NULL
+      â–«ï¸ logo_url              | text            | NULL
+      â–«ï¸ whatsapp_numero       | text            | NULL
+      â–«ï¸ cedula_profesional    | text            | NULL
+      â–«ï¸ cedula_especialidad   | text            | NULL
+      â–«ï¸ institucion_titulo    | text            | NULL
+      â–«ï¸ aviso_publicidad_cofepris | text        | NULL
+      â–«ï¸ orden_secciones       | jsonb           | NOT NULL
+      â–«ï¸ configuracion_visual  | jsonb           | NOT NULL
+
+   ðŸ”¹ [TABLA]: SITIOS_MEDICOS_MEDIA
+      â–«ï¸ id_media             | uuid            | NOT NULL
+      â–«ï¸ id_sitio             | uuid            | NOT NULL
+      â–«ï¸ tipo                 | text            | NOT NULL
+      â–«ï¸ url                  | text            | NOT NULL
+      â–«ï¸ texto_alternativo    | text            | NULL
+      â–«ï¸ titulo               | text            | NULL
+      â–«ï¸ orden                | integer         | NOT NULL
+      â–«ï¸ activo               | boolean         | NOT NULL
+
+   ðŸ”¹ [TABLA]: SITIOS_MEDICOS_CREDENCIALES
+      â–«ï¸ id_credencial        | uuid            | NOT NULL
+      â–«ï¸ id_sitio             | uuid            | NOT NULL
+      â–«ï¸ tipo                 | text            | NOT NULL
+      â–«ï¸ titulo               | text            | NOT NULL
+      â–«ï¸ institucion          | text            | NULL
+      â–«ï¸ descripcion          | text            | NULL
+      â–«ï¸ fecha_obtencion      | date            | NULL
+      â–«ï¸ imagen_url           | text            | NULL
+
+   ðŸ”¹ [TABLA]: SITIOS_MEDICOS_REDES
+      â–«ï¸ id_red               | uuid            | NOT NULL
+      â–«ï¸ id_sitio             | uuid            | NOT NULL
+      â–«ï¸ red                  | text            | NOT NULL
+      â–«ï¸ url                  | text            | NOT NULL
+
+   ðŸ”¹ [TABLA]: SITIOS_MEDICOS_EVENTOS
+      â–«ï¸ id_evento            | uuid            | NOT NULL
+      â–«ï¸ id_sitio             | uuid            | NOT NULL
+      â–«ï¸ tipo_evento           | text            | NOT NULL
+      â–«ï¸ session_hash          | text            | NOT NULL
+      â–«ï¸ fecha_evento          | timestamp      | NOT NULL
+      â–«ï¸ fecha_dia             | date            | NOT NULL
+      â–«ï¸ origen                | text            | NULL
+
+   ðŸ”¹ [TABLA]: SITIOS_MEDICOS_METRICAS_DIARIAS
+      â–«ï¸ id_sitio             | uuid            | NOT NULL
+      â–«ï¸ fecha                | date            | NOT NULL
+      â–«ï¸ visitas              | integer         | NOT NULL
+      â–«ï¸ clics_whatsapp       | integer         | NOT NULL
+      â–«ï¸ clics_agendar        | integer         | NOT NULL
+      â–«ï¸ formularios          | integer         | NOT NULL

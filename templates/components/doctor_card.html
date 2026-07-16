@@ -1,0 +1,92 @@
+{% macro doctor_card(doctor, dominio, portal_base, variant='directory') %}
+{% set nombre = doctor.nombre_directorio or doctor.nombre_clinica_publico or doctor.nombre_doctor %}
+{% set especialidad = doctor.especialidad_publica or doctor.especialidad or 'Atención médica' %}
+{% set ciudad = doctor.ciudad or 'Tijuana' %}
+{% set agenda_url = portal_base ~ '/p/' ~ doctor.id_publico %}
+{% set whatsapp_directo = (doctor.whatsapp_numero or doctor.telefono_consultorio or '')|replace('+','')|replace(' ','')|replace('-','')|replace('(','')|replace(')','') %}
+{% set tiene_pagina_medica = doctor.subdominio and doctor.estado == 'PUBLICADO' %}
+{% set pagina_medica_url = ('https://' ~ doctor.subdominio ~ '.' ~ dominio ~ '/') if tiene_pagina_medica else '' %}
+{% set servicios_detalle = doctor.servicios_detalle or [] %}
+{% set especialidad_alias = 'ginecologia ginecologo ginecologa gineco obstetricia' if 'gineco' in especialidad|lower else '' %}
+<article class="doctor-card {{ 'home-directory-card' if variant == 'home' else 'directory-doctor-card' }}"
+         data-directory-card
+         data-name="{{ nombre|lower }} {{ doctor.nombre_doctor|lower }}"
+         data-specialty="medico doctora doctor especialista especialistas {{ especialidad|lower }} {{ especialidad_alias }} {% for servicio in servicios_detalle %}{{ servicio.nombre_servicio|lower }} {% endfor %}"
+         data-city="{{ ciudad|lower }}">
+    <header class="doctor-top">
+        {% if doctor.logo_url or doctor.foto_perfil_url or doctor.portada_url %}
+        <img class="doctor-photo" src="{{ doctor.logo_url or doctor.foto_perfil_url or doctor.portada_url }}" alt="{{ nombre }}" loading="lazy">
+        {% else %}
+        <span class="doctor-fallback" aria-hidden="true">{{ nombre[:1] }}</span>
+        {% endif %}
+        <div class="doctor-identity">
+            <h3>{{ nombre }}</h3>
+            <span class="doctor-specialty">{{ especialidad }} · {{ ciudad }}</span>
+            {% if doctor.medico_fundador %}<span class="founder-badge">★ Médico fundador</span>{% endif %}
+            {% if doctor.cedula_profesional or doctor.cedula_especialidad %}
+            <div class="doctor-license">
+                {% if doctor.cedula_profesional %}<span>Céd. Prof. {{ doctor.cedula_profesional }}</span>{% endif %}
+                {% if doctor.cedula_especialidad %}<span>Céd. Esp. {{ doctor.cedula_especialidad }}</span>{% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </header>
+
+    {% if doctor.aviso_visible and doctor.aviso_consultorio %}
+    <div class="card-alert">Aviso del consultorio: {{ doctor.aviso_consultorio }}</div>
+    {% endif %}
+    {% if doctor.espacio_liberado %}
+    <div class="released-slot">
+        <strong>Horario liberado</strong>
+        <span>{{ doctor.espacio_liberado.texto_fecha }}</span>
+        <small>Puede ocuparse en cualquier momento.</small>
+        <a class="released-action" href="{{ agenda_url }}">Agendar cita</a>
+    </div>
+    {% endif %}
+
+    {% if servicios_detalle %}
+    <div class="service-list">
+        {% for servicio in servicios_detalle[:2] %}
+        {% set tipo_precio = servicio.tipo_precio or 'precio_fijo' %}
+        <div class="service-row {{ 'service-secondary' if loop.index == 2 else '' }}">
+            <strong>{{ servicio.nombre_servicio }}</strong>
+            {% if tipo_precio == 'precio_fijo' and servicio.precio %}
+            <span>${{ '%.0f'|format(servicio.precio|float) }} MXN</span>
+            {% elif tipo_precio == 'segun_valoracion' %}
+            <span>Precio según valoración médica</span>
+            {% elif tipo_precio == 'costo_durante_consulta' %}
+            <span>Costo final durante consulta</span>
+            {% else %}
+            <span>Consulta costo al agendar</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="doctor-meta">
+        {% if doctor.direccion_consultorio %}<div class="meta-line"><strong>Ubicación:</strong> {{ doctor.direccion_consultorio }}</div>{% endif %}
+        <div class="tags">
+            {% if doctor.metodos_pago_aceptados %}<span class="tag">Formas de pago</span>{% endif %}
+            {% if doctor.aseguradoras_aceptadas %}<span class="tag">Aseguradoras</span>{% endif %}
+            {% if doctor.maps_url %}<a class="tag map-tag" href="{{ doctor.maps_url }}" target="_blank" rel="noopener">Maps y reseñas</a>{% endif %}
+        </div>
+        <details class="doctor-more">
+            <summary>Más información</summary>
+            <div class="doctor-more-content">
+                {% if doctor.telefono_consultorio %}<div class="meta-line"><strong>Teléfono:</strong> {{ doctor.telefono_consultorio }}</div>{% endif %}
+                {% set seguros = (doctor.aseguradoras_aceptadas or '')|trim %}
+                <div class="meta-line"><strong>Aseguradoras:</strong> {{ seguros or 'Consulta disponibilidad con el consultorio' }}</div>
+                {% if doctor.metodos_pago_aceptados %}<div class="meta-line"><strong>Formas de pago:</strong> {{ doctor.metodos_pago_aceptados }}</div>{% endif %}
+                {% if doctor.horarios_atencion %}<div class="meta-line"><strong>Horarios:</strong> {{ doctor.horarios_atencion }}</div>{% endif %}
+                {% if whatsapp_directo %}<a class="doctor-whatsapp" href="https://wa.me/{{ whatsapp_directo }}" target="_blank" rel="noopener">Contactar por WhatsApp</a>{% endif %}
+            </div>
+        </details>
+    </div>
+
+    <div class="doctor-actions {{ 'has-page' if tiene_pagina_medica else 'only-agenda' }}">
+        <a class="doctor-card-action doctor-card-action-primary" href="{{ agenda_url }}">Agendar cita</a>
+        {% if tiene_pagina_medica %}<a class="doctor-card-action doctor-card-action-secondary" href="{{ pagina_medica_url }}">Ver página médica</a>{% endif %}
+    </div>
+</article>
+{% endmacro %}

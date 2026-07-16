@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Doko | Proveedores{% endblock %}
+{% block page_title %}Proveedores{% endblock %}
+{% block contenido %}
+<section class="admin-shell-section">
+    <div class="admin-section-head">
+        <div>
+            <p class="admin-page-kicker">Doko Suffy</p>
+            <h2>Proveedores</h2>
+            <p>Controla proveedores para compras y abastecimiento. Las fotos de productos se administran desde Cat&aacute;logo.</p>
+        </div>
+        <button type="button" class="btn-primario" onclick="document.getElementById('modal-proveedor').style.display='block'">Nuevo proveedor</button>
+    </div>
+</section>
+
+<section class="admin-module-card" style="margin-bottom:18px;">
+    <p class="admin-page-kicker">Fotos de insumos</p>
+    <h3>Una sola zona de imagen por producto</h3>
+    <p>Para evitar duplicados, cambia o agrega fotos desde el Cat&aacute;logo de Suffy. Proveedores queda solo para datos fiscales y contacto.</p>
+    <div class="admin-action-row">
+        <a class="btn-secundario" href="/admin/catalogo">Ir a Cat&aacute;logo</a>
+    </div>
+</section>
+
+<section class="admin-table-card">
+    <table style="width:100%;border-collapse:collapse;">
+        <thead>
+            <tr style="border-bottom:2px solid var(--color-borde);">
+                <th style="padding:12px;text-align:left;">Raz&oacute;n social</th>
+                <th style="padding:12px;text-align:left;">RFC</th>
+                <th style="padding:12px;text-align:left;">Contacto</th>
+                <th style="padding:12px;text-align:left;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for prov in proveedores %}
+        <tr style="border-bottom:1px solid var(--color-borde);">
+            <td style="padding:12px;">{{ prov.nombre_fiscal }}</td>
+            <td style="padding:12px;">{{ prov.rfc or "-" }}</td>
+            <td style="padding:12px;">{{ prov.contacto_nombre or "-" }}</td>
+            <td style="padding:12px;">
+                <button type="button" onclick="toggleProveedor('{{ prov.id_provider }}', {{ 'true' if prov.activo else 'false' }})"
+                    class="btn-secundario">
+                    {{ 'Activo' if prov.activo else 'Inactivo' }}
+                </button>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="4">
+                <div class="admin-empty-state">Sin proveedores registrados.</div>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<div id="modal-proveedor" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;overflow:auto;">
+    <div style="background:white;width:min(430px,calc(100% - 28px));margin:56px auto;padding:26px;border-radius:var(--radio-card);box-shadow:var(--sombra-modal);">
+        <div class="admin-section-head" style="margin-bottom:18px;">
+            <div>
+                <p class="admin-page-kicker">Nuevo proveedor</p>
+                <h2 style="margin:0;">Registrar proveedor</h2>
+            </div>
+            <button type="button" onclick="document.getElementById('modal-proveedor').style.display='none'" style="background:white;border:1px solid var(--color-borde);border-radius:999px;cursor:pointer;height:36px;width:36px;">x</button>
+        </div>
+        <form id="form-proveedor" method="POST" action="/admin/proveedores" style="display:grid;gap:12px;">
+            <label>Raz&oacute;n social
+                <input name="nombre_fiscal" required style="width:100%;padding:10px;margin-top:4px;">
+            </label>
+            <label>RFC
+                <input name="rfc" style="width:100%;padding:10px;margin-top:4px;">
+            </label>
+            <label>Contacto
+                <input name="contacto_nombre" style="width:100%;padding:10px;margin-top:4px;">
+            </label>
+            <label>Correo
+                <input name="correo_ejecutivo" type="email" style="width:100%;padding:10px;margin-top:4px;">
+            </label>
+            <label>Tel&eacute;fono
+                <input name="telefono" style="width:100%;padding:10px;margin-top:4px;">
+            </label>
+            <div class="admin-action-row">
+                <button type="button" class="btn-secundario" onclick="document.getElementById('modal-proveedor').style.display='none'">Cancelar</button>
+                <button type="submit" class="btn-primario">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById("form-proveedor").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+
+    try {
+        const res = await fetch("/admin/proveedores", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.ok) {
+            document.getElementById("modal-proveedor").style.display = "none";
+            location.reload();
+        } else {
+            alert("Error: " + (data.error || "No se pudo guardar"));
+        }
+    } catch (err) {
+        alert("Error de conexion");
+    }
+});
+
+async function toggleProveedor(id_provider, activo) {
+    const confirmMsg = activo
+        ? "Desactivar este proveedor? Esto afectara las compras futuras."
+        : "Activar este proveedor?";
+    if (!await dokoConfirmar(confirmMsg, {
+        titulo: activo ? 'Desactivar proveedor' : 'Activar proveedor',
+        textoConfirmar: activo ? 'Desactivar' : 'Activar'
+    })) return;
+
+    try {
+        const res = await fetch(`/admin/proveedores/${id_provider}/toggle`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+        const data = await res.json();
+        if (data.ok) location.reload();
+        else alert("Error: " + (data.error || "No se pudo cambiar el estatus"));
+    } catch (err) {
+        alert("Error de conexion");
+    }
+}
+</script>
+{% endblock %}

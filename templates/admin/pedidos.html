@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% block title %}Doko | Pedidos Suffy{% endblock %}
+{% block page_title %}Pedidos Suffy{% endblock %}
+{% block contenido %}
+<section class="panel-card pedidos-hero">
+    <div>
+        <p class="eyebrow">Doko Suffy</p>
+        <h2>Control de pedidos</h2>
+        <p>Opera pedidos por estado. La cancelaci&oacute;n segura solo aplica antes de preparar, para no tocar inventario ni reparto.</p>
+    </div>
+    <a class="status-pill" href="/admin/catalogo">Cat&aacute;logo</a>
+</section>
+
+{% set ns = namespace(nuevos=0, preparando=0, en_camino=0, entregados=0, cancelados=0) %}
+{% for p in pedidos %}
+    {% set estado = (p.estatus_entrega or '')|lower %}
+    {% if estado in ['pendiente', 'nuevo'] %}{% set ns.nuevos = ns.nuevos + 1 %}
+    {% elif estado == 'preparando' %}{% set ns.preparando = ns.preparando + 1 %}
+    {% elif estado == 'en_camino' %}{% set ns.en_camino = ns.en_camino + 1 %}
+    {% elif estado == 'entregado' %}{% set ns.entregados = ns.entregados + 1 %}
+    {% elif estado == 'cancelado' %}{% set ns.cancelados = ns.cancelados + 1 %}
+    {% endif %}
+{% endfor %}
+
+<section class="pedido-stats" aria-label="Resumen de pedidos">
+    <article class="panel-card"><strong>{{ ns.nuevos }}</strong><span>Nuevos</span></article>
+    <article class="panel-card"><strong>{{ ns.preparando }}</strong><span>Preparando</span></article>
+    <article class="panel-card"><strong>{{ ns.en_camino }}</strong><span>En ruta</span></article>
+    <article class="panel-card"><strong>{{ ns.entregados }}</strong><span>Entregados</span></article>
+    <article class="panel-card"><strong>{{ ns.cancelados }}</strong><span>Cancelados</span></article>
+</section>
+
+<section class="pedidos-grid" aria-label="Lista de pedidos">
+    {% for p in pedidos %}
+    {% set estado = (p.estatus_entrega or 'nuevo')|lower %}
+    <article class="panel-card pedido-card pedido-{{ estado|replace('_', '-') }}">
+        <div class="pedido-card-head">
+            <div>
+                <small>#{{ p.id_pedido|string|truncate(8, True, '') }}</small>
+                <h3>{{ p.nombre_doctor or p.correo_doctor or 'Doctor' }}</h3>
+                <p>{{ p.correo_doctor }}</p>
+            </div>
+            <span class="pedido-badge">{{ p.estatus_entrega or 'nuevo' }}</span>
+        </div>
+
+        <div class="pedido-meta">
+            <div><span>Total</span><strong>${{ '%.2f'|format(p.total_pedido|float) }}</strong></div>
+            <div><span>Fecha</span><strong>{{ p.fecha_pedido }}</strong></div>
+            <div><span>Repartidor</span><strong>{{ p.nombre_repartidor or 'Sin asignar' }}</strong></div>
+        </div>
+
+        <div class="pedido-actions">
+            {% if estado == 'preparando' %}
+            <select id="repartidor-{{ p.id_pedido }}" aria-label="Asignar repartidor para pedido {{ p.id_pedido }}">
+                <option value="">Asignar repartidor</option>
+                {% for repartidor in repartidores %}
+                <option value="{{ repartidor.id_usuario }}">{{ repartidor.nombre }}{% if repartidor.correo %} - {{ repartidor.correo }}{% endif %}</option>
+                {% endfor %}
+            </select>
+            <button type="button" onclick="enviarAReparto('{{ p.id_pedido }}')" class="btn-primario">Enviar a reparto</button>
+            {% elif estado in ['pendiente', 'nuevo'] %}
+            <a class="status-pill" href="/bodega/pedidos">Preparar en bodega</a>
+            <button type="button" onclick="cancelarPedido('{{ p.id_pedido }}')" class="btn-danger-soft">Cancelar pedido</button>
+            {% elif estado == 'en_camino' %}
+            <span class="muted">En ruta{% if p.nombre_repartidor %}: {{ p.nombre_repartidor }}{% endif %}</span>
+            {% elif estado == 'entregado' %}
+            <span class="muted">Pedido entregado.</span>
+            {% elif estado == 'cancelado' %}
+            <span class="muted">Cancelado antes de surtir. No afecta inventario.</span>
+            {% else %}
+            <span class="muted">Estado sin acci&oacute;n directa.</span>
+            {% endif %}
+        </div>
+    </article>
+    {% else %}
+    <article class="panel-card pedidos-empty">
+        <h3>Sin pedidos</h3>
+        <p>No hay pedidos registrados por ahora.</p>
+    </article>
+    {% endfor %}
+</section>
+
+<div class="order-cancel-backdrop" id="order-cancel-modal" hidden>
+    <section class="order-cancel-dialog" role="dialog" aria-modal="true" aria-labelledby="order-cancel-title">
+        <p class="eyebrow">Doko Suffy</p>
+        <h2 id="order-cancel-title">Cancelar pedido nuevo</h2>
+        <p>Esta acci&oacute;n no toca inventario ni reparto. Solo est&aacute; disponible antes de preparar el pedido.</p>
+        <label>Motivo opcional<textarea id="order-cancel-reason" rows="3" maxlength="300" placeholder="Ejemplo: solicitado por el consultorio"></textarea></label>
+        <p class="order-cancel-error" id="order-cancel-error" role="alert"></p>
+        <div class="order-cancel-actions">
+            <button type="button" class="btn-secundario" id="order-cancel-close">Volver</button>
+            <button type="button" class="btn-danger-soft" id="order-cancel-confirm">Cancelar pedido</button>
+        </div>
+    </section>
+</div>
+
+<script>
+async function confirmarDokoPedido(mensaje, opciones = {}) {
+    if (typeof dokoConfirmar === 'function') {
+        return dokoConfirmar(mensaje, opciones);
+    }
+    return window.confirm(mensaje);
+}
+
+async function enviarAReparto(idPedido) {
+    const selector = document.getElementById('repartidor-' + idPedido);
+    if (!selector.value) {
+        alert('Selecciona un repartidor.');
+        return;
+    }
+    const res = await fetch('/admin/pedidos/' + idPedido + '/mover', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({estatus_entrega: 'en_camino', id_repartidor: selector.value})
+    });
+    const data = await res.json();
+    if (data.ok) location.reload();
+    else alert(data.error || 'No se pudo enviar a reparto.');
+}
+
+/* Cancelacion personalizada: conserva el endpoint y evita prompts del navegador. */
+let pedidoCancelarActual = null;
+function cancelarPedido(idPedido) {
+    pedidoCancelarActual = idPedido;
+    document.getElementById('order-cancel-reason').value = '';
+    document.getElementById('order-cancel-error').textContent = '';
+    document.getElementById('order-cancel-modal').hidden = false;
+}
+document.getElementById('order-cancel-close').addEventListener('click', cerrarCancelacionPedido);
+document.getElementById('order-cancel-modal').addEventListener('click', (event) => {
+    if (event.target.id === 'order-cancel-modal') cerrarCancelacionPedido();
+});
+function cerrarCancelacionPedido() {
+    document.getElementById('order-cancel-modal').hidden = true;
+    pedidoCancelarActual = null;
+}
+document.getElementById('order-cancel-confirm').addEventListener('click', async function () {
+    if (!pedidoCancelarActual) return;
+    const button = this;
+    const errorBox = document.getElementById('order-cancel-error');
+    button.disabled = true;
+    button.textContent = 'Cancelando...';
+    errorBox.textContent = '';
+    try {
+        const response = await fetch('/admin/pedidos/' + pedidoCancelarActual + '/cancelar', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({motivo: document.getElementById('order-cancel-reason').value.trim()})
+        });
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) throw new Error('La sesi&oacute;n o validaci&oacute;n de seguridad expir&oacute;. Recarga la p&aacute;gina.');
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || 'No se pudo cancelar el pedido.');
+        location.reload();
+    } catch (error) {
+        errorBox.textContent = error.message;
+    } finally {
+        button.disabled = false;
+        button.textContent = 'Cancelar pedido';
+    }
+});
+</script>
+
+<style>
+.pedidos-hero,
+.pedido-card {
+    margin-bottom: 18px;
+    padding: 22px;
+}
+.pedidos-hero {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+}
+.pedidos-hero h2 {
+    margin: 4px 0 8px;
+}
+.pedidos-hero p,
+.muted {
+    color: var(--color-texto-suave);
+    margin: 0;
+}
+.pedido-stats {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin-bottom: 18px;
+}
+.pedido-stats article {
+    padding: 16px;
+}
+.pedido-stats strong {
+    color: var(--color-primario);
+    display: block;
+    font-size: 1.8rem;
+}
+.pedido-stats span {
+    color: var(--color-texto-suave);
+    font-weight: 700;
+}
+.pedidos-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.pedido-card {
+    border-top: 4px solid var(--color-borde);
+}
+.pedido-nuevo,
+.pedido-pendiente {
+    border-top-color: #f59e0b;
+}
+.pedido-preparando {
+    border-top-color: var(--color-primario);
+}
+.pedido-en-camino {
+    border-top-color: #2563eb;
+}
+.pedido-entregado {
+    border-top-color: var(--color-confirmado);
+}
+.pedido-cancelado {
+    border-top-color: var(--color-cancelado);
+    opacity: .82;
+}
+.pedido-card-head {
+    align-items: flex-start;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+.pedido-card-head h3 {
+    margin: 4px 0;
+}
+.pedido-card-head p,
+.pedido-card-head small {
+    color: var(--color-texto-suave);
+    margin: 0;
+}
+.pedido-badge {
+    background: var(--color-primario-suave);
+    border-radius: 999px;
+    color: var(--color-primario);
+    font-weight: 800;
+    padding: 6px 10px;
+    white-space: nowrap;
+}
+.pedido-meta {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 18px 0;
+}
+.pedido-meta div {
+    background: #f8fafc;
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    padding: 10px;
+}
+.pedido-meta span {
+    color: var(--color-texto-suave);
+    display: block;
+    font-size: .78rem;
+    font-weight: 800;
+}
+.pedido-meta strong {
+    color: var(--color-texto-base);
+    font-size: .9rem;
+}
+.pedido-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.pedido-actions select {
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-btn);
+    flex: 1 1 170px;
+    padding: 10px;
+}
+.btn-danger-soft {
+    background: var(--color-cancelado-bg);
+    border: 1px solid rgba(220, 38, 38, .2);
+    border-radius: var(--radio-btn);
+    color: var(--color-cancelado);
+    cursor: pointer;
+    font-weight: 800;
+    padding: 10px 14px;
+}
+.pedidos-empty {
+    grid-column: 1 / -1;
+    padding: 24px;
+}
+.order-cancel-backdrop{align-items:center;background:rgba(15,23,42,.55);display:flex;inset:0;justify-content:center;padding:18px;position:fixed;z-index:1200}.order-cancel-backdrop[hidden]{display:none}.order-cancel-dialog{background:#fff;border-radius:8px;box-shadow:0 24px 70px rgba(15,23,42,.25);max-width:480px;padding:24px;width:100%}.order-cancel-dialog h2{margin:4px 0 8px}.order-cancel-dialog>p{color:var(--color-texto-suave)}.order-cancel-dialog label{display:grid;font-weight:800;gap:7px;margin-top:18px}.order-cancel-dialog textarea{border:1px solid var(--color-borde);border-radius:7px;padding:11px;resize:vertical;width:100%}.order-cancel-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}.order-cancel-error{color:#b91c1c!important;font-weight:700;min-height:20px}
+@media (max-width: 760px) {
+    .pedidos-hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .pedido-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .pedido-meta {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

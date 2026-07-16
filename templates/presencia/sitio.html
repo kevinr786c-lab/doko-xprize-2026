@@ -1,0 +1,709 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% set nombre_publico = sitio.nombre_clinica_publico or sitio.nombre_doctor %}
+  {% set especialidad_publica = sitio.especialidad_publica or sitio.especialidad or 'Atención médica' %}
+  {% set ciudad_publica = sitio.ciudad or 'Tijuana' %}
+  {% set agenda_url = sitio.destino_boton_principal or portal_url %}
+  {% set agenda_texto = sitio.texto_boton_principal or 'Agendar cita' %}
+  {% set whatsapp_texto = sitio.texto_boton_whatsapp or 'Enviar WhatsApp' %}
+  {% set og_imagen = sitio.og_image or sitio.portada_url or sitio.logo_url or sitio.foto_perfil_url %}
+  {% set telefono_publico = sitio.telefono_consultorio or whatsapp_numero or '' %}
+  {% set canonical_publico = sitio.canonical_url or ('https://' ~ sitio.subdominio ~ '.' ~ dominio ~ '/') %}
+  {% set titulo_publico = sitio.titulo_seo or (nombre_publico ~ ' — ' ~ especialidad_publica ~ ' en ' ~ ciudad_publica ~ ' | Doko') %}
+  {% set descripcion_publica = sitio.descripcion_seo or ('Agenda tu cita con ' ~ nombre_publico ~ ', especialista en ' ~ especialidad_publica ~ ' en ' ~ ciudad_publica ~ '. Consulta disponibilidad online.' ~ (' Tel: ' ~ telefono_publico if telefono_publico else '')) %}
+  {% set og_titulo_original = sitio.og_title or titulo_publico %}
+  {% set og_mitad = (og_titulo_original|length) // 2 %}
+  {% set og_titulo_publico = og_titulo_original[:og_mitad] if (og_titulo_original|length) % 2 == 0 and og_titulo_original[:og_mitad] == og_titulo_original[og_mitad:] else og_titulo_original %}
+  {% set visual = sitio.visual_config if sitio.visual_config is mapping else {} %}
+  {% set hero_estilo = visual.get('hero_image_style', 'foto_completa') %}
+  {% set hero_tamano = visual.get('hero_image_size', 'normal') %}
+  {% set hero_decoracion = visual.get('hero_decoration', 'ninguna') %}
+  {% set tema_visual = visual.get('tema_visual') or sitio.color_tema or 'marino' %}
+  <title>{{ titulo_publico }}</title>
+  <meta name="description" content="{{ descripcion_publica }}">
+  {% if preview_admin or not sitio.indexable %}<meta name="robots" content="noindex,nofollow">{% else %}<meta name="robots" content="index,follow">{% endif %}
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Doko">
+  <meta property="og:title" content="{{ og_titulo_publico }}">
+  <meta property="og:description" content="{{ sitio.og_description or descripcion_publica }}">
+  <meta property="og:url" content="{{ canonical_publico }}">
+  {% if og_imagen %}<meta property="og:image" content="{{ og_imagen }}">{% endif %}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ og_titulo_publico }}">
+  <meta name="twitter:description" content="{{ sitio.og_description or descripcion_publica }}">
+  {% if og_imagen %}<meta name="twitter:image" content="{{ og_imagen }}">{% endif %}
+  <link rel="canonical" href="{{ canonical_publico }}">
+  <link rel="alternate" hreflang="es-MX" href="{{ canonical_publico }}">
+  <link rel="alternate" hreflang="es" href="{{ canonical_publico }}">
+  <link rel="alternate" hreflang="en" href="{{ canonical_publico }}?lang=en">
+  <link rel="alternate" hreflang="x-default" href="{{ canonical_publico }}">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Physician",
+    "name": {{ nombre_publico|tojson }},
+    "medicalSpecialty": {{ especialidad_publica|tojson }},
+    "image": {{ (og_imagen or '')|tojson }},
+    "telephone": {{ telefono_publico|tojson }},
+    "url": {{ canonical_publico|tojson }},
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": {{ (sitio.direccion_consultorio or '')|tojson }},
+      "addressLocality": {{ ciudad_publica|tojson }},
+      "addressRegion": "Baja California",
+      "addressCountry": "MX"
+    },
+    "worksFor": {
+      "@type": "MedicalClinic",
+      "name": {{ nombre_publico|tojson }},
+      "url": {{ canonical_publico|tojson }}
+    },
+    "availableService": [
+      {% for servicio in sitio.servicios %}
+      {
+        "@type": "MedicalProcedure",
+        "name": {{ servicio.nombre_servicio|tojson }},
+        "description": {{ (servicio.descripcion or '')|tojson }}
+      }{{ "," if not loop.last else "" }}
+      {% endfor %}
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MedicalClinic",
+    "name": {{ nombre_publico|tojson }},
+    "medicalSpecialty": {{ especialidad_publica|tojson }},
+    "image": {{ (og_imagen or '')|tojson }},
+    "telephone": {{ telefono_publico|tojson }},
+    "url": {{ canonical_publico|tojson }},
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": {{ (sitio.direccion_consultorio or '')|tojson }},
+      "addressLocality": {{ ciudad_publica|tojson }},
+      "addressRegion": "Baja California",
+      "addressCountry": "MX"
+    }
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  {% set temas = {
+    'marino': {'main':'#163661','soft':'#EEF3F9','wash':'#F8FBFF'},
+    'verde': {'main':'#047857','soft':'#ECFDF5','wash':'#F7FFFB'},
+    'turquesa': {'main':'#0F766E','soft':'#F0FDFA','wash':'#F8FEFD'},
+    'lila': {'main':'#A77BD8','soft':'#F5EEFF','wash':'#FDFCFF'},
+    'sakura': {'main':'#C86B91','soft':'#FFF0F6','wash':'#FFFCFD'},
+    'vino': {'main':'#9F1239','soft':'#FFF1F2','wash':'#FFFBFC'}
+  } %}
+  {% set tema = temas.get(tema_visual, temas.marino) %}
+  <style>
+    :root { --main: {{ tema.main }}; --soft: {{ tema.soft }}; --wash: {{ tema.wash }}; --accent: {{ sitio.color_secundario or tema.main }}; --ink:#132033; --muted:#5C6B7E; --line:#DCE4ED; --card:#fff; }
+    * { box-sizing:border-box; } html { scroll-behavior:smooth; } body { margin:0; color:var(--ink); background:#fff; font-family:Inter,Arial,sans-serif; }
+    a { color:inherit; } .wrap { width:min(1160px, calc(100% - 40px)); margin:0 auto; }
+    .top { position:sticky; top:0; z-index:10; background:rgba(255,255,255,.93); border-bottom:1px solid var(--line); backdrop-filter:blur(14px); }
+    .top-inner { align-items:center; display:flex; gap:16px; justify-content:space-between; min-height:76px; }
+    .brand { align-items:center; display:flex; flex:0 1 250px; gap:12px; min-width:0; text-decoration:none; }
+    .brand-image,.brand-mark { border-radius:12px; height:48px; width:48px; flex:0 0 auto; }
+    .brand-image { background:#fff; border:1px solid var(--line); object-fit:contain; padding:4px; } .brand-mark { align-items:center; background:var(--main); color:#fff; display:flex; font-size:20px; font-weight:800; justify-content:center; }
+    .brand strong { display:block; font-family:'DM Sans',Arial,sans-serif; font-size:1rem; } .brand span { color:var(--muted); display:block; font-size:.82rem; margin-top:2px; }
+    .top-actions { align-items:center; display:flex; flex:0 0 auto; gap:10px; } .text-link { color:var(--main); font-size:.9rem; font-weight:800; text-decoration:none; white-space:nowrap; }
+    .section-nav { align-items:center; display:flex; flex:1 1 auto; gap:6px; justify-content:center; min-width:0; overflow-x:auto; scrollbar-width:none; }
+    .section-nav::-webkit-scrollbar { display:none; }
+    .section-nav a { border-radius:999px; color:var(--muted); font-size:.84rem; font-weight:800; padding:9px 10px; text-decoration:none; transition:.18s ease; white-space:nowrap; }
+    .section-nav a:hover { background:var(--soft); color:var(--main); }
+    .button { align-items:center; border-radius:10px; display:inline-flex; font-size:.94rem; font-weight:800; justify-content:center; min-height:46px; padding:12px 18px; text-decoration:none; transition:.18s ease; white-space:nowrap; }
+    .button-primary { background:var(--main); color:#fff; box-shadow:0 12px 28px rgba(22,54,97,.18); } .button-secondary,.button-ghost { border:1px solid var(--line); color:var(--main); background:#fff; }
+    .button-ghost { background:var(--soft); }
+    .button:hover { transform:translateY(-1px); }
+    .preview-admin { background:#fff7ed; border-bottom:1px solid #fed7aa; color:#9a3412; font-size:.86rem; font-weight:800; padding:10px 16px; text-align:center; }
+    .hero { background:radial-gradient(circle at 82% 18%, var(--soft), transparent 34%), linear-gradient(115deg,var(--wash),#fff 58%); padding:72px 0; }
+    body.theme-lila .hero { background:radial-gradient(circle at 84% 16%, rgba(167,123,216,.16), transparent 35%), linear-gradient(115deg,#FDFCFF,#fff 58%); }
+    .hero-grid { align-items:center; display:grid; gap:48px; grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr); }
+    .eyebrow { color:var(--main); font-size:.76rem; font-weight:900; letter-spacing:.09em; margin:0 0 14px; text-transform:uppercase; }
+    h1,h2,h3 { font-family:'DM Sans',Arial,sans-serif; letter-spacing:0; } h1 { font-size:clamp(2.25rem,5vw,4.55rem); line-height:1.03; margin:0; max-width:780px; }
+    h1 span { color:var(--main); display:block; font-size:clamp(1.1rem,2.4vw,1.55rem); font-weight:600; margin-top:14px; }
+    .hero-licenses { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .hero-licenses span { background:#fff; border:1px solid var(--line); border-radius:999px; box-shadow:0 8px 18px rgba(19,32,51,.05); color:#111827; font-size:.88rem; font-weight:900; padding:8px 12px; }
+    .hero-copy { color:var(--muted); font-size:1.06rem; line-height:1.75; margin:22px 0 28px; max-width:680px; white-space:pre-line; }
+    .hero-actions,.quick-trust { display:flex; flex-wrap:wrap; gap:12px; } .quick-trust { margin-top:24px; }
+    .quick-trust span { background:#fff; border:1px solid var(--line); border-radius:999px; color:var(--ink); font-size:.86rem; font-weight:700; padding:9px 12px; }
+    .released-hero-slot { background:#ECFDF5; border:1px solid #A7F3D0; border-radius:16px; color:#065F46; display:grid; gap:8px; margin-top:16px; max-width:440px; padding:14px; }
+    .released-hero-slot strong { font-size:.78rem; letter-spacing:.06em; text-transform:uppercase; }
+    .released-hero-slot span { font-size:1.05rem; font-weight:900; }
+    .released-hero-slot small { line-height:1.4; }
+    .released-hero-slot .button { min-height:38px; padding:8px 12px; width:max-content; }
+    .hero-photo { aspect-ratio:4/4.35; background:linear-gradient(145deg,var(--soft),#fff); border:1px solid rgba(255,255,255,.8); border-radius:22px; box-shadow:0 30px 70px rgba(19,32,51,.12); overflow:hidden; position:relative; }
+    .hero-photo img { height:100%; object-fit:cover; width:100%; }
+    .hero-photo.is-emblem { align-items:center; aspect-ratio:1; background:radial-gradient(circle at 50% 48%, rgba(167,123,216,.16), transparent 31%), radial-gradient(circle at 86% 18%, rgba(167,123,216,.11), transparent 24%), linear-gradient(145deg,#fff,var(--wash)); border-radius:999px; display:flex; justify-content:center; margin:0 auto; max-width:min(520px,100%); padding:clamp(30px,4.6vw,58px); }
+    .hero-photo.is-emblem:before { content:""; border:1px solid rgba(167,123,216,.2); border-radius:999px; height:74%; left:50%; opacity:.58; position:absolute; top:50%; transform:translate(-50%,-50%); width:74%; }
+    .hero-photo.is-emblem img { filter:drop-shadow(0 18px 30px rgba(116,76,154,.14)); height:auto; max-height:78%; max-width:78%; mix-blend-mode:multiply; object-fit:contain; position:relative; width:auto; z-index:1; }
+    .hero-photo.size-compact { max-width:min(430px,100%); }
+    .hero-photo.size-compact.is-emblem img { max-height:68%; max-width:68%; }
+    .hero-photo.size-large { max-width:min(590px,100%); }
+    .hero-photo.size-large.is-emblem img { max-height:86%; max-width:86%; }
+    .hero-photo.style-foto-contain img { object-fit:contain; padding:24px; }
+    .hero-photo.style-emblema-suave { border-radius:28px; }
+    .botanical-sprig { bottom:18px; height:132px; opacity:.78; pointer-events:none; position:absolute; right:18px; width:78px; z-index:2; }
+    .botanical-sprig::before { background:linear-gradient(#A6B9AA,#7F9A85); border-radius:999px; bottom:4px; content:""; height:112px; left:38px; position:absolute; transform:rotate(-18deg); transform-origin:bottom center; width:2px; }
+    .botanical-sprig i { background:linear-gradient(145deg,#CDB1EC,#9F79D1); border-radius:999px 999px 999px 2px; height:22px; left:34px; position:absolute; transform-origin:4px 18px; width:13px; }
+    .botanical-sprig i:nth-child(1) { bottom:82px; transform:rotate(-52deg); }
+    .botanical-sprig i:nth-child(2) { bottom:72px; left:48px; transform:rotate(42deg) scale(.95); }
+    .botanical-sprig i:nth-child(3) { bottom:58px; left:27px; transform:rotate(-58deg) scale(.9); }
+    .botanical-sprig i:nth-child(4) { bottom:48px; left:51px; transform:rotate(48deg) scale(.84); }
+    .botanical-sprig i:nth-child(5) { bottom:34px; left:25px; transform:rotate(-60deg) scale(.78); }
+    .botanical-sprig i:nth-child(6) { bottom:24px; left:48px; transform:rotate(50deg) scale(.72); }
+    .hero-photo.decor-cerezos .botanical-sprig i { background:linear-gradient(145deg,#F8C7D5,#E89BB6); border-radius:999px; height:18px; width:18px; }
+    .hero-photo.decor-flores .botanical-sprig i { background:linear-gradient(145deg,var(--soft),var(--main)); opacity:.72; }
+    .hero-photo.decor-ninguna .botanical-sprig { display:none; }
+    .hero-photo.is-emblem .emblem-caption { background:rgba(255,255,255,.78); border:1px solid rgba(167,123,216,.18); border-radius:999px; bottom:28px; color:var(--main); font-size:.85rem; font-weight:900; left:50%; padding:9px 14px; position:absolute; transform:translateX(-50%); white-space:nowrap; z-index:2; }
+    .photo-fallback { align-items:center; background:radial-gradient(circle at 68% 28%, rgba(255,255,255,.92), transparent 32%), linear-gradient(145deg,var(--soft),#fff); color:var(--main); display:flex; flex-direction:column; font-family:'DM Sans'; height:100%; justify-content:center; padding:42px; position:relative; text-align:center; }
+    .photo-fallback strong { color:var(--ink); font-size:clamp(1.8rem,4vw,3.2rem); line-height:1.08; } .photo-fallback span { color:var(--muted); font-family:Inter,Arial,sans-serif; font-size:1rem; font-weight:700; margin-top:12px; }
+    .photo-fallback:before { content:""; width:86px; height:86px; border-radius:999px; background:var(--accent); opacity:.14; margin-bottom:24px; box-shadow:48px -18px 0 rgba(167,123,216,.08), -32px 28px 0 rgba(167,123,216,.07); }
+    body.theme-lila .photo-fallback:after { content:""; bottom:36px; height:210px; opacity:.58; pointer-events:none; position:absolute; right:32px; width:150px; background:radial-gradient(ellipse at 52% 12%, #A77BD8 0 10px, transparent 11px),radial-gradient(ellipse at 35% 24%, #B995E2 0 10px, transparent 11px),radial-gradient(ellipse at 60% 36%, #A77BD8 0 9px, transparent 10px),radial-gradient(ellipse at 40% 49%, #B995E2 0 9px, transparent 10px),radial-gradient(ellipse at 58% 62%, #A77BD8 0 8px, transparent 9px),radial-gradient(ellipse at 44% 76%, #B995E2 0 7px, transparent 8px),linear-gradient(165deg, transparent 47%, #9AAE9B 48% 51%, transparent 52%); transform:rotate(-12deg); }
+    body.theme-lila .photo-fallback:after { display:none; }
+    section { scroll-margin-top:96px; padding:76px 0; } .section-title { font-size:clamp(1.75rem,3vw,2.55rem); line-height:1.08; margin:0; } .section-intro { color:var(--muted); line-height:1.7; margin:14px 0 32px; max-width:760px; white-space:pre-line; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes emblemReveal { from { opacity:0; transform:translateY(34px) scale(.9); filter:blur(5px); } 60% { opacity:1; filter:blur(0); } to { opacity:1; transform:translateY(0) scale(1); filter:blur(0); } }
+    @keyframes haloReveal { from { opacity:0; transform:translate(-50%,-46%) scale(.82); } to { opacity:.58; transform:translate(-50%,-50%) scale(1); } }
+    @media (prefers-reduced-motion:no-preference) {
+      main section > .wrap, .office-notice { animation:fadeUp .58s ease both; }
+      .service,.credential,.faq-item,.gallery-card,.contact-item { transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+      .service:hover,.credential:hover,.faq-item:hover,.gallery-card:hover,.contact-item:hover { border-color:color-mix(in srgb, var(--main) 28%, var(--line)); box-shadow:0 14px 34px rgba(19,32,51,.08); transform:translateY(-2px); }
+      .gallery-card { animation:fadeUp .62s ease both; }
+      .hero-photo.is-emblem:before { animation:haloReveal .9s ease .05s both; }
+      .hero-photo.is-emblem img { animation:emblemReveal 1.05s cubic-bezier(.2,.75,.18,1) .08s both; }
+      .hero-photo.is-emblem .emblem-caption { animation:fadeUp .72s ease .42s both; }
+      .gallery-card:nth-child(2) { animation-delay:.06s; }
+      .gallery-card:nth-child(3) { animation-delay:.12s; }
+      .gallery-card:nth-child(4) { animation-delay:.18s; }
+      .gallery-card:nth-child(5) { animation-delay:.24s; }
+      .gallery-card:nth-child(6) { animation-delay:.3s; }
+    }
+    .about-grid { display:grid; gap:28px; grid-template-columns:minmax(0,1fr) minmax(280px,.55fr); } .about-card,.contact-item,.service,.faq-item,.credential { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px; }
+    .audience-grid,.steps-grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); }
+    .audience-card,.step-card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:20px; }
+    .audience-card strong,.step-card strong { color:var(--main); display:block; font-size:.92rem; margin-bottom:8px; }
+    .audience-card p,.step-card p { color:var(--muted); line-height:1.55; margin:0; }
+    .seo-content { background:#fff; border-top:1px solid var(--line); }
+    .seo-copy { color:var(--muted); display:grid; gap:14px; font-size:1rem; line-height:1.78; max-width:920px; }
+    .seo-copy p { margin:0; }
+    .seo-copy strong { color:var(--ink); }
+    .step-card .step-number { align-items:center; background:var(--main); border-radius:999px; color:#fff; display:inline-flex; font-weight:900; height:34px; justify-content:center; margin-bottom:12px; width:34px; }
+    .journey { background:linear-gradient(135deg,var(--soft),#fff); }
+    .office-notice { background:#fff7ed; border:1px solid #fed7aa; border-radius:16px; color:#9a3412; font-weight:800; line-height:1.55; margin:0 auto; padding:18px 20px; width:min(1160px, calc(100% - 40px)); }
+    .about-card { background:var(--soft); } .about-card strong { color:var(--main); display:block; margin-bottom:6px; } .about-card p { color:var(--muted); line-height:1.6; margin:0; }
+    .services,.contact { background:#FAFBFD; } .service-grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
+    .service h3 { font-size:1.08rem; margin:0; } .price { color:var(--main); font-weight:900; margin:10px 0; } .service p { color:var(--muted); font-size:.93rem; line-height:1.6; margin:0; }
+    .credential-grid,.faq-grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); } .credentials { background:var(--soft); }
+    .credentials .credential-grid { grid-template-columns:repeat(auto-fit,minmax(250px,340px)); justify-content:center; }
+    .credential { overflow:hidden; padding:0; } .credential img { background:#fff; display:block; height:310px; margin:0; object-fit:contain; padding:12px; width:100%; } .credential-body { padding:16px 18px 18px; } .credential small { color:var(--main); font-weight:900; letter-spacing:.06em; text-transform:uppercase; } .credential h3,.faq-item h3 { margin:7px 0 8px; font-size:1.05rem; } .credential p,.faq-item p { color:var(--muted); line-height:1.6; margin:0; }
+    .gallery { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(190px,260px)); justify-content:center; } .gallery-card { background:#fff; border:1px solid var(--line); border-radius:16px; margin:0; overflow:hidden; } .gallery-card .image-frame { aspect-ratio:4/3; background:var(--soft); overflow:hidden; } .gallery-card img { height:100%; object-fit:cover; width:100%; } .gallery-card figcaption { color:var(--muted); font-size:.86rem; line-height:1.45; min-height:58px; padding:12px 14px; } .gallery-card figcaption strong { color:var(--ink); display:block; font-size:.9rem; margin-bottom:3px; }
+    .contact-grid { display:grid; gap:16px; grid-template-columns:repeat(3,minmax(0,1fr)); } .contact-item strong { color:var(--main); display:block; font-size:.8rem; letter-spacing:.06em; text-transform:uppercase; } .contact-item p,.contact-item a { color:var(--muted); display:block; line-height:1.58; margin:9px 0 0; text-decoration:none; }
+    .parking-gallery { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); margin-top:16px; }
+    .parking-gallery .gallery-card .image-frame { aspect-ratio:16/9; }
+    .map-preview { background:#fff; border:1px solid var(--line); border-radius:18px; display:grid; gap:18px; grid-template-columns:minmax(0,1fr) minmax(260px,.8fr); margin-top:22px; overflow:hidden; padding:18px; }
+    .map-copy { align-content:center; display:grid; gap:8px; padding:6px 4px; }
+    .map-copy strong { color:var(--main); font-size:.8rem; letter-spacing:.06em; text-transform:uppercase; }
+    .map-copy p { color:var(--muted); line-height:1.6; margin:0; }
+    .map-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+    .map-frame { background:linear-gradient(145deg,var(--soft),#fff); border:1px solid var(--line); border-radius:14px; min-height:220px; overflow:hidden; position:relative; }
+    .map-static { align-content:center; display:grid; gap:8px; justify-items:center; padding:24px; text-align:center; }
+    .map-static::before { background-image:linear-gradient(rgba(19,32,51,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(19,32,51,.06) 1px,transparent 1px); background-size:36px 36px; content:""; inset:0; opacity:.55; position:absolute; }
+    .map-static::after { background:radial-gradient(circle at center, color-mix(in srgb,var(--main) 16%, transparent), transparent 62%); content:""; inset:18px; position:absolute; }
+    .map-pin { align-items:center; background:var(--main); border-radius:999px 999px 999px 4px; box-shadow:0 16px 34px rgba(19,32,51,.18); color:#fff; display:inline-flex; font-size:1.25rem; height:54px; justify-content:center; position:relative; transform:rotate(-45deg); width:54px; z-index:1; }
+    .map-pin span { transform:rotate(45deg); }
+    .map-static strong,.map-static small { position:relative; z-index:1; }
+    .map-static strong { color:var(--ink); font-size:1.02rem; }
+    .map-static small { color:var(--muted); line-height:1.4; }
+    .socials { display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; } .socials a { border:1px solid var(--line); border-radius:999px; color:var(--main); font-size:.85rem; font-weight:800; padding:8px 12px; text-decoration:none; }
+    .cta { background:var(--main); color:#fff; padding:62px 0; text-align:center; } .cta h2 { font-size:clamp(1.8rem,3vw,2.55rem); margin:0; } .cta p { color:rgba(255,255,255,.86); line-height:1.6; margin:13px auto 24px; max-width:650px; } .cta .button { background:#fff; color:var(--main); box-shadow:none; }
+    footer { color:var(--muted); font-size:.82rem; padding:24px 0 88px; } footer .wrap { display:grid; gap:16px; } footer a { color:var(--muted); text-decoration:none; }
+    .legal-medical { border-top:1px solid var(--line); display:grid; gap:8px; padding-top:18px; }
+    .legal-medical strong { color:var(--ink); }
+    .legal-medical p { line-height:1.55; margin:0; }
+    .footer-bottom { align-items:center; display:flex; gap:10px; justify-content:space-between; }
+    .mobile-cta { display:none; }
+    @media (max-width:760px) {
+      .wrap { width:min(100% - 28px,1160px); } .top-actions .text-link { display:none; } .top-inner { flex-wrap:wrap; gap:8px 12px; min-height:auto; padding:10px 0 8px; } .brand { flex:1 1 auto; } .brand span span { display:none; } .top-actions { margin-left:auto; }
+      .section-nav { background:linear-gradient(90deg, rgba(255,255,255,.96), rgba(255,255,255,.88)); border-top:1px solid rgba(220,228,237,.72); display:flex; flex:0 0 100%; gap:8px; justify-content:flex-start; margin:2px -14px -8px; overflow-x:auto; padding:9px 14px 10px; scrollbar-width:none; }
+      .section-nav::-webkit-scrollbar { display:none; }
+      .section-nav a { background:#fff; border:1px solid var(--line); box-shadow:0 6px 16px rgba(19,32,51,.05); flex:0 0 auto; font-size:.78rem; padding:8px 10px; }
+      .hero { padding:28px 0 44px; } .hero-grid,.about-grid { grid-template-columns:1fr; } .hero-photo { max-height:430px; } .hero-photo.is-emblem { max-width:min(320px,100%); padding:26px; } .hero-photo.is-emblem img { max-height:76%; max-width:76%; } .hero-photo.size-large.is-emblem { max-width:min(360px,100%); } .hero-photo.size-compact.is-emblem { max-width:min(290px,100%); } .hero-photo.is-emblem .emblem-caption { bottom:18px; font-size:.78rem; max-width:calc(100% - 32px); overflow:hidden; text-overflow:ellipsis; } section { padding:50px 0; }
+      .hero-copy { display:-webkit-box; font-size:.98rem; line-height:1.58; margin:16px 0 20px; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:4; }
+      .contact-grid,.map-preview { grid-template-columns:1fr; } .map-preview { padding:12px; } .footer-bottom { align-items:flex-start; flex-direction:column; } .mobile-cta { background:#fff; border-top:1px solid var(--line); bottom:0; display:grid; gap:8px; grid-template-columns:1fr 1fr; left:0; padding:10px 14px; position:fixed; right:0; z-index:20; }
+      .mobile-cta .button { min-height:44px; padding:10px 12px; }
+    }
+  </style>
+  <style>
+    /* Shared medical template polish: white base, theme accents, stable content blocks. */
+    .top-inner{min-height:68px}
+    .brand strong{font-size:.96rem}
+    .section-nav a{border-radius:9px;padding:8px 9px}
+    .hero{padding:54px 0 48px}
+    .hero-grid{gap:38px}
+    .hero-photo{border-radius:18px;box-shadow:0 22px 48px rgba(19,32,51,.1);max-height:520px}
+    .hero-photo.is-emblem{max-width:min(440px,100%);padding:clamp(26px,4vw,48px)}
+    .hero-licenses span{font-size:.8rem;padding:7px 10px}
+    .hero-copy{font-size:1rem;line-height:1.65;margin:18px 0 22px}
+    .quick-trust{margin-top:18px}
+    .quick-trust span{font-size:.8rem;padding:8px 10px}
+    .section-intro{font-size:.96rem;line-height:1.6;margin-bottom:24px}
+    .service-grid{gap:12px}
+    .service{padding:18px}
+    .service h3{font-size:1rem}
+    .service p{font-size:.88rem;line-height:1.5}
+    .price{font-size:.92rem;margin:8px 0}
+    .steps-grid{gap:12px}
+    .step-card{padding:16px}
+    .step-card p{line-height:1.48}
+    .journey-note{background:var(--soft);border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:.84rem;line-height:1.5;margin:18px 0 0;padding:11px 13px}
+    .credential-grid{gap:12px}
+    .credential img{height:270px;object-fit:contain}
+    .credential-body{padding:14px 16px 16px}
+    .faq-grid{gap:12px}
+    .faq-item{padding:18px}
+    .faq-category{color:var(--main);display:block;font-size:.7rem;font-weight:900;letter-spacing:.08em;margin-bottom:7px;text-transform:uppercase}
+    .gallery{gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,240px))}
+    .gallery-card .image-frame{background:var(--soft);height:190px}
+    .gallery-card img{object-fit:contain}
+    .map-preview{gap:16px}
+    .contact-grid{gap:12px}
+    .contact-item{padding:18px}
+    .parking-gallery{margin-top:16px}
+    @media(max-width:760px){
+      .top-inner{min-height:auto;padding:8px 0}
+      .brand-image,.brand-mark{height:42px;width:42px}
+      .section-nav{margin:2px -14px -8px;padding:8px 14px 9px}
+      .section-nav a{font-size:.74rem;padding:7px 9px}
+      .hero{padding:28px 0 34px}
+      .hero-grid{gap:22px}
+      .hero-photo{max-height:340px}
+      .hero-photo.is-emblem{max-width:min(280px,100%);padding:22px}
+      .hero-copy{font-size:.92rem;line-height:1.52;margin:14px 0 18px;-webkit-line-clamp:5}
+      .hero-actions{gap:8px}
+      .hero-actions .button{flex:1 1 150px;min-height:42px;padding:10px 11px}
+      .quick-trust{gap:6px;margin-top:14px}
+      .quick-trust span{font-size:.72rem;padding:7px 8px}
+      section{padding:42px 0}
+      .section-intro{font-size:.88rem;line-height:1.5;margin-bottom:18px}
+      .service{padding:15px}
+      .credential-grid{grid-template-columns:1fr}
+      .credential img{height:230px}
+      .gallery{grid-template-columns:1fr}
+      .gallery-card .image-frame{height:220px}
+      .journey-note{font-size:.78rem;margin-top:14px}
+      .mobile-cta{padding:8px 12px}
+    }
+  </style>
+  <style>
+    /* Final visual pass: theme-aware accents, stable type, and mobile-safe actions. */
+    .hero{padding:48px 0 42px}
+    .hero-grid{gap:34px}
+    h1{font-size:3.8rem}
+    h1 span{font-size:1.35rem}
+    .section-title{font-size:2.35rem}
+    .cta h2{font-size:2.35rem}
+    .hero-photo.is-emblem{background:radial-gradient(circle at 50% 48%,color-mix(in srgb,var(--main) 16%,transparent),transparent 31%),radial-gradient(circle at 86% 18%,color-mix(in srgb,var(--main) 11%,transparent),transparent 24%),linear-gradient(145deg,#fff,var(--wash));padding:42px}
+    .hero-photo.is-emblem:before{border-color:color-mix(in srgb,var(--main) 24%,transparent)}
+    .hero-photo.is-emblem img{filter:drop-shadow(0 18px 30px color-mix(in srgb,var(--main) 22%,transparent))}
+    .hero-photo.decor-flores .botanical-sprig i{background:linear-gradient(145deg,color-mix(in srgb,var(--main) 32%,#fff),var(--main));opacity:.78}
+    .hero-photo.decor-cerezos .botanical-sprig i{background:linear-gradient(145deg,#F8C7D5,#E89BB6)}
+    section{padding:64px 0}
+    .section-nav a:focus-visible,.button:focus-visible,.socials a:focus-visible{outline:3px solid color-mix(in srgb,var(--main) 42%,#fff);outline-offset:2px}
+    .mobile-cta{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+    @media(max-width:1100px) and (min-width:761px){
+      h1{font-size:3.2rem}
+      h1 span{font-size:1.2rem}
+      .hero-grid{gap:26px}
+    }
+    @media(max-width:760px){
+      .hero{padding:24px 0 30px}
+      h1{font-size:2.25rem}
+      h1 span{font-size:1.02rem;margin-top:10px}
+      .section-title{font-size:1.8rem}
+      .cta h2{font-size:1.9rem}
+      .hero-photo.is-emblem{padding:22px}
+      section{padding:38px 0}
+      .section-nav{box-shadow:inset -22px 0 22px -22px var(--main);margin-top:4px}
+      .mobile-cta{padding-left:12px;padding-right:12px}
+    }
+  </style>
+</head>
+<body class="theme-{{ tema_visual }}">
+  {% if preview_admin %}
+  <div class="preview-admin">Vista previa administrativa: esta página puede estar en borrador y no registra métricas públicas.</div>
+  {% endif %}
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="brand" href="#inicio">
+        {% if sitio.logo_url or sitio.foto_perfil_url %}
+          <img class="brand-image" src="{{ sitio.logo_url or sitio.foto_perfil_url }}" alt="{{ nombre_publico }}">
+        {% else %}
+          <span class="brand-mark">{{ nombre_publico[:1] }}</span>
+        {% endif %}
+        <span><strong>{{ nombre_publico }}</strong><span>{{ especialidad_publica }}</span></span>
+      </a>
+      {% set nav_trayectoria = namespace(tiene=false) %}
+      {% set nav_galeria = namespace(tiene=false) %}
+      {% for imagen in sitio.media %}
+        {% if imagen.tipo in ['RECONOCIMIENTO', 'CERTIFICACION', 'DIPLOMA', 'CEDULA', 'ASOCIACION'] %}
+          {% set nav_trayectoria.tiene = true %}
+        {% elif imagen.tipo != 'ESTACIONAMIENTO' %}
+          {% set nav_galeria.tiene = true %}
+        {% endif %}
+      {% endfor %}
+      <nav class="section-nav" aria-label="Secciones de la página">
+        {% if sitio.servicios %}<a href="#servicios">Servicios</a>{% endif %}
+        <a href="#agendar">Cómo agendar</a>
+        <a href="#confianza">Confianza</a>
+        {% if sitio.credenciales or nav_trayectoria.tiene %}<a href="#trayectoria">Trayectoria</a>{% endif %}
+        <a href="#educacion">Educación</a>
+        {% if nav_galeria.tiene %}<a href="#galeria">Fotos</a>{% endif %}
+        <a href="#contacto">Ubicación</a>
+      </nav>
+      <nav class="top-actions">
+        {% if sitio.mostrar_whatsapp and whatsapp_numero %}
+        <a class="text-link js-whatsapp" href="https://wa.me/{{ whatsapp_numero|replace('+','')|replace(' ','')|replace('-','') }}" target="_blank" rel="noopener">Contacto</a>
+        {% else %}
+        <a class="text-link" href="#contacto">Contacto</a>
+        {% endif %}
+        {% if sitio.mostrar_agenda %}<a class="button button-primary js-agendar" href="{{ agenda_url }}">{{ agenda_texto }}</a>{% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="wrap hero-grid">
+        <div>
+          <p class="eyebrow">{{ especialidad_publica }} en {{ ciudad_publica }}</p>
+          <h1>{{ sitio.hero_titulo or nombre_publico }}<span>{{ sitio.hero_subtitulo or especialidad_publica }}</span></h1>
+          {% if sitio.cedula_profesional or sitio.cedula_especialidad %}
+          <div class="hero-licenses" aria-label="Cédulas profesionales">
+            {% if sitio.cedula_profesional %}<span>Céd. Prof. {{ sitio.cedula_profesional }}</span>{% endif %}
+            {% if sitio.cedula_especialidad %}<span>Céd. Esp. {{ sitio.cedula_especialidad }}</span>{% endif %}
+          </div>
+          {% endif %}
+          <p class="hero-copy">{{ sitio.hero_texto_confianza or sitio.biografia_corta or sitio.biografia or 'Atención profesional, clara y cercana. Conoce los servicios del consultorio y agenda una cita.' }}</p>
+          <div class="hero-actions">
+            {% if sitio.mostrar_agenda %}<a class="button button-primary js-agendar" href="{{ agenda_url }}">{{ agenda_texto }}</a>{% endif %}
+            {% if sitio.mostrar_whatsapp and whatsapp_numero %}<a class="button button-secondary js-whatsapp" href="https://wa.me/{{ whatsapp_numero|replace('+','')|replace(' ','')|replace('-','') }}" target="_blank" rel="noopener">{{ whatsapp_texto }}</a>{% endif %}
+          </div>
+          {% if sitio.espacio_liberado %}
+          <div class="released-hero-slot">
+            <strong>Se liberó un horario recientemente</strong>
+            <span>{{ sitio.espacio_liberado.texto_fecha }}</span>
+            <small>Puede ocuparse en cualquier momento. Revisa disponibilidad en el Portal Doko.</small>
+            {% if sitio.mostrar_agenda %}<a class="button button-ghost js-agendar" href="{{ agenda_url }}">Agendar</a>{% endif %}
+          </div>
+          {% endif %}
+          <div class="quick-trust">
+            {% if sitio.telefono_consultorio %}<span>Teléfono visible</span>{% endif %}
+            {% if sitio.direccion_consultorio %}<span>Consultorio en {{ ciudad_publica }}</span>{% endif %}
+            {% if sitio.horarios_atencion %}<span>Horarios disponibles</span>{% endif %}
+          </div>
+        </div>
+        {% set portada_es_emblema = sitio.portada_url and (hero_estilo in ['emblema_redondo', 'emblema_suave'] or sitio.portada_url == sitio.logo_url or 'sublogo' in sitio.portada_url|lower or 'logo' in sitio.portada_url|lower) %}
+        <div class="hero-photo style-{{ hero_estilo }} size-{{ hero_tamano }} decor-{{ hero_decoracion }} {{ 'is-emblem' if portada_es_emblema else '' }}">
+          {% if sitio.portada_url %}
+            <img src="{{ sitio.portada_url }}" alt="{{ nombre_publico }}">
+            {% if portada_es_emblema %}<span class="emblem-caption">Salud femenina con atención cercana</span>{% endif %}
+          {% else %}
+            <div class="photo-fallback"><strong>Atención médica cercana</strong><span>{{ especialidad_publica }}</span></div>
+          {% endif %}
+          {% if hero_decoracion != 'ninguna' %}<div class="botanical-sprig" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>{% endif %}
+        </div>
+      </div>
+    </section>
+
+    {% if sitio.aviso_activo and sitio.aviso_consultorio %}
+    <div class="office-notice">{{ sitio.aviso_consultorio }}</div>
+    {% endif %}
+
+    {% if sitio.servicios %}
+    <section class="services" id="servicios">
+      <div class="wrap">
+        <p class="eyebrow">Servicios</p>
+        <h2 class="section-title">Servicios del consultorio</h2>
+        <p class="section-intro">Servicios publicados por el consultorio. Los precios pueden mostrarse como costo fijo, valoración médica o costo final durante consulta.</p>
+        <div class="service-grid">
+          {% for servicio in sitio.servicios %}
+          <article class="service">
+            <h3>{{ servicio.nombre_servicio }}</h3>
+            <div class="price">{% if servicio.tipo_precio == 'precio_fijo' and servicio.precio is not none %}${{ '%.0f'|format(servicio.precio|float) }} MXN{% elif servicio.tipo_precio == 'segun_valoracion' %}Precio según valoración médica{% else %}Costo final durante la consulta{% endif %}</div>
+            {% if servicio.descripcion %}<p>{{ servicio.descripcion }}</p>{% endif %}
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="journey" id="agendar">
+      <div class="wrap">
+        <p class="eyebrow">Cómo agendar</p>
+        <h2 class="section-title">Agenda tu cita</h2>
+        <p class="section-intro">Elige un horario disponible y revisa las indicaciones del consultorio para completar tu cita.</p>
+        <div class="steps-grid">
+          <article class="step-card"><span class="step-number">1</span><strong>Toca Agendar cita</strong><p>El botón abre la agenda disponible de esta doctora.</p></article>
+          <article class="step-card"><span class="step-number">2</span><strong>Elige un horario disponible</strong><p>Selecciona el espacio que mejor se ajuste a tu disponibilidad.</p></article>
+          <article class="step-card"><span class="step-number">3</span><strong>Revisa tu correo</strong><p>Recibirás la información necesaria para confirmar tu asistencia cuando aplique.</p></article>
+          <article class="step-card"><span class="step-number">4</span><strong>Acude al consultorio</strong><p>Consulta ubicación, teléfono, formas de pago y referencias en esta página.</p></article>
+        </div>
+        <p class="journey-note">Google puede enviar un correo inmediato al agendar. Doko envía el correo de confirmación 24 o 48 horas antes, según la configuración del consultorio.</p>
+      </div>
+    </section>
+
+    <section id="confianza">
+      <div class="wrap about-grid">
+        <div>
+          <p class="eyebrow">Confianza médica</p>
+          <h2 class="section-title">{{ sitio.frase_destacada or 'Atención enfocada en claridad, seguimiento y agenda organizada' }}</h2>
+          <p class="section-intro">{{ sitio.biografia_larga or sitio.enfoque_atencion or 'Esta página presenta la información profesional de la doctora, su enfoque de atención y los datos principales del consultorio.' }}</p>
+        </div>
+        <aside class="about-card">
+          <strong>{{ sitio.firma_visible or 'Formación y enfoque' }}</strong>
+          {% if sitio.anios_experiencia %}<p>{{ sitio.anios_experiencia }} años de experiencia.</p>{% endif %}
+          {% if sitio.formacion_resumida %}
+            <p>{{ sitio.formacion_resumida }}</p>
+          {% else %}
+            <p>La información publicada corresponde a este consultorio.</p>
+          {% endif %}
+        </aside>
+      </div>
+    </section>
+
+    {% set trayectoria = namespace(tiene=false) %}
+    {% for imagen in sitio.media %}
+      {% if imagen.tipo in ['RECONOCIMIENTO', 'CERTIFICACION', 'DIPLOMA', 'CEDULA', 'ASOCIACION'] %}
+        {% set trayectoria.tiene = true %}
+      {% endif %}
+    {% endfor %}
+    {% if sitio.credenciales or trayectoria.tiene %}
+    <section class="credentials" id="trayectoria">
+      <div class="wrap">
+        <p class="eyebrow">Trayectoria</p>
+        <h2 class="section-title">Credenciales y reconocimientos</h2>
+        <div class="credential-grid" style="margin-top:30px;">
+          {% for item in sitio.credenciales %}
+          <article class="credential">
+            {% if item.imagen_url %}<img src="{{ item.imagen_url }}" alt="{{ item.titulo }}">{% endif %}
+            <div class="credential-body">
+              <small>{{ item.tipo|capitalize }}</small>
+              <h3>{{ item.titulo }}</h3>
+              {% if item.institucion %}<p><strong>{{ item.institucion }}</strong></p>{% endif %}
+              {% if item.descripcion %}<p>{{ item.descripcion }}</p>{% endif %}
+            </div>
+          </article>
+          {% endfor %}
+          {% for imagen in sitio.media %}
+          {% if imagen.tipo in ['RECONOCIMIENTO', 'CERTIFICACION', 'DIPLOMA', 'CEDULA', 'ASOCIACION'] %}
+          <article class="credential">
+            <img src="{{ imagen.url }}" alt="{{ imagen.texto_alternativo or imagen.titulo or 'Reconocimiento de ' ~ nombre_publico }}">
+            <div class="credential-body">
+              <small>{{ imagen.tipo|replace('_', ' ')|capitalize }}</small>
+              <h3>{{ imagen.titulo or 'Reconocimiento profesional' }}</h3>
+              {% if imagen.descripcion %}<p>{{ imagen.descripcion }}</p>{% endif %}
+            </div>
+          </article>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <section id="educacion">
+      <div class="wrap">
+        <p class="eyebrow">Preguntas frecuentes</p>
+        <h2 class="section-title">Información para orientarte</h2>
+        <div class="faq-grid" style="margin-top:30px;">
+          <article class="faq-item">
+            <small class="faq-category">Costos y servicios</small>
+            <h3>¿Cuánto cuesta la consulta?</h3>
+            <p>{% if sitio.servicios %}Los costos publicados dependen del servicio seleccionado. Revisa la sección de servicios para ver precios fijos o indicaciones de valoración médica.{% else %}Los costos pueden variar según el tipo de atención requerida. Comunícate con el consultorio para confirmar el costo vigente antes de acudir.{% endif %}</p>
+          </article>
+          <article class="faq-item">
+            <small class="faq-category">Ubicación y cobertura</small>
+            <h3>¿Acepta aseguradoras?</h3>
+            <p>{% if sitio.aseguradoras_aceptadas %}Aseguradoras aceptadas: {{ sitio.aseguradoras_aceptadas }}.{% else %}Por ahora no hay aseguradoras publicadas para este consultorio. Puedes confirmar directamente con el consultorio antes de agendar.{% endif %}</p>
+          </article>
+          <article class="faq-item">
+            <small class="faq-category">Cómo agendar</small>
+            <h3>¿Cómo puedo agendar una cita?</h3>
+            <p>Toca el botón Agendar cita, selecciona un horario disponible y revisa tu correo para recibir la información de confirmación cuando aplique.</p>
+          </article>
+          {% for faq in sitio.faqs %}
+          <article class="faq-item">
+            <small class="faq-category">Educación para pacientes</small>
+            <h3>{{ faq.palabras_clave }}</h3>
+            <p>{{ faq.respuesta }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% set estacionamiento_media = sitio.media|selectattr('tipo', 'equalto', 'ESTACIONAMIENTO')|list %}
+    {% set galeria = sitio.media|rejectattr('tipo', 'equalto', 'RECONOCIMIENTO')|rejectattr('tipo', 'equalto', 'CERTIFICACION')|rejectattr('tipo', 'equalto', 'DIPLOMA')|rejectattr('tipo', 'equalto', 'CEDULA')|rejectattr('tipo', 'equalto', 'ASOCIACION')|rejectattr('tipo', 'equalto', 'ESTACIONAMIENTO')|list %}
+    {% if galeria %}
+    <section id="galeria">
+      <div class="wrap">
+        <p class="eyebrow">Consultorio</p>
+        <h2 class="section-title">Conoce el espacio</h2>
+        <div class="gallery" style="margin-top:30px;">
+          {% for imagen in galeria %}
+          <figure class="gallery-card">
+            <div class="image-frame"><img src="{{ imagen.url }}" alt="{{ imagen.texto_alternativo or imagen.titulo or sitio.nombre_doctor }}"></div>
+            {% if imagen.titulo or imagen.descripcion %}
+            <figcaption>{% if imagen.titulo %}<strong>{{ imagen.titulo }}</strong>{% endif %}{{ imagen.descripcion or '' }}</figcaption>
+            {% endif %}
+          </figure>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="contact" id="contacto">
+      <div class="wrap">
+        <p class="eyebrow">Ubicación y contacto</p>
+        <h2 class="section-title">Ubicación del consultorio</h2>
+        <div class="map-preview">
+          <div class="map-copy">
+            <strong>Dirección del consultorio</strong>
+            <p>{{ sitio.direccion_consultorio or 'Consulta la ubicación al agendar.' }}</p>
+            {% if sitio.maps_url %}
+            <div class="map-actions">
+              <a class="button button-secondary js-maps" href="{{ sitio.maps_url }}" target="_blank" rel="noopener">Abrir ubicación</a>
+              <a class="button button-ghost js-maps" href="{{ sitio.maps_url }}" target="_blank" rel="noopener">Ver reseñas</a>
+            </div>
+            {% endif %}
+          </div>
+          <div class="map-frame map-static" aria-label="Referencia de ubicación de {{ nombre_publico }}">
+            <div class="map-pin"><span>•</span></div>
+            <strong>{{ nombre_publico }}</strong>
+            <small>{{ ciudad_publica }}{% if sitio.direccion_consultorio %}<br>{{ sitio.direccion_consultorio }}{% endif %}</small>
+          </div>
+        </div>
+        <div class="contact-grid" style="margin-top:30px;">
+          <article class="contact-item"><strong>Teléfono</strong>{% if sitio.telefono_consultorio %}<a class="js-telefono" href="tel:{{ sitio.telefono_consultorio }}">{{ sitio.telefono_consultorio }}</a>{% else %}<p>Consulta directamente con el consultorio.</p>{% endif %}</article>
+          <article class="contact-item"><strong>Horarios</strong><p>{{ sitio.horarios_atencion or 'Consulta disponibilidad al agendar.' }}</p></article>
+          <article class="contact-item"><strong>Llegada y referencias</strong>{% if sitio.estacionamiento or sitio.instrucciones_llegada %}{% if sitio.estacionamiento %}<p>{{ sitio.estacionamiento }}</p>{% endif %}{% if sitio.instrucciones_llegada %}<p>{{ sitio.instrucciones_llegada }}</p>{% endif %}{% else %}<p>La ubicación completa se muestra arriba y puede abrirse en Google Maps.</p>{% endif %}</article>
+        </div>
+        {% if estacionamiento_media %}
+        <div class="parking-gallery">
+          {% for imagen in estacionamiento_media %}
+          <figure class="gallery-card">
+            <div class="image-frame"><img src="{{ imagen.url }}" alt="{{ imagen.texto_alternativo or imagen.titulo or 'Estacionamiento del consultorio' }}"></div>
+            <figcaption><strong>{{ imagen.titulo or 'Estacionamiento' }}</strong>{{ imagen.descripcion or 'Referencia visual para llegar al consultorio.' }}</figcaption>
+          </figure>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if (sitio.mostrar_pagos and (sitio.texto_pagos or sitio.metodos_pago_aceptados)) or (sitio.mostrar_aseguradoras and (sitio.texto_aseguradoras or sitio.aseguradoras_aceptadas)) %}
+        <div class="contact-grid" style="margin-top:16px;">
+          {% if sitio.mostrar_pagos %}<article class="contact-item"><strong>Formas de pago</strong><p>{{ sitio.texto_pagos or sitio.metodos_pago_aceptados or 'Consulta con el consultorio.' }}</p></article>{% endif %}
+          {% if sitio.mostrar_aseguradoras %}<article class="contact-item"><strong>Aseguradoras</strong><p>{{ sitio.texto_aseguradoras or sitio.aseguradoras_aceptadas or 'Consulta con el consultorio.' }}</p></article>{% endif %}
+        </div>
+        {% endif %}
+        {% if sitio.redes %}
+        <div class="socials">
+          {% for red in sitio.redes %}
+            {% if red.url.startswith('https://') or red.url.startswith('http://') %}<a href="{{ red.url }}" target="_blank" rel="noopener">{{ red.red|capitalize }}</a>{% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    {% if sitio.mostrar_agenda %}
+    <section class="cta">
+      <div class="wrap">
+        <h2>Agenda una cita</h2>
+        <p>Elige un horario disponible y revisa las indicaciones del consultorio para completar tu cita.</p>
+        <a class="button js-agendar" href="{{ agenda_url }}">{{ agenda_texto }}</a>
+      </div>
+    </section>
+    {% endif %}
+  </main>
+
+  <div class="mobile-cta">
+    {% if sitio.mostrar_whatsapp and whatsapp_numero %}<a class="button button-secondary js-whatsapp" href="https://wa.me/{{ whatsapp_numero|replace('+','')|replace(' ','')|replace('-','') }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
+    {% if sitio.mostrar_agenda %}<a class="button button-primary js-agendar" href="{{ agenda_url }}">Agendar</a>{% endif %}
+  </div>
+
+  <footer>
+    <div class="wrap">
+      <div class="legal-medical">
+        <p><strong>{{ sitio.nombre_doctor }}</strong>{% if especialidad_publica %} - {{ especialidad_publica }}{% endif %}</p>
+        <p>
+          C&eacute;dula profesional: {{ sitio.cedula_profesional or 'Pendiente de captura' }}.
+          C&eacute;dula de especialidad: {{ sitio.cedula_especialidad or 'Pendiente de captura' }}.
+        </p>
+        <p>Instituci&oacute;n que expidi&oacute; los t&iacute;tulos: {{ sitio.institucion_titulo or 'Pendiente de captura' }}.</p>
+        <p>Consultorio: {{ sitio.direccion_consultorio or 'Direcci&oacute;n pendiente de captura' }}.</p>
+        <p>Aviso de publicidad COFEPRIS: {{ sitio.aviso_publicidad_cofepris or 'Pendiente de captura' }}.</p>
+        <p>La informaci&oacute;n publicada es de car&aacute;cter informativo y no sustituye una valoraci&oacute;n m&eacute;dica presencial.</p>
+      </div>
+      <div class="footer-bottom">
+        <span>{{ nombre_publico }}</span>
+        <a href="{{ portal_url }}">Portal del Paciente Doko</a>
+        <span>Powered by KB-Tech</span>
+      </div>
+    </div>
+  </footer>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Cuánto cuesta la consulta?",
+        "acceptedAnswer": {"@type": "Answer", "text": {% if sitio.servicios %}"Los costos publicados dependen del servicio seleccionado. Revisa la sección de servicios para ver precios fijos o indicaciones de valoración médica."{% else %}"Los costos pueden variar según el tipo de atención requerida. Comunícate con el consultorio para confirmar el costo vigente antes de acudir."{% endif %}}
+      },
+      {
+        "@type": "Question",
+        "name": "¿Acepta aseguradoras?",
+        "acceptedAnswer": {"@type": "Answer", "text": {% if sitio.aseguradoras_aceptadas %}{{ ('Aseguradoras aceptadas: ' ~ sitio.aseguradoras_aceptadas ~ '.')|tojson }}{% else %}"Por ahora no hay aseguradoras publicadas para este consultorio. Puedes confirmar directamente con el consultorio antes de agendar."{% endif %}}
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo puedo agendar una cita?",
+        "acceptedAnswer": {"@type": "Answer", "text": "Toca el botón Agendar cita, selecciona un horario disponible y revisa tu correo para recibir la información de confirmación cuando aplique."}
+      }{% if sitio.faqs %},{% endif %}
+      {% for faq in sitio.faqs %}
+      {
+        "@type": "Question",
+        "name": {{ faq.palabras_clave|tojson }},
+        "acceptedAnswer": {"@type": "Answer", "text": {{ faq.respuesta|tojson }}}
+      }{{ "," if not loop.last else "" }}
+      {% endfor %}
+    ]
+  }
+  </script>
+  {% if not preview_admin %}
+  <script>
+    function registrarEvento(tipo) {
+      fetch('/presencia/evento', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({tipo_evento: tipo}),
+        keepalive: true
+      }).catch(() => {});
+    }
+    document.querySelectorAll('.js-agendar').forEach((elemento) => elemento.addEventListener('click', () => registrarEvento('CLICK_AGENDAR')));
+    document.querySelectorAll('.js-whatsapp').forEach((elemento) => elemento.addEventListener('click', () => registrarEvento('CLICK_WHATSAPP')));
+    document.querySelectorAll('.js-maps').forEach((elemento) => elemento.addEventListener('click', () => registrarEvento('CLICK_MAPS')));
+    document.querySelectorAll('.js-telefono').forEach((elemento) => elemento.addEventListener('click', () => registrarEvento('CLICK_TELEFONO')));
+  </script>
+  {% endif %}
+</body>
+</html>
+

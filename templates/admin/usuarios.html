@@ -1,0 +1,269 @@
+﻿{% extends "base.html" %}
+{% block title %}Doko | Usuarios{% endblock %}
+{% block page_title %}Usuarios y accesos{% endblock %}
+{% block contenido %}
+
+<section class="admin-page-toolbar">
+    <div>
+        <p class="admin-page-kicker">Administración</p>
+        <h2>Usuarios internos</h2>
+        <p>Administra accesos para administración, asistentes, bodega y reparto.</p>
+    </div>
+    <button onclick="abrirModalUsuario()"
+        class="btn-primario">
+        Nuevo usuario
+    </button>
+</section>
+
+<section class="admin-data-card" style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;min-width:920px;">
+        <thead>
+            <tr style="background:var(--color-fondo-alt);border-bottom:2px solid var(--color-borde);">
+                <th style="padding:14px 16px;text-align:left;font-size:0.8em;color:var(--color-texto-suave);text-transform:uppercase;letter-spacing:0.05em;">Nombre</th>
+                <th style="padding:14px 16px;text-align:left;font-size:0.8em;color:var(--color-texto-suave);text-transform:uppercase;letter-spacing:0.05em;">Correo</th>
+                <th style="padding:14px 16px;text-align:left;font-size:0.8em;color:var(--color-texto-suave);text-transform:uppercase;letter-spacing:0.05em;">Rol</th>
+                <th style="padding:14px 16px;text-align:left;font-size:0.8em;color:var(--color-texto-suave);text-transform:uppercase;letter-spacing:0.05em;">Doctoras</th>
+                <th style="padding:14px 16px;text-align:left;font-size:0.8em;color:var(--color-texto-suave);text-transform:uppercase;letter-spacing:0.05em;">Estatus</th>
+                <th style="padding:14px 16px;text-align:left;font-size:0.8em;color:var(--color-texto-suave);text-transform:uppercase;letter-spacing:0.05em;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in usuarios %}
+        <tr style="border-bottom:1px solid var(--color-borde);">
+            <td style="padding:14px 16px;font-weight:500;color:var(--color-texto-base);">{{ u.nombre }}</td>
+            <td style="padding:14px 16px;color:var(--color-texto-medio);font-size:0.9em;">{{ u.correo }}</td>
+            <td style="padding:14px 16px;">
+                <span style="padding:4px 12px;border-radius:var(--radio-badge);font-size:0.8em;font-weight:600;
+                    background:{{ 'var(--color-primario-suave)' if u.rol in ['admin','asistente'] else 'var(--color-fondo-alt)' }};
+                    color:{{ 'var(--color-primario)' if u.rol in ['admin','asistente'] else 'var(--color-texto-medio)' }};">
+                    {{ u.rol }}
+                </span>
+            </td>
+            <td style="padding:14px 16px;color:var(--color-texto-medio);font-size:0.85em;min-width:280px;">
+                {% if u.rol == 'asistente' %}
+                <form class="asignacion-form" data-user="{{ u.id_usuario }}">
+                    <div class="doctoras-mini">
+                        {% set asignadas = asignaciones.get(u.id_usuario|string, []) %}
+                        {% set correos_asignados = asignadas|map(attribute='correo_doctor')|list %}
+                        {% for d in doctores %}
+                        <label>
+                            <input type="checkbox" name="doctoras" value="{{ d.correo_doctor }}" {{ 'checked' if d.correo_doctor in correos_asignados else '' }}>
+                            {{ d.nombre_doctor }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="mini-save">Guardar doctoras</button>
+                </form>
+                {% else %}
+                <span style="color:var(--color-texto-suave);">No aplica</span>
+                {% endif %}
+            </td>
+            <td style="padding:14px 16px;">
+                <span style="padding:4px 12px;border-radius:var(--radio-badge);font-size:0.8em;font-weight:600;
+                    background:{{ 'var(--color-confirmado-bg)' if u.activo else 'var(--color-cancelado-bg)' }};
+                    color:{{ 'var(--color-confirmado)' if u.activo else 'var(--color-cancelado)' }};">
+                    {{ 'Activo' if u.activo else 'Inactivo' }}
+                </span>
+            </td>
+            <td style="padding:14px 16px;">
+                <button onclick="toggleUsuario('{{ u.id_usuario }}', {{ 'true' if u.activo else 'false' }})"
+                    style="background:{{ 'var(--color-cancelado-bg)' if u.activo else 'var(--color-confirmado-bg)' }};
+                           color:{{ 'var(--color-cancelado)' if u.activo else 'var(--color-confirmado)' }};
+                           border:none;padding:6px 14px;border-radius:var(--radio-btn);
+                           cursor:pointer;font-size:0.85em;font-weight:600;">
+                    {{ 'Desactivar' if u.activo else 'Activar' }}
+                </button>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="padding:48px;text-align:center;color:var(--color-texto-suave);">Sin usuarios internos</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<div id="modal-usuario" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;overflow:auto;">
+    <div class="modal-usuario-box" style="background:white;width:100%;max-width:500px;margin:60px auto;padding:32px;border-radius:var(--radio-card);box-shadow:var(--sombra-modal);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+            <h2 style="margin:0;font-family:var(--fuente-titulo);">Nuevo usuario interno</h2>
+            <button onclick="cerrarModalUsuario()" style="background:none;border:none;font-size:1.5em;cursor:pointer;color:var(--color-texto-suave);">×</button>
+        </div>
+        <form id="form-usuario" method="POST" action="/admin/usuarios">
+            <div style="margin-bottom:16px;">
+                <label style="display:block;margin-bottom:4px;font-size:0.9em;font-weight:500;color:var(--color-texto-medio);">Nombre completo *</label>
+                <input name="nombre" id="usuario-nombre" required placeholder="María Pérez"
+                    style="width:100%;padding:10px;border:1px solid var(--color-borde);border-radius:var(--radio-btn);box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block;margin-bottom:4px;font-size:0.9em;font-weight:500;color:var(--color-texto-medio);">Correo Doko *</label>
+                <input name="correo" id="usuario-correo" type="email" required placeholder="maria.perez@doko.mx"
+                    style="width:100%;padding:10px;border:1px solid var(--color-borde);border-radius:var(--radio-btn);box-sizing:border-box;">
+                <small style="display:block;margin-top:6px;color:var(--color-texto-suave);">Se genera automático con el nombre. Puedes editarlo si necesitas diferenciarlo.</small>
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block;margin-bottom:4px;font-size:0.9em;font-weight:500;color:var(--color-texto-medio);">Contraseña inicial *</label>
+                <div style="display:flex;gap:8px;">
+                    <input name="password" id="usuario-password" type="text" required placeholder="Contraseña inicial"
+                        style="width:100%;padding:10px;border:1px solid var(--color-borde);border-radius:var(--radio-btn);box-sizing:border-box;">
+                    <button type="button" onclick="generarPasswordUsuario()" style="white-space:nowrap;background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:var(--radio-btn);padding:0 12px;cursor:pointer;">Generar</button>
+                </div>
+                <small style="display:block;margin-top:6px;color:var(--color-texto-suave);">La contraseña se muestra para que puedas entregarla a la asistente.</small>
+            </div>
+            <div style="margin-bottom:18px;">
+                <label style="display:block;margin-bottom:4px;font-size:0.9em;font-weight:500;color:var(--color-texto-medio);">Rol *</label>
+                <select name="rol" id="rol-usuario" required
+                    style="width:100%;padding:10px;border:1px solid var(--color-borde);border-radius:var(--radio-btn);background:white;font-family:var(--fuente-cuerpo);">
+                    <option value="">Seleccionar rol...</option>
+                    <option value="asistente">Asistente médica</option>
+                    <option value="bodeguero">Bodeguero</option>
+                    <option value="repartidor">Repartidor</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div id="doctoras-asistente-box" style="display:none;margin-bottom:18px;padding:12px;border:1px solid var(--color-borde);border-radius:var(--radio-card);background:var(--color-fondo-alt);">
+                <label style="display:block;margin-bottom:8px;font-size:0.9em;font-weight:600;color:var(--color-texto-base);">Doctoras que puede operar</label>
+                <div class="doctoras-modal">
+                    {% for d in doctores %}
+                    <label><input type="checkbox" name="doctoras" value="{{ d.correo_doctor }}"> {{ d.nombre_doctor }}{% if d.especialidad %} · {{ d.especialidad }}{% endif %}</label>
+                    {% endfor %}
+                </div>
+                <small style="display:block;margin-top:8px;color:var(--color-texto-suave);">La asistente verá el mismo panel del doctor para las doctoras asignadas.</small>
+            </div>
+            <div id="credenciales-preview" style="display:none;background:var(--color-confirmado-bg);color:var(--color-confirmado);padding:12px;border-radius:10px;margin-bottom:16px;font-size:0.9em;">
+                <strong>Credenciales para entregar:</strong>
+                <div>Correo: <span id="preview-correo"></span></div>
+                <div>Contraseña: <span id="preview-password"></span></div>
+            </div>
+            <div id="error-usuario" style="display:none;background:var(--color-cancelado-bg);color:var(--color-cancelado);padding:10px;border-radius:8px;margin-bottom:16px;font-size:0.9em;"></div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;">
+                <button type="button" onclick="cerrarModalUsuario()"
+                    style="background:var(--color-fondo-alt);color:var(--color-texto-medio);border:1px solid var(--color-borde);padding:10px 20px;border-radius:var(--radio-btn);cursor:pointer;font-family:var(--fuente-titulo);font-weight:600;">Cancelar</button>
+                <button type="submit" id="btn-usr"
+                    style="background:var(--color-primario);color:white;border:none;padding:10px 24px;border-radius:var(--radio-btn);cursor:pointer;font-family:var(--fuente-titulo);font-weight:600;">Crear usuario</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.doctoras-mini,.doctoras-modal{display:grid;gap:7px}.doctoras-mini label,.doctoras-modal label{align-items:center;display:flex;gap:7px}.doctoras-mini{max-height:150px;overflow:auto}.mini-save{background:var(--color-primario);border:none;border-radius:8px;color:white;cursor:pointer;font-size:.78rem;font-weight:700;margin-top:8px;padding:6px 10px}.asignacion-form.guardando{opacity:.65;pointer-events:none}@media(max-width:760px){.modal-usuario-box{margin:18px auto!important;max-width:calc(100% - 24px)!important}}
+</style>
+
+<script>
+function abrirModalUsuario() {
+    document.getElementById('modal-usuario').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('usuario-nombre')?.focus(), 50);
+}
+function cerrarModalUsuario() {
+    document.getElementById('modal-usuario').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('form-usuario').reset();
+    document.getElementById('doctoras-asistente-box').style.display = 'none';
+    document.getElementById('credenciales-preview').style.display = 'none';
+}
+function normalizarTexto(valor) {
+    return String(valor || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s.-]/g, '')
+        .trim();
+}
+function generarCorreoDoko() {
+    const nombre = normalizarTexto(document.getElementById('usuario-nombre').value);
+    const partes = nombre.split(/\s+/).filter(Boolean);
+    const correo = document.getElementById('usuario-correo');
+    if (!partes.length || !correo) return;
+    const base = partes.length === 1 ? partes[0] : `${partes[0]}.${partes[partes.length - 1]}`;
+    correo.value = `${base}@doko.mx`;
+    actualizarPreviewCredenciales();
+}
+function generarPasswordUsuario() {
+    const silabas = ['Doko', 'Cita', 'Salud', 'Panel', 'Agenda'];
+    const pass = `${silabas[Math.floor(Math.random() * silabas.length)]}-${Math.floor(1000 + Math.random() * 9000)}-${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`;
+    document.getElementById('usuario-password').value = pass;
+    actualizarPreviewCredenciales();
+}
+function actualizarPreviewCredenciales() {
+    const correo = document.getElementById('usuario-correo').value;
+    const password = document.getElementById('usuario-password').value;
+    const preview = document.getElementById('credenciales-preview');
+    document.getElementById('preview-correo').textContent = correo || '-';
+    document.getElementById('preview-password').textContent = password || '-';
+    preview.style.display = correo || password ? 'block' : 'none';
+}
+document.getElementById('modal-usuario').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalUsuario();
+});
+document.getElementById('usuario-nombre').addEventListener('input', generarCorreoDoko);
+document.getElementById('usuario-correo').addEventListener('input', actualizarPreviewCredenciales);
+document.getElementById('usuario-password').addEventListener('input', actualizarPreviewCredenciales);
+document.getElementById('rol-usuario').addEventListener('change', function() {
+    document.getElementById('doctoras-asistente-box').style.display = this.value === 'asistente' ? 'block' : 'none';
+    if (!document.getElementById('usuario-password').value) generarPasswordUsuario();
+});
+document.getElementById('form-usuario').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-usr');
+    const errDiv = document.getElementById('error-usuario');
+    btn.disabled = true; btn.textContent = 'Creando...'; errDiv.style.display = 'none';
+    const formData = new FormData(e.target);
+    const body = Object.fromEntries(formData.entries());
+    body.doctoras = formData.getAll('doctoras');
+    try {
+        const res = await fetch('/admin/usuarios', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+        const contentType = res.headers.get('content-type') || '';
+        const data = contentType.includes('application/json') ? await res.json() : { ok:false, error: await res.text() };
+        if (data.ok) {
+            const correo = body.correo;
+            const password = body.password;
+            alert(`Usuario creado.\n\nCorreo: ${correo}\nContraseña: ${password}`);
+            cerrarModalUsuario();
+            location.reload();
+        } else {
+            errDiv.textContent = data.error || `Error ${res.status}`;
+            errDiv.style.display = 'block';
+        }
+    } catch (error) {
+        errDiv.textContent = error.message || 'No se pudo crear el usuario.';
+        errDiv.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Crear usuario';
+    }
+});
+document.querySelectorAll('.asignacion-form').forEach(form => {
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        form.classList.add('guardando');
+        const formData = new FormData(form);
+        const body = { doctoras: formData.getAll('doctoras') };
+        try {
+            const res = await fetch(`/admin/usuarios/${form.dataset.user}/doctoras`, {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.error || 'No se pudo guardar');
+            if (window.dokoNotificar) window.dokoNotificar('Doctoras asignadas correctamente.', 'ok');
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            form.classList.remove('guardando');
+        }
+    });
+});
+async function toggleUsuario(id, activo) {
+    if (!await dokoConfirmar(activo ? '¿Desactivar este usuario?' : '¿Activar este usuario?', {
+        titulo: activo ? 'Desactivar usuario' : 'Activar usuario',
+        textoConfirmar: activo ? 'Desactivar' : 'Activar'
+    })) return;
+    const res = await fetch(`/admin/usuarios/${id}/toggle`, { method:'POST' });
+    const data = await res.json();
+    if (data.ok) location.reload();
+    else alert('Error: ' + (data.error || 'No se pudo cambiar'));
+}
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+{# Mascota Doko: componente visual reutilizable. No incluye estilos ni JS. #}
+{% macro doko_mascot(variant='launcher') -%}
+{% set class_name = 'doko-mascot--' ~ (variant or 'launcher') %}
+<svg class="doko-mascot {{ class_name }}" viewBox="0 0 200 260" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <g class="mascot-body">
+        <rect x="90" y="126" width="20" height="18" rx="6" fill="#fff" stroke="#202938" stroke-width="3.5"/>
+        <rect x="40" y="143" width="22" height="38" rx="11" fill="#fff" stroke="#202938" stroke-width="3.5" transform="rotate(-14 51 143)"/>
+        <rect x="138" y="143" width="22" height="38" rx="11" fill="#fff" stroke="#202938" stroke-width="3.5" transform="rotate(14 149 143)"/>
+        <rect x="64" y="140" width="72" height="50" rx="25" fill="#fff" stroke="#202938" stroke-width="3.5"/>
+        <rect class="mascot-accent" x="82" y="150" width="36" height="14" rx="7" stroke="#202938" stroke-width="2.5"/>
+        <rect class="mascot-accent" x="93" y="167" width="14" height="7" rx="3.5" opacity=".55"/>
+        <rect x="80" y="188" width="17" height="22" rx="8" fill="#fff" stroke="#202938" stroke-width="3.5"/>
+        <rect x="103" y="188" width="17" height="22" rx="8" fill="#fff" stroke="#202938" stroke-width="3.5"/>
+        <ellipse cx="88.5" cy="216" rx="13" ry="9" fill="#fff" stroke="#202938" stroke-width="3.5"/>
+        <ellipse cx="111.5" cy="216" rx="13" ry="9" fill="#fff" stroke="#202938" stroke-width="3.5"/>
+    </g>
+    <g class="mascot-head">
+        <g fill="#202938">
+            <circle cx="100" cy="75" r="52"/>
+            <circle cx="52" cy="68" r="32"/>
+            <circle cx="148" cy="68" r="32"/>
+            <circle cx="75" cy="34" r="28"/>
+            <circle cx="125" cy="34" r="28"/>
+            <circle cx="100" cy="28" r="26"/>
+            <circle cx="58" cy="104" r="24"/>
+            <circle cx="142" cy="104" r="24"/>
+            <rect x="52" y="88" width="96" height="42" rx="21"/>
+        </g>
+        <g fill="#fff">
+            <circle cx="100" cy="75" r="48"/>
+            <circle cx="52" cy="68" r="28"/>
+            <circle cx="148" cy="68" r="28"/>
+            <circle cx="75" cy="34" r="24"/>
+            <circle cx="125" cy="34" r="24"/>
+            <circle cx="100" cy="28" r="22"/>
+            <circle cx="58" cy="104" r="20"/>
+            <circle cx="142" cy="104" r="20"/>
+            <rect x="56" y="90" width="88" height="38" rx="19"/>
+        </g>
+        <rect class="mascot-face" x="56" y="56" width="88" height="58" rx="18"/>
+        <path class="mascot-pulse" d="M68 86h12l5-13l6 26l5-13h14V71c0 0 16 0 16 15s-16 15-16 0" stroke-width="4.2"/>
+    </g>
+</svg>
+{%- endmacro %}

@@ -1,0 +1,849 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,follow">
+    <title>{{ doctor.nombre_doctor }} | Doko</title>
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/img/doko-icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #163661;
+            --blue-strong: #102B4E;
+            --text: #111827;
+            --muted: #6B7280;
+            --border: #E5E7EB;
+            --soft: #F8FAFC;
+            --card: #FFFFFF;
+        }
+        {% set temas = {
+            'verde': ['#087F5B', '#05664A', '#E7F7F1'],
+            'turquesa': ['#0F8792', '#0B6B74', '#E7F7F8'],
+            'lila': ['#A77BD8', '#7E62B8', '#F5EEFF'],
+            'sakura': ['#C86B91', '#A94F74', '#FFF0F6'],
+            'vino': ['#9F1239', '#821033', '#FDECF2']
+        } %}
+        {% set tema = temas.get(doctor.color_tema, ['#163661', '#102B4E', '#EEF3F9']) %}
+        :root { --blue: {{ tema[0] }}; --blue-strong: {{ tema[1] }}; --soft: {{ tema[2] }}; }
+        * { box-sizing: border-box; }
+        html, body { overflow-x: hidden; }
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background: #fff;
+        }
+        a { color: inherit; }
+        .public-shell {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+        }
+        body.theme-lila .public-shell {
+            background:
+                radial-gradient(circle at 92% 12%, rgba(167, 123, 216, .12), transparent 28%),
+                linear-gradient(180deg, #FFFFFF 0%, #FDFCFF 100%);
+        }
+        body.theme-sakura .public-shell {
+            background:
+                radial-gradient(circle at 92% 12%, rgba(200, 107, 145, .12), transparent 28%),
+                linear-gradient(180deg, #FFFFFF 0%, #FFFCFD 100%);
+        }
+        .public-nav {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+        .page-layout {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 24px 20px 72px;
+            display: grid;
+            grid-template-columns: 360px minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
+        .doctor-card, .calendar-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 18px 50px rgba(17, 24, 39, .07);
+        }
+        .doctor-card { padding: 26px; }
+        .doctor-photo {
+            width: 128px;
+            height: 128px;
+            border-radius: 24px;
+            object-fit: cover;
+            background: #EEF3F9;
+        }
+        h1 {
+            margin: 18px 0 6px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            line-height: 1;
+            letter-spacing: 0;
+        }
+        .specialty {
+            margin: 0 0 18px;
+            color: var(--blue);
+            font-weight: 800;
+        }
+        .meta-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .meta-item {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 13px 14px;
+            color: var(--muted);
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+        .meta-item strong {
+            display: block;
+            color: var(--text);
+            font-size: .84rem;
+            margin-bottom: 3px;
+        }
+        .map-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 16px;
+            background: var(--blue);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 12px;
+            padding: 13px 16px;
+            font-weight: 800;
+        }
+        .map-btn:hover { background: var(--blue-strong); }
+        .calendar-card { overflow: hidden; }
+        .calendar-head {
+            padding: 22px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .calendar-head h2 {
+            margin: 0;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.45rem;
+        }
+        .calendar-head p {
+            margin: 6px 0 0;
+            color: var(--muted);
+        }
+        .portal-steps {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-top: 14px;
+        }
+        .portal-step {
+            background: var(--soft);
+            border: 1px solid color-mix(in srgb, var(--blue) 16%, var(--border));
+            border-radius: 12px;
+            color: var(--text);
+            font-size: .84rem;
+            line-height: 1.35;
+            padding: 10px 11px;
+        }
+        .portal-step strong {
+            color: var(--blue);
+            display: block;
+            font-size: .78rem;
+            margin-bottom: 2px;
+        }
+        .email-reminder {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-top: 14px;
+            border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--border));
+            background: var(--soft);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 12px 14px;
+            line-height: 1.45;
+            font-size: .92rem;
+        }
+        .email-reminder strong {
+            display: block;
+            color: var(--blue);
+            margin-bottom: 2px;
+        }
+        .email-reminder span:first-child {
+            flex: 0 0 auto;
+            font-size: 1.05rem;
+            line-height: 1.3;
+        }
+        .calendar-card iframe {
+            display: block;
+            width: 100%;
+            height: 600px;
+            border: 0;
+            background: #fff;
+        }
+        .office-notice {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 14px;
+            color: #9a3412;
+            font-weight: 700;
+            grid-column: 1 / -1;
+            line-height: 1.5;
+            margin: 0 0 18px;
+            padding: 14px 16px;
+        }
+        .calendar-empty {
+            padding: 36px 24px;
+            color: var(--muted);
+        }
+        .doctor-photo-fallback { display:grid; place-items:center; color:var(--blue); font:700 3rem 'DM Sans',sans-serif; }
+        #chat-container {
+            position: fixed;
+            right: 20px;
+            bottom: 18px;
+            width: 390px;
+            max-width: calc(100vw - 32px);
+            z-index: 60;
+            pointer-events: none;
+        }
+        #chat-container.chat-left {
+            left: 20px;
+            right: auto;
+        }
+        .chat-preview {
+            display: block;
+            margin: 0 110px 8px 0;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 12px 14px;
+            color: var(--text);
+            box-shadow: 0 16px 42px rgba(17, 24, 39, .14);
+            font-size: .9rem;
+            line-height: 1.35;
+            pointer-events: auto;
+        }
+        #chat-container.chat-left .chat-preview {
+            margin: 0 0 8px 110px;
+        }
+        .chat-preview::before {
+            align-items: center;
+            background: var(--blue);
+            border-radius: 999px;
+            color: #fff;
+            content: "D";
+            display: inline-flex;
+            font: 800 .72rem 'DM Sans', sans-serif;
+            height: 24px;
+            justify-content: center;
+            margin-right: 8px;
+            width: 24px;
+        }
+        #chat-container.chat-abierto .chat-preview { display: none; }
+        .chat-launcher {
+            align-items: flex-end;
+            display: flex;
+            gap: 0;
+            justify-content: flex-end;
+            pointer-events: none;
+        }
+        #chat-container.chat-left .chat-launcher {
+            justify-content: flex-start;
+        }
+        #chat-toggle {
+            align-items: center;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            display: inline-flex;
+            flex-direction: column;
+            gap: 2px;
+            height: auto;
+            justify-content: center;
+            min-width: 96px;
+            width: 96px;
+            border-radius: 24px;
+            font-size: .78rem;
+            font-weight: 900;
+            cursor: pointer;
+            overflow: visible;
+            padding: 0;
+            position: relative;
+            text-shadow: 0 1px 0 rgba(255,255,255,.86);
+            transition: transform .22s ease, opacity .22s ease, filter .22s ease;
+            pointer-events: auto;
+        }
+        #chat-toggle:hover { transform: translateY(-2px); }
+        #chat-toggle::after {
+            background: var(--blue);
+            border: 2px solid #fff;
+            border-radius: 999px;
+            content: "";
+            bottom: 24px;
+            height: 12px;
+            position: absolute;
+            right: 15px;
+            width: 12px;
+            box-shadow: 0 3px 10px rgba(17,24,39,.18);
+        }
+        .chat-launcher-label {
+            align-items: center;
+            background: rgba(255,255,255,.96);
+            border: 1px solid color-mix(in srgb, var(--blue) 18%, var(--border));
+            border-radius: 999px;
+            box-shadow: 0 10px 24px rgba(17,24,39,.12);
+            color: var(--blue);
+            display: inline-flex;
+            font: 900 .78rem 'DM Sans', sans-serif;
+            line-height: 1;
+            margin-top: -6px;
+            padding: 7px 10px;
+            transition: opacity .18s ease, transform .18s ease;
+        }
+        .doko-mascot {
+            display: block;
+            filter: drop-shadow(0 16px 24px rgba(22, 54, 97, .20));
+            height: 114px;
+            width: 88px;
+        }
+        .doko-mascot .mascot-accent,
+        .doko-mascot .mascot-status {
+            fill: var(--blue);
+        }
+        .doko-mascot .mascot-soft {
+            fill: var(--soft);
+        }
+        .doko-mascot .mascot-line {
+            stroke: var(--blue);
+        }
+        .doko-mascot .mascot-face {
+            fill: #202938;
+        }
+        .doko-mascot .mascot-pulse {
+            fill: none;
+            stroke: #fff;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .doko-mascot--launcher {
+            height: 114px;
+            padding: 0;
+            width: 88px;
+        }
+        .doko-mascot--avatar {
+            filter: none;
+            height: 40px;
+            padding: 0;
+            width: 32px;
+        }
+        .doko-mascot--mini {
+            height: 60px;
+            padding: 0;
+            width: 48px;
+        }
+        .chat-mini-control {
+            align-items: center;
+            background: rgba(255,255,255,.96);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            box-shadow: 0 10px 24px rgba(17,24,39,.12);
+            color: var(--blue);
+            cursor: pointer;
+            display: inline-flex;
+            font: 900 .9rem 'DM Sans', sans-serif;
+            height: 34px;
+            justify-content: center;
+            width: 34px;
+        }
+        .chat-launcher .chat-mini-control {
+            display: none;
+        }
+        #chat-show {
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            bottom: 20px;
+            display: none;
+            font-size: 0;
+            height: 64px;
+            position: fixed;
+            right: 20px;
+            width: 64px;
+            z-index: 59;
+            pointer-events: auto;
+        }
+        body.chat-hidden #chat-container { display: none; }
+        body.chat-hidden #chat-show { display: inline-flex; }
+        body.chat-idle #chat-container:not(.chat-abierto) {
+            opacity: .68;
+            transform: translateY(14px) scale(.72);
+            transition: opacity .22s ease, transform .22s ease;
+        }
+        body.chat-idle #chat-container:not(.chat-abierto) .chat-preview {
+            display: none;
+        }
+        body.chat-idle #chat-container:not(.chat-abierto) .chat-launcher-label {
+            opacity: 0;
+            transform: translateY(4px) scale(.82);
+        }
+        #chat-container {
+            transition: opacity .22s ease, transform .22s ease;
+        }
+        .chat-panel {
+            display: none;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(17, 24, 39, .18);
+            margin-bottom: 12px;
+            pointer-events: auto;
+        }
+        #chat-container.chat-abierto .chat-panel { display: block; }
+        body.theme-lila .chat-panel { border-color: #E7DAF9; }
+        body.theme-sakura .chat-panel { border-color: #F6D8E4; }
+        body.theme-lila .chat-header {
+            background:
+                radial-gradient(ellipse at 92% 18%, rgba(167, 123, 216, .16), transparent 28%),
+                linear-gradient(135deg, #fff, #FBF7FF);
+        }
+        body.theme-sakura .chat-header {
+            background:
+                radial-gradient(ellipse at 92% 18%, rgba(200, 107, 145, .14), transparent 28%),
+                linear-gradient(135deg, #fff, #FFFAFC);
+        }
+        .chat-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            position: relative;
+        }
+        .chat-assistant-avatar {
+            align-items: center;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 10px 22px rgba(22, 54, 97, .18);
+            display: flex;
+            flex: 0 0 42px;
+            font: 800 1rem 'DM Sans', sans-serif;
+            height: 42px;
+            justify-content: center;
+        }
+        .chat-header-title {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+        .chat-header strong { font-family: 'DM Sans', sans-serif; }
+        .chat-header span {
+            display: block;
+            color: var(--muted);
+            font-size: .82rem;
+            margin-top: 2px;
+        }
+        #chat-language {
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 10px;
+            color: var(--text);
+            flex: 0 0 auto;
+            max-width: 108px;
+            padding: 8px 10px;
+            font-size: .84rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+        }
+        #chat-close {
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 10px;
+            color: var(--text);
+            flex: 0 0 34px;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            font-weight: 800;
+            line-height: 1;
+            position: relative;
+            z-index: 2;
+        }
+        #chat-close:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+        #chat-window {
+            height: 340px;
+            overflow-y: auto;
+            padding: 14px;
+            background: var(--soft);
+        }
+        .chat-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 12px 0;
+            background: var(--soft);
+        }
+        .chat-suggestion {
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--blue);
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: .8rem;
+            font-weight: 800;
+            padding: 8px 10px;
+        }
+        .chat-suggestion:hover {
+            border-color: var(--blue);
+        }
+        .chat-burbuja {
+            margin: 8px 0;
+            padding: 11px 13px;
+            border-radius: 14px;
+            max-width: 88%;
+            white-space: pre-line;
+            font-size: .9rem;
+            line-height: 1.4;
+        }
+        .chat-usuario {
+            background: var(--blue);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .chat-bot {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        #chat-form {
+            display: flex;
+            gap: 8px;
+            padding: 10px;
+            border-top: 1px solid var(--border);
+        }
+        #chat-input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 1rem;
+        }
+        #chat-form button {
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 0 15px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .public-footer {
+            border-top: 1px solid var(--border);
+            padding: 20px;
+            color: var(--muted);
+            font-size: .84rem;
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .public-footer a {
+            color: var(--muted);
+            text-decoration: none;
+        }
+        @media (max-width: 900px) {
+            .page-layout {
+                grid-template-columns: 1fr;
+                padding-top: 12px;
+            }
+            .calendar-card iframe { height: 600px; }
+        }
+        @media (max-width: 560px) {
+            .public-nav { padding: 14px 16px; }
+            .page-layout { padding: 8px 10px 54px; gap: 10px; }
+            .doctor-card { padding: 14px; }
+            .doctor-photo { width: 76px; height: 76px; border-radius: 16px; }
+            h1 { margin: 10px 0 4px; font-size: 1.78rem; line-height: 1.02; }
+            .specialty { margin-bottom: 10px; font-size: .84rem; }
+            .meta-list { gap: 7px; margin-top: 12px; }
+            .meta-item { border-radius: 10px; font-size: .82rem; padding: 9px 10px; }
+            .meta-item strong { font-size: .72rem; }
+            .map-btn { margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: .88rem; }
+            .calendar-head { padding: 14px; }
+            .calendar-head h2 { font-size: 1.28rem; }
+            .calendar-head p { font-size: .86rem; line-height: 1.35; }
+            .portal-steps {
+                display: flex;
+                gap: 6px;
+                margin-top: 8px;
+                overflow-x: auto;
+                padding-bottom: 2px;
+                scrollbar-width: none;
+            }
+            .portal-steps::-webkit-scrollbar { display: none; }
+            .portal-step {
+                align-items: center;
+                border-radius: 999px;
+                display: inline-flex;
+                flex: 0 0 auto;
+                gap: 4px;
+                line-height: 1.2;
+                padding: 7px 9px;
+                white-space: nowrap;
+            }
+            .portal-step strong {
+                display: inline;
+                font-size: .72rem;
+                margin-bottom: 0;
+            }
+            .portal-step span {
+                color: var(--muted);
+                font-size: .72rem;
+            }
+            .email-reminder {
+                font-size: .8rem;
+                line-height: 1.35;
+                margin-top: 10px;
+                padding: 9px 10px;
+            }
+            .calendar-card iframe { height: 600px; }
+            #chat-container {
+                right: 8px;
+                bottom: 8px;
+                width: min(360px, calc(100vw - 24px));
+            }
+            #chat-container.chat-left {
+                left: 8px;
+                right: auto;
+            }
+            .chat-preview {
+                margin-right: 82px;
+                padding: 9px 11px;
+                font-size: .8rem;
+            }
+            #chat-container.chat-left .chat-preview {
+                margin-left: 82px;
+                margin-right: 0;
+            }
+            #chat-toggle {
+                min-width: 78px;
+                width: 78px;
+            }
+            .doko-mascot--launcher { height: 92px; width: 70px; }
+            .doko-mascot--avatar { height: 40px; width: 32px; }
+            .doko-mascot--mini { height: 54px; width: 42px; }
+            .chat-launcher-label { font-size: .72rem; padding: 6px 9px; }
+            #chat-container.chat-abierto {
+                inset: 0;
+                height: 100dvh;
+                min-height: 100svh;
+                width: auto;
+                max-width: none;
+                background: #fff;
+            }
+            #chat-container.chat-abierto .chat-panel {
+                display: flex;
+                flex-direction: column;
+                height: 100dvh;
+                min-height: 100svh;
+                margin: 0;
+                border-radius: 0;
+                border: 0;
+            }
+            #chat-container.chat-abierto .chat-header {
+                gap: 8px;
+                padding: 10px 12px;
+            }
+            #chat-container.chat-abierto .chat-assistant-avatar {
+                flex-basis: 38px;
+                height: 38px;
+            }
+            #chat-container.chat-abierto .doko-mascot--avatar {
+                height: 36px;
+                width: 28px;
+            }
+            #chat-container.chat-abierto .chat-header-title strong {
+                font-size: .94rem;
+            }
+            #chat-container.chat-abierto .chat-header-title span {
+                font-size: .76rem;
+            }
+            #chat-container.chat-abierto #chat-language {
+                max-width: 92px;
+                padding: 7px 8px;
+                font-size: .78rem;
+            }
+            #chat-container.chat-abierto #chat-close {
+                flex-basis: 32px;
+                height: 32px;
+                width: 32px;
+            }
+            #chat-container.chat-abierto #chat-window {
+                flex: 1;
+                height: auto;
+                min-height: 0;
+            }
+            #chat-container.chat-abierto #chat-toggle { display: none; }
+            #chat-container.chat-abierto .chat-launcher { display: none; }
+            #chat-show {
+                bottom: 12px;
+                right: 12px;
+                height: 56px;
+                width: 56px;
+            }
+            #chat-form { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+        }
+    </style>
+</head>
+<body class="theme-{{ doctor.color_tema or 'marino' }}">
+    {% from "components/doko_mascot.html" import doko_mascot %}
+    <div class="public-shell">
+        <main class="page-layout">
+            <section class="doctor-card">
+                {% if doctor.foto_perfil_url %}
+                <img src="{{ doctor.foto_perfil_url }}" alt="{{ doctor.nombre_doctor }}" class="doctor-photo">
+                {% else %}
+                <div class="doctor-photo doctor-photo-fallback" aria-label="{{ doctor.nombre_doctor }}">{{ doctor.nombre_doctor[0] if doctor.nombre_doctor else 'D' }}</div>
+                {% endif %}
+                <h1>{{ doctor.nombre_doctor }}</h1>
+                <p class="specialty">{{ doctor.especialidad or 'Especialidad médica' }}</p>
+
+                <div class="meta-list">
+                    <div class="meta-item">
+                        <strong>Teléfono del consultorio</strong>
+                        {% if doctor.telefono_consultorio %}
+                        <a href="tel:{{ doctor.telefono_consultorio }}">{{ doctor.telefono_consultorio }}</a>
+                        {% else %}
+                        Por confirmar
+                        {% endif %}
+                    </div>
+                    <div class="meta-item">
+                        <strong>Dirección</strong>
+                        {{ doctor.direccion_consultorio or 'Dirección por confirmar' }}
+                    </div>
+                </div>
+                {% if doctor.maps_url %}
+                <a href="{{ doctor.maps_url }}" target="_blank" rel="noopener" class="map-btn">Ver ubicación en Maps</a>
+                {% endif %}
+            </section>
+
+            {% if doctor.aviso_activo and doctor.aviso_consultorio %}
+            <section class="office-notice">
+                {{ doctor.aviso_consultorio }}
+            </section>
+            {% endif %}
+
+            <section class="calendar-card">
+                <div class="calendar-head">
+                    <h2>Agenda tu cita</h2>
+                    <p>Selecciona un horario disponible en el calendario.</p>
+                    <div class="portal-steps" aria-label="Pasos para agendar">
+                        <div class="portal-step"><strong>1. Elige horario</strong><span>Hora disponible</span></div>
+                        <div class="portal-step"><strong>2. Reserva</strong><span>Correo de Google</span></div>
+                        <div class="portal-step"><strong>3. Confirma</strong><span>Correo de Doko</span></div>
+                    </div>
+                    {% if doctor.modo_confirmacion == 'confirmar_48h_cancelar_24h' %}
+                    <p>Google Calendar puede enviarte un correo inmediato con los datos de la reserva. Doko enviará el correo de confirmación 48 horas antes cuando aplique.</p>
+                    {% elif doctor.modo_confirmacion == 'confirmar_24h' %}
+                    <p>Google Calendar puede enviarte un correo inmediato con los datos de la reserva. Doko puede enviarte un correo de confirmación cuando aplique.</p>
+                    {% endif %}
+                    <div class="email-reminder" role="note" aria-label="Aviso sobre correo de confirmación">
+                        <span aria-hidden="true">D</span>
+                        <div>
+                            <strong>Revisa el correo de confirmación de Doko.</strong>
+                            Si no aparece en tu bandeja principal, revisa Spam o Correo no deseado.
+                        </div>
+                    </div>
+                </div>
+                {% if doctor.calendar_booking_url %}
+                <iframe
+                    src="{{ doctor.calendar_booking_url }}"
+                    style="border:0"
+                    width="100%"
+                    height="600"
+                    frameborder="0"
+                    title="Calendario de citas de {{ doctor.nombre_doctor }}">
+                </iframe>
+                {% else %}
+                <div class="calendar-empty">Calendario no disponible temporalmente. Contacta al consultorio.</div>
+                {% endif %}
+            </section>
+        </main>
+    </div>
+
+    <div id="chat-container" data-id="{{ doctor.id_publico }}">
+        <div class="chat-preview" id="chat-preview">
+            Pregúntame por servicios, costos, ubicación o cómo agendar.
+        </div>
+        <div class="chat-panel">
+            <div class="chat-header">
+                <span class="chat-assistant-avatar" aria-hidden="true">{{ doko_mascot('avatar') }}</span>
+                <div class="chat-header-title">
+                    <strong>Asistente Doko</strong>
+                    <span>Recepción virtual informativa</span>
+                </div>
+                <button id="chat-close" type="button" aria-label="Cerrar chat">&times;</button>
+            </div>
+            <div class="chat-suggestions" id="chat-suggestions" aria-label="Preguntas rápidas del chat"></div>
+            <div id="chat-window"></div>
+            <form id="chat-form">
+                <input id="chat-input" type="text" maxlength="500" placeholder="Escribe tu pregunta...">
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+        <div class="chat-launcher">
+            <button id="chat-toggle" type="button" aria-label="Abrir chat">
+                {{ doko_mascot('launcher') }}
+                <span class="chat-launcher-label">Preguntar</span>
+            </button>
+        </div>
+    </div>
+    <button id="chat-show" class="chat-mini-control" type="button" aria-label="Mostrar asistente">{{ doko_mascot('mini') }}</button>
+
+    <footer class="public-footer">
+        <span>Doko</span>
+        <span>Powered by KB-Tech</span>
+        <a href="/privacidad">Politica de Privacidad</a>
+        <a href="/terminos">Terminos y Condiciones</a>
+    </footer>
+
+    <script>
+        window.FAQ_DATA = {
+            faqs: {{ faq_data | tojson | safe }},
+            servicios: {{ servicios | tojson | safe }},
+            doctor: {
+                nombre_doctor: {{ doctor.nombre_doctor | tojson }},
+                especialidad: {{ doctor.especialidad | tojson }},
+                telefono_consultorio: {{ doctor.telefono_consultorio | tojson }},
+                direccion_consultorio: {{ doctor.direccion_consultorio | tojson }},
+                maps_url: {{ doctor.maps_url | tojson }},
+                aseguradoras_aceptadas: {{ doctor.aseguradoras_aceptadas | tojson }},
+                metodos_pago_aceptados: {{ doctor.metodos_pago_aceptados | tojson }},
+                horarios_atencion: {{ doctor.horarios_atencion | tojson }},
+                modo_confirmacion: {{ doctor.modo_confirmacion | tojson }},
+                aviso_consultorio: {{ doctor.aviso_consultorio | tojson }},
+                aviso_activo: {{ doctor.aviso_activo | tojson }}
+            }
+        };
+    </script>
+    <script src="/static/js/chatbot_faq.js?v=20260710-mascot-dock"></script>
+</body>
+</html>

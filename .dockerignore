@@ -1,0 +1,16 @@
+.env
+google-key.json
+credentials.json
+__pycache__/
+*.pyc
+cloud-sql-proxy.exe
+cloud-sql-proxy
+.git
+.agents
+.cursor
+.tmp/
+.tmp_*/
+.tmp_*.png
+outputs/
+.pytest_cache/
+.mypy_cache/

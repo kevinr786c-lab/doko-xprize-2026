@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }} | Doko</title>
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/img/doko-icon-192.png">
+    <meta name="theme-color" content="#163661">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #163661;
+            --ink: #111827;
+            --muted: #5B6B84;
+            --line: #E2E8F0;
+            --soft: #F6F8FC;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            color: var(--ink);
+            background: linear-gradient(180deg, #FFFFFF 0%, #F7FAFE 100%);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.65;
+        }
+        header {
+            border-bottom: 1px solid var(--line);
+            background: rgba(255,255,255,.92);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            backdrop-filter: blur(12px);
+        }
+        .wrap {
+            width: min(980px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+        .nav {
+            min-height: 74px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--ink);
+            text-decoration: none;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+        .brand-mark {
+            width: 64px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--navy);
+            color: #fff;
+            display: grid;
+            place-items: center;
+            font-size: .72rem;
+        }
+        .nav-links {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            font-size: .92rem;
+            font-weight: 700;
+        }
+        .nav-links a { color: var(--muted); text-decoration: none; }
+        main { padding: 54px 0 64px; }
+        .legal-card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, .07);
+            padding: clamp(24px, 5vw, 52px);
+        }
+        .eyebrow {
+            margin: 0 0 10px;
+            color: var(--navy);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-size: .78rem;
+            font-weight: 900;
+        }
+        h1, h2 {
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0;
+        }
+        h1 {
+            margin: 0 0 12px;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            line-height: 1.02;
+        }
+        h2 {
+            margin: 34px 0 10px;
+            font-size: 1.35rem;
+        }
+        p { margin: 0 0 14px; color: #334155; }
+        ul { margin: 0 0 16px; padding-left: 22px; color: #334155; }
+        li { margin: 6px 0; }
+        .notice {
+            margin: 22px 0;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid #CFE0F5;
+            background: #F4F8FE;
+            color: #243B5A;
+            font-size: .95rem;
+        }
+        footer {
+            border-top: 1px solid var(--line);
+            padding: 24px 0;
+            color: var(--muted);
+            font-size: .9rem;
+        }
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .footer-inner a { color: var(--muted); text-decoration: none; margin-right: 12px; }
+        @media (max-width: 640px) {
+            .nav { align-items: flex-start; flex-direction: column; padding: 16px 0; }
+            .nav-links { justify-content: flex-start; }
+            main { padding-top: 28px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="wrap nav">
+            <a class="brand" href="/">
+                <span class="brand-mark">Doko</span>
+                <span>Doko</span>
+            </a>
+            <nav class="nav-links" aria-label="Navegación legal">
+                <a href="/">Inicio</a>
+                <a href="/privacidad">Privacidad</a>
+                <a href="/terminos">Términos</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <div class="wrap">
+            <article class="legal-card">
+                {% block legal %}{% endblock %}
+            </article>
+        </div>
+    </main>
+    <footer>
+        <div class="wrap footer-inner">
+            <span>Doko · Powered by KB-Tech</span>
+            <span>
+                <a href="/privacidad">Privacidad</a>
+                <a href="/terminos">Términos</a>
+            </span>
+        </div>
+    </footer>
+</body>
+</html>

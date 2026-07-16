@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block head %}
+<title>Confirmar cita - Doko</title>
+<link rel="stylesheet" href="/static/css/main.css">
+<link rel="stylesheet" href="/static/css/responsive.css">
+{% set tema = (doctor.color_tema if doctor else 'marino') or 'marino' %}
+{% set color = '#173a63' %}
+{% if tema == 'lila' %}{% set color = '#a775dc' %}{% endif %}
+{% if tema == 'sakura' %}{% set color = '#C86B91' %}{% endif %}
+{% if tema == 'verde' %}{% set color = '#0f766e' %}{% endif %}
+{% if tema == 'turquesa' %}{% set color = '#0891b2' %}{% endif %}
+{% if tema == 'vino' %}{% set color = '#9f1239' %}{% endif %}
+<style>
+    .confirm-page {
+        --doctor-color: {{ color }};
+        align-items: center;
+        background: linear-gradient(180deg, rgba(23,58,99,.08), #fff 42%);
+        display: flex;
+        justify-content: center;
+        min-height: 78vh;
+        padding: 28px 16px;
+    }
+    .confirm-card {
+        background: #fff;
+        border: 1px solid #dbe4ee;
+        border-radius: 18px;
+        box-shadow: 0 24px 70px rgba(15, 23, 42, .10);
+        max-width: 560px;
+        overflow: hidden;
+        width: 100%;
+    }
+    .confirm-brand {
+        align-items: center;
+        border-bottom: 1px solid #edf2f7;
+        display: flex;
+        gap: 14px;
+        padding: 20px 22px;
+    }
+    .confirm-logo {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #e5edf5;
+        border-radius: 50%;
+        display: flex;
+        height: 58px;
+        justify-content: center;
+        overflow: hidden;
+        width: 58px;
+    }
+    .confirm-logo img {
+        height: 100%;
+        object-fit: cover;
+        width: 100%;
+    }
+    .confirm-logo span {
+        color: var(--doctor-color);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 1.3rem;
+        font-weight: 900;
+    }
+    .confirm-brand h1 {
+        color: #111827;
+        font-size: 1.05rem;
+        margin: 0;
+    }
+    .confirm-brand p {
+        color: #64748b;
+        margin: 3px 0 0;
+    }
+    .confirm-body {
+        padding: 24px;
+    }
+    .confirm-kicker {
+        color: var(--doctor-color);
+        font-size: .78rem;
+        font-weight: 900;
+        letter-spacing: .08em;
+        margin: 0 0 8px;
+        text-transform: uppercase;
+    }
+    .confirm-body h2 {
+        color: #111827;
+        font-size: clamp(1.7rem, 5vw, 2.2rem);
+        margin: 0 0 12px;
+    }
+    .confirm-details {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        display: grid;
+        gap: 8px;
+        margin: 18px 0;
+        padding: 16px;
+    }
+    .confirm-details p {
+        color: #334155;
+        margin: 0;
+    }
+    .confirm-actions {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: 1fr 1fr;
+        margin-top: 18px;
+    }
+    .confirm-actions button {
+        border: 0;
+        border-radius: 12px;
+        color: #fff;
+        cursor: pointer;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 900;
+        min-height: 48px;
+        padding: 12px 14px;
+    }
+    .btn-confirmar-cita { background: #059669; }
+    .btn-cancelar-cita { background: #dc2626; }
+    .confirm-result {
+        padding: 30px 24px;
+        text-align: center;
+    }
+    .confirm-result h2 {
+        color: #111827;
+        margin: 0 0 10px;
+    }
+    .confirm-result p {
+        color: #475569;
+        margin: 0;
+    }
+    .confirm-result.confirmado h2 { color: #059669; }
+    .confirm-result.cancelado h2 { color: #dc2626; }
+    .confirm-footer {
+        border-top: 1px solid #edf2f7;
+        color: #94a3b8;
+        font-size: .78rem;
+        padding: 14px 22px;
+    }
+    @media (max-width: 520px) {
+        .confirm-actions { grid-template-columns: 1fr; }
+        .confirm-brand { align-items: flex-start; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirm-page">
+    <section class="confirm-card">
+        <div class="confirm-brand">
+            <div class="confirm-logo">
+                {% if doctor and doctor.foto_perfil_url %}
+                <img src="{{ doctor.foto_perfil_url }}" alt="Logo del consultorio">
+                {% elif doctor and doctor.nombre_doctor %}
+                <span>{{ doctor.nombre_doctor[:1] }}</span>
+                {% else %}
+                <span>D</span>
+                {% endif %}
+            </div>
+            <div>
+                <h1>{{ doctor.nombre_doctor if doctor else 'Doko' }}</h1>
+                <p>{{ doctor.especialidad if doctor and doctor.especialidad else 'Confirmación de cita' }}</p>
+            </div>
+        </div>
+
+        {% if estado == 'valido' %}
+        <div class="confirm-body">
+            <p class="confirm-kicker">Confirma tu asistencia</p>
+            <h2>Revisa tu cita</h2>
+            <div class="confirm-details">
+                <p><strong>Fecha y hora:</strong> {{ cita.fecha_cita.strftime("%d/%m/%Y · %I:%M %p").lstrip("0") }}</p>
+                <p><strong>Consultorio:</strong> {{ doctor.nombre_doctor }}</p>
+                {% if doctor.direccion_consultorio %}<p><strong>Dirección:</strong> {{ doctor.direccion_consultorio }}</p>{% endif %}
+                {% if doctor.telefono_consultorio %}<p><strong>Teléfono:</strong> {{ doctor.telefono_consultorio }}</p>{% endif %}
+            </div>
+            <p>Elige una opción para que el consultorio pueda organizar su agenda.</p>
+            <div class="confirm-actions">
+                <button class="btn-confirmar-cita" onclick="enviarAccion('confirmar', '{{ token }}')">Confirmar cita</button>
+                <button class="btn-cancelar-cita" onclick="enviarAccion('cancelar', '{{ token }}')">Cancelar cita</button>
+            </div>
+        </div>
+        {% elif estado == 'resultado_confirmado' %}
+        <div class="confirm-result confirmado">
+            <h2>Cita confirmada</h2>
+            <p>Tu asistencia fue confirmada correctamente. Te esperamos.</p>
+        </div>
+        {% elif estado == 'resultado_cancelado' %}
+        <div class="confirm-result cancelado">
+            <h2>Cita cancelada</h2>
+            <p>Tu cita fue cancelada. Si necesitas reagendar, contacta al consultorio.</p>
+        </div>
+        {% elif estado == 'invalido' %}
+        <div class="confirm-result">
+            <h2>Enlace no disponible</h2>
+            <p>El enlace ya expiró o fue utilizado. Contacta directamente al consultorio.</p>
+        </div>
+        {% elif estado == 'error' %}
+        <div class="confirm-result">
+            <h2>No pudimos procesar la solicitud</h2>
+            <p>Inténtalo de nuevo o contacta directamente al consultorio.</p>
+        </div>
+        {% endif %}
+        <div class="confirm-footer">Doko · Powered by KB-Tech</div>
+    </section>
+</div>
+
+<script>
+    function enviarAccion(accion, token) {
+        fetch(`/c/${token}/accion`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accion })
+        })
+        .then(response => response.text())
+        .then(html => {
+            document.open();
+            document.write(html);
+            document.close();
+        })
+        .catch(() => {
+            alert('No pudimos procesar la solicitud. Inténtalo de nuevo.');
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1>Auditoría de Seguridad</h1>
+<div class="card" style="background:white;padding:20px;border-radius:12px;margin-top:20px;overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+        <thead><tr style="border-bottom:2px solid var(--color-borde);">
+            <th style="padding:8px;text-align:left;">Fecha</th>
+            <th style="padding:8px;text-align:left;">Evento</th>
+            <th style="padding:8px;text-align:left;">Actor</th>
+            <th style="padding:8px;text-align:left;">Rol</th>
+        </tr></thead>
+        <tbody>
+        {% for log in logs %}
+        <tr style="border-bottom:1px solid var(--color-borde);">
+            <td style="padding:8px;">{{ log.fecha_evento }}</td>
+            <td style="padding:8px;">{{ log.tipo_evento }}</td>
+            <td style="padding:8px;">{{ log.actor or '—' }}</td>
+            <td style="padding:8px;">{{ log.rol_actor or '—' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Doko | Inteligencia{% endblock %}
+{% block page_title %}Inteligencia operativa{% endblock %}
+{% block contenido %}
+<section class="supervisor-hero panel-card">
+    <div>
+        <p class="eyebrow">Supervisor IA</p>
+        <h2>Lectura del sistema</h2>
+        <p>Revisa ejecuciones del supervisor, señales de operación y pendientes reales. Verde es estable, amarillo requiere atención y rojo se reserva para fallas de sistema.</p>
+    </div>
+    <button class="btn-primario" type="button" onclick="fetch('/admin/supervisor/ejecutar',{method:'POST'}).then(()=>location.reload())">Ejecutar ahora</button>
+</section>
+
+<section class="supervisor-log-list">
+    {% for log in logs %}
+        {% set nivel_raw = (log.nivel_alerta or 'OK')|upper %}
+        {% if nivel_raw in ['CRITICO', 'CRÍTICO'] %}
+            {% set nivel_clase = 'urgent' %}
+            {% set nivel_texto = 'Error de sistema' %}
+        {% elif nivel_raw in ['ATENCION', 'ATENCIÓN'] %}
+            {% set nivel_clase = 'attention' %}
+            {% set nivel_texto = 'Atención' %}
+        {% else %}
+            {% set nivel_clase = 'stable' %}
+            {% set nivel_texto = 'Estable' %}
+        {% endif %}
+        <article class="supervisor-log-card {{ nivel_clase }}">
+            <div class="supervisor-log-head">
+                <span>{{ nivel_texto }}</span>
+                <small>{{ log.fecha_ejecucion }} &middot; {{ log.origen }}</small>
+            </div>
+            <p>{{ log.reporte_gemini or 'Sin resumen disponible.' }}</p>
+        </article>
+    {% else %}
+        <article class="panel-card supervisor-empty">
+            <strong>Sin ejecuciones registradas</strong>
+            <p class="muted">Ejecuta el supervisor para generar una lectura operativa.</p>
+        </article>
+    {% endfor %}
+</section>
+
+<style>
+.supervisor-hero {
+    align-items: center;
+    display: flex;
+    gap: 18px;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    padding: 24px;
+}
+.supervisor-hero h2 {
+    color: var(--color-primario);
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    margin: 4px 0 8px;
+}
+.supervisor-hero p {
+    color: var(--color-texto-suave);
+    line-height: 1.55;
+    margin: 0;
+    max-width: 760px;
+}
+.supervisor-log-list {
+    display: grid;
+    gap: 12px;
+}
+.supervisor-log-card {
+    background: #fff;
+    border: 1px solid var(--color-borde);
+    border-left: 5px solid var(--color-confirmado);
+    border-radius: 14px;
+    box-shadow: var(--sombra-card);
+    padding: 16px 18px;
+}
+.supervisor-log-card.attention {
+    border-left-color: var(--color-pendiente);
+}
+.supervisor-log-card.urgent {
+    border-left-color: var(--color-cancelado);
+}
+.supervisor-log-head {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.supervisor-log-head span {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: .78rem;
+    font-weight: 900;
+    padding: 6px 10px;
+}
+.supervisor-log-card.stable .supervisor-log-head span {
+    background: var(--color-confirmado-bg);
+    color: var(--color-confirmado);
+}
+.supervisor-log-card.attention .supervisor-log-head span {
+    background: var(--color-pendiente-bg);
+    color: var(--color-pendiente);
+}
+.supervisor-log-card.urgent .supervisor-log-head span {
+    background: var(--color-cancelado-bg);
+    color: var(--color-cancelado);
+}
+.supervisor-log-head small {
+    color: var(--color-texto-suave);
+    font-size: .84rem;
+}
+.supervisor-log-card p {
+    color: var(--color-texto-medio);
+    line-height: 1.5;
+    margin: 0;
+    white-space: pre-wrap;
+}
+.supervisor-empty {
+    padding: 22px;
+}
+.supervisor-empty strong {
+    color: var(--color-primario);
+}
+@media (max-width: 680px) {
+    .supervisor-hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .supervisor-hero .btn-primario {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

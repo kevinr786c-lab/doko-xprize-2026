@@ -1,0 +1,50 @@
+# Secrets and local configuration
+.env
+.env/
+.env.*
+!.env.example
+google-key.json
+credentials.json
+client_secret*.json
+service-account*.json
+*.pem
+*.key
+
+# Python caches and local databases
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.db
+*.sqlite
+*.sqlite3
+
+# Local tooling and generated artifacts
+.agents/
+.codex_deps/
+.cursor/
+.cursorrules
+.idea/
+.vscode/
+outputs/
+tmp/
+.tmp/
+.tmp_*/
+.tmp_*.png
+*.log
+
+# Private submission evidence must stay outside source control
+evidence_private/
+receipts/
+testimonials_private/
+
+# Local Cloud SQL binaries
+cloud-sql-proxy
+cloud-sql-proxy.exe
+
+# Operating system files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% from "components/doko_mascot.html" import doko_mascot %}
+{% block title %}Doko | Implementaci&oacute;n operativa{% endblock %}
+{% block page_title %}Implementaci&oacute;n operativa{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/implementacion_operativa.css?v=20260715-v1">
+{% endblock %}
+{% block contenido %}
+{% if migracion_pendiente %}
+<section class="admin-work-card implementation-migration">
+    <p class="admin-page-kicker">Configuraci&oacute;n pendiente</p>
+    <h2>Protocolos Doko todav&iacute;a no est&aacute; disponible</h2>
+    <p>Aplica la migraci&oacute;n <code>20260715_implementacion_operativa.sql</code> para activar este m&oacute;dulo.</p>
+</section>
+{% elif not evaluacion %}
+<header class="admin-page-header implementation-header">
+    <div>
+        <p class="admin-page-kicker">M&eacute;dicos</p>
+        <h2>Implementaci&oacute;n y capacitaci&oacute;n</h2>
+        <p>Documenta c&oacute;mo desea operar cada consultorio y acompa&ntilde;a a su asistente sin mezclar informaci&oacute;n de pacientes.</p>
+    </div>
+    <button class="primary-button" type="button" id="implementation-new-toggle">Nueva implementaci&oacute;n</button>
+</header>
+
+<section class="implementation-create admin-work-card" id="implementation-create" hidden>
+    <div class="implementation-card-heading">
+        <div>
+            <span class="implementation-label">Nuevo registro</span>
+            <h3>Selecciona el consultorio</h3>
+        </div>
+        <button type="button" class="icon-close" id="implementation-new-close" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="implementation-create-grid">
+        <label>
+            <span>Doctora</span>
+            <select id="implementation-doctor">
+                <option value="">Selecciona una doctora</option>
+                {% for doctora in doctores %}
+                <option value="{{ doctora.correo_doctor }}">{{ doctora.nombre_doctor }}{% if doctora.especialidad %} &middot; {{ doctora.especialidad }}{% endif %}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Asistente <small>opcional</small></span>
+            <select id="implementation-assistant">
+                <option value="">Vincular despu&eacute;s</option>
+                {% for asistente in asistentes %}
+                <option value="{{ asistente.id_usuario }}" data-doctor="{{ asistente.correo_doctor }}" hidden>{{ asistente.nombre }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Tipo de trabajo</span>
+            <select id="implementation-type">
+                {% for valor, etiqueta in tipos.items() %}
+                <option value="{{ valor }}">{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+    <div class="implementation-action-row">
+        <button class="secondary-button" type="button" id="implementation-create-cancel">Cancelar</button>
+        <button class="primary-button" type="button" id="implementation-create-submit">Crear borrador</button>
+    </div>
+</section>
+
+<section class="implementation-overview">
+    <div class="implementation-section-heading">
+        <div>
+            <span class="implementation-label">Registros</span>
+            <h3>Implementaciones por consultorio</h3>
+        </div>
+        <span class="implementation-count">{{ evaluaciones|length }}</span>
+    </div>
+    <div class="implementation-list">
+        {% for item in evaluaciones %}
+        <article class="implementation-list-card">
+            <div class="implementation-list-identity">
+                <span class="implementation-status implementation-status--{{ item.estado|lower }}">{{ estados.get(item.estado, item.estado) }}</span>
+                <h3>{{ item.nombre_doctor }}</h3>
+                <p>{{ tipos.get(item.tipo, item.tipo) }}{% if item.nombre_asistente %} &middot; {{ item.nombre_asistente }}{% endif %}</p>
+            </div>
+            <div class="implementation-list-meta">
+                <span>{{ item.respuestas or 0 }} respuestas</span>
+                <span>Actualizado {{ item.actualizado_en }}</span>
+            </div>
+            <a class="secondary-button" href="/admin/doctores/implementacion/{{ item.id_evaluacion }}">Continuar</a>
+        </article>
+        {% else %}
+        <div class="admin-empty-state">
+            <h3>A&uacute;n no hay implementaciones</h3>
+            <p>Crea el primer borrador para documentar el flujo de un consultorio.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% else %}
+{% macro question_panel(seccion, lista) %}
+<div class="implementation-question-deck" data-question-deck="{{ seccion }}">
+    {% for pregunta in lista %}
+    {% set guardada = respuestas.get(pregunta.codigo) %}
+    <article class="implementation-question" data-question-card data-question-code="{{ pregunta.codigo }}" data-question-index="{{ loop.index0 }}" {% if not loop.first %}hidden{% endif %}>
+        <div class="implementation-question-progress">
+            <span>Pregunta {{ loop.index }} de {{ lista|length }}</span>
+            {% if guardada %}<span class="implementation-saved">Guardada</span>{% endif %}
+        </div>
+        <p class="implementation-label">{{ pregunta.respondente|capitalize }}</p>
+        <h3>{{ pregunta.titulo }}</h3>
+        <p class="implementation-question-help">{{ pregunta.ayuda }}</p>
+        {% if pregunta.tipo == 'evaluacion' %}
+        <label class="implementation-field">
+            <span>Resultado operativo</span>
+            <select data-answer-option>
+                <option value="">Selecciona un resultado</option>
+                {% for valor, etiqueta in pregunta.opciones %}
+                <option value="{{ valor }}" {% if guardada and guardada.opcion == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        {% endif %}
+        <label class="implementation-field">
+            <span>{% if pregunta.tipo == 'evaluacion' %}Explicaci&oacute;n o forma de trabajo{% else %}Respuesta{% endif %}</span>
+            <textarea rows="6" maxlength="6000" data-answer-text placeholder="Escribe hechos operativos, acuerdos o pendientes. No incluyas datos de pacientes.">{{ guardada.respuesta_texto if guardada and guardada.respuesta_texto else '' }}</textarea>
+        </label>
+        <div class="implementation-question-actions">
+            <button class="secondary-button" type="button" data-question-prev {% if loop.first %}disabled{% endif %}>Anterior</button>
+            <button class="primary-button" type="button" data-question-save>{% if loop.last %}Guardar{% else %}Guardar y continuar{% endif %}</button>
+        </div>
+    </article>
+    {% endfor %}
+    {% if not lista %}
+    <div class="admin-empty-state"><p>No hay preguntas configuradas para esta secci&oacute;n.</p></div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro doko_review(seccion) %}
+<aside class="implementation-doko-review" data-review-section="{{ seccion }}">
+    <div class="implementation-doko-identity">
+        {{ doko_mascot('mini') }}
+        <div>
+            <strong>Revisi&oacute;n con Doko</strong>
+            <span>Solo analiza esta secci&oacute;n cuando t&uacute; lo solicitas.</span>
+        </div>
+    </div>
+    <button class="secondary-button implementation-analyze" type="button" data-analyze-section="{{ seccion }}">Revisar esta secci&oacute;n con Doko</button>
+    <div class="implementation-review-results" data-review-results>
+        {% for revision in revisiones %}
+        {% if revision.seccion == seccion %}
+        <article class="implementation-review-card" data-review-id="{{ revision.id_revision }}">
+            <div class="implementation-review-source">{{ 'Gemini' if revision.fuente == 'GEMINI' else 'Reglas Doko' }} &middot; {{ revision.decision|replace('_', ' ')|title }}</div>
+            {% for hallazgo in revision.hallazgos %}
+            <div class="implementation-finding implementation-finding--{{ hallazgo.tipo }}">
+                <strong>{{ hallazgo.titulo }}</strong>
+                <p>{{ hallazgo.detalle }}</p>
+            </div>
+            {% endfor %}
+            {% if revision.decision == 'PENDIENTE' %}
+            <div class="implementation-review-actions">
+                <button type="button" data-review-decision="AGREGAR_BORRADOR">Agregar</button>
+                <button type="button" data-review-decision="PREGUNTAR_DOCTORA">Preguntar</button>
+                <button type="button" data-review-decision="ADAPTAR">Adaptar</button>
+                <button type="button" data-review-decision="DESCARTAR">Descartar</button>
+            </div>
+            {% endif %}
+        </article>
+        {% endif %}
+        {% endfor %}
+    </div>
+</aside>
+{% endmacro %}
+
+<header class="implementation-editor-header">
+    <div>
+        <a href="/admin/doctores/implementacion" class="implementation-back">&larr; Implementaciones</a>
+        <p class="implementation-label">{{ tipos.get(evaluacion.tipo, evaluacion.tipo) }}</p>
+        <h2>{{ evaluacion.nombre_doctor }}</h2>
+        <p>{{ evaluacion.especialidad or 'Consultorio m&eacute;dico' }}{% if evaluacion.nombre_asistente %} &middot; {{ evaluacion.nombre_asistente }}{% endif %}</p>
+    </div>
+    <span class="implementation-status implementation-status--{{ evaluacion.estado|lower }}">{{ estados.get(evaluacion.estado, evaluacion.estado) }}</span>
+</header>
+
+<div class="implementation-mobile-nav">
+    <label for="implementation-section-select">Secci&oacute;n</label>
+    <select id="implementation-section-select">
+        {% for seccion in secciones %}
+        <option value="{{ seccion.codigo }}" {% if evaluacion.seccion_actual == seccion.codigo %}selected{% endif %}>{{ loop.index }}. {{ seccion.titulo }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="implementation-editor" data-evaluation-id="{{ evaluacion.id_evaluacion }}" data-current-section="{{ evaluacion.seccion_actual }}" data-closed="{{ '1' if evaluacion.estado == 'CERRADA' else '0' }}">
+    <nav class="implementation-editor-nav" aria-label="Secciones de implementaci&oacute;n">
+        {% for seccion in secciones %}
+        {% set avance = progreso.get(seccion.codigo, {}) %}
+        <button type="button" data-section-target="{{ seccion.codigo }}" class="{% if evaluacion.seccion_actual == seccion.codigo %}is-active{% endif %}">
+            <span class="implementation-nav-number">{{ loop.index }}</span>
+            <span><strong>{{ seccion.titulo }}</strong><small>{{ seccion.descripcion }}</small></span>
+            {% if avance.total %}<em>{{ avance.contestadas }}/{{ avance.total }}</em>{% endif %}
+        </button>
+        {% endfor %}
+    </nav>
+
+    <main class="implementation-workspace">
+        <section class="implementation-panel" data-section-panel="datos" {% if evaluacion.seccion_actual != 'datos' %}hidden{% endif %}>
+            <div class="implementation-panel-header"><p class="implementation-label">1. Datos</p><h2>Contexto de la visita</h2><p>Registra el objetivo sin incluir informaci&oacute;n de pacientes.</p></div>
+            <div class="implementation-metadata-grid">
+                <label class="implementation-field"><span>Tipo</span><select id="implementation-edit-type">{% for valor, etiqueta in tipos.items() %}<option value="{{ valor }}" {% if evaluacion.tipo == valor %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}</select></label>
+                <label class="implementation-field"><span>Asistente vinculada</span><select id="implementation-edit-assistant"><option value="">Vincular despu&eacute;s</option>{% for asistente in asistentes %}<option value="{{ asistente.id_usuario }}" {% if evaluacion.id_usuario_asistente|string == asistente.id_usuario|string %}selected{% endif %}>{{ asistente.nombre }}</option>{% endfor %}</select></label>
+            </div>
+            {{ question_panel('datos', preguntas.get('datos', [])) }}
+            {{ doko_review('datos') }}
+        </section>
+
+        <section class="implementation-panel" data-section-panel="entrevista" {% if evaluacion.seccion_actual != 'entrevista' %}hidden{% endif %}>
+            <div class="implementation-panel-header"><p class="implementation-label">2. Entrevista</p><h2>La operaci&oacute;n que desea la doctora</h2><p>Estas respuestas definen el criterio del consultorio antes de evaluar a la asistente.</p></div>
+            {{ question_panel('entrevista', preguntas.get('entrevista', [])) }}
+            {{ doko_review('entrevista') }}
+        </section>
+
+        <section class="implementation-panel" data-section-panel="protocolos" {% if evaluacion.seccion_actual != 'protocolos' %}hidden{% endif %}>
+            <div class="implementation-panel-header"><p class="implementation-label">3. Protocolos</p><h2>Flujos de referencia Doko</h2><p>Son referencias derivadas de operaci&oacute;n real. Cada doctora decide si las adopta, adapta o descarta.</p></div>
+            <div class="implementation-protocol-list">
+                {% for protocolo in protocolos %}
+                {% set snapshot = protocolo.protocolo_snapshot %}
+                {% set contenido = snapshot.contenido %}
+                <article class="implementation-protocol" data-protocol-id="{{ protocolo.id_evaluacion_protocolo }}">
+                    <div class="implementation-protocol-heading">
+                        <div><span>Doko Core v{{ protocolo.version_protocolo }}</span><h3>{{ snapshot.titulo }}</h3><p>{{ snapshot.descripcion }}</p></div>
+                        <span class="implementation-approval">{{ protocolo.estado_aprobacion|capitalize }}</span>
+                    </div>
+                    <details>
+                        <summary>Ver flujo completo</summary>
+                        <div class="implementation-protocol-details">
+                            <strong>Objetivo</strong><p>{{ contenido.objetivo }}</p>
+                            <strong>Pasos</strong><ol>{% for paso in contenido.pasos %}<li>{{ paso }}</li>{% endfor %}</ol>
+                            <strong>L&iacute;mites</strong><ul>{% for limite in contenido.limites %}<li>{{ limite }}</li>{% endfor %}</ul>
+                            <strong>Por confirmar</strong><ul>{% for pendiente in contenido.por_confirmar %}<li>{{ pendiente }}</li>{% endfor %}</ul>
+                        </div>
+                    </details>
+                    <div class="implementation-protocol-decision">
+                        <label class="implementation-field"><span>Decisi&oacute;n del consultorio</span><select data-protocol-decision><option value="ADOPTAR" {% if protocolo.decision == 'ADOPTAR' %}selected{% endif %}>Adoptar sin cambios</option><option value="ADAPTAR" {% if protocolo.decision == 'ADAPTAR' %}selected{% endif %}>Adaptar al consultorio</option><option value="NO_APLICA" {% if protocolo.decision == 'NO_APLICA' %}selected{% endif %}>No aplica</option><option value="DEFINIR_DESPUES" {% if protocolo.decision == 'DEFINIR_DESPUES' %}selected{% endif %}>Definir despu&eacute;s</option></select></label>
+                        <label class="implementation-field" data-adaptation-field {% if protocolo.decision != 'ADAPTAR' %}hidden{% endif %}><span>Adaptaci&oacute;n aprobada para este consultorio</span><textarea rows="4" maxlength="8000" data-protocol-adaptation>{{ protocolo.adaptacion_texto or '' }}</textarea></label>
+                        <button class="secondary-button" type="button" data-protocol-save>Guardar decisi&oacute;n</button>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="implementation-panel" data-section-panel="asistente" {% if evaluacion.seccion_actual != 'asistente' %}hidden{% endif %}>
+            <div class="implementation-panel-header"><p class="implementation-label">4. Asistente</p><h2>Comprensi&oacute;n de escenarios</h2><p>No es un examen punitivo. Identifica capacitaci&oacute;n, procesos sin definir y oportunidades de mejora.</p></div>
+            {% if evaluacion.id_usuario_asistente %}
+            {{ question_panel('asistente', preguntas.get('asistente', [])) }}
+            {{ doko_review('asistente') }}
+            {% else %}
+            <div class="admin-empty-state"><h3>Vincula una asistente</h3><p>Regresa a Datos para seleccionarla cuando est&eacute; asignada al consultorio.</p></div>
+            {% endif %}
+        </section>
+
+        <section class="implementation-panel" data-section-panel="plan" {% if evaluacion.seccion_actual != 'plan' %}hidden{% endif %}>
+            <div class="implementation-panel-header"><p class="implementation-label">5. Capacitaci&oacute;n</p><h2>Plan de acompa&ntilde;amiento</h2><p>Convierte los hallazgos en pocas acciones claras y verificables.</p></div>
+            {{ question_panel('plan', preguntas.get('plan', [])) }}
+            {{ doko_review('plan') }}
+        </section>
+
+        <section class="implementation-panel" data-section-panel="seguimiento" {% if evaluacion.seccion_actual != 'seguimiento' %}hidden{% endif %}>
+            <div class="implementation-panel-header"><p class="implementation-label">6. Seguimiento</p><h2>Cambios y dificultades</h2><p>Registra hechos de la operaci&oacute;n, no opiniones sobre la personalidad del equipo.</p></div>
+            {{ question_panel('seguimiento', preguntas.get('seguimiento', [])) }}
+            {{ doko_review('seguimiento') }}
+        </section>
+
+        <section class="implementation-panel" data-section-panel="resumen" {% if evaluacion.seccion_actual != 'resumen' %}hidden{% endif %}>
+            <div class="implementation-panel-header"><p class="implementation-label">7. Resumen</p><h2>Aprobaci&oacute;n del consultorio</h2><p>Doko registra que el resumen fue revisado; no constituye firma electr&oacute;nica.</p></div>
+            <div class="implementation-summary-grid">
+                {% for seccion in secciones %}
+                {% set avance = progreso.get(seccion.codigo, {}) %}
+                {% if avance.total %}<article><span>{{ seccion.titulo }}</span><strong>{{ avance.contestadas }}/{{ avance.total }}</strong></article>{% endif %}
+                {% endfor %}
+            </div>
+            {{ question_panel('resumen', preguntas.get('resumen', [])) }}
+            {{ doko_review('resumen') }}
+            <div class="implementation-approval-box">
+                <h3>Aprobar protocolos</h3>
+                <label class="implementation-field"><span>Nombre de quien revis&oacute; el resumen</span><input type="text" id="implementation-approved-by" maxlength="180" value="{{ evaluacion.aprobado_por_nombre or '' }}"></label>
+                <label class="implementation-check"><input type="checkbox" id="implementation-approved-confirm" {% if evaluacion.aprobacion_confirmada %}checked{% endif %}><span>Confirmo que la doctora revis&oacute; y aprob&oacute; este resumen.</span></label>
+                <div class="implementation-action-row">
+                    <button class="secondary-button" type="button" id="implementation-approve" {% if evaluacion.estado == 'CERRADA' %}disabled{% endif %}>Registrar aprobaci&oacute;n</button>
+                    <button class="primary-button" type="button" id="implementation-close" {% if evaluacion.estado == 'CERRADA' %}disabled{% endif %}>Cerrar implementaci&oacute;n</button>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/static/js/implementacion_operativa.js?v=20260715-v1" defer></script>
+{% endif %}
+{% if not evaluacion %}<script src="/static/js/implementacion_operativa.js?v=20260715-v1" defer></script>{% endif %}
+{% endblock %}

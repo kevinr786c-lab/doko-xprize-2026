@@ -1,0 +1,2 @@
+ALTER TABLE DOCTORES
+    ADD COLUMN IF NOT EXISTS horarios_atencion TEXT;

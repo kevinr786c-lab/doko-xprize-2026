@@ -1,0 +1,620 @@
+﻿<!doctype html>
+{% from "components/doctor_card.html" import doctor_card %}
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doko Salud | {{ home_title or 'Encuentra especialistas y agenda tu cita en Tijuana' }}</title>
+  <meta name="description" content="{{ home_description or 'Encuentra médicos y especialistas en Tijuana, consulta servicios, ubicación, formas de pago y agenda tu cita desde el Portal Doko.' }}">
+  <meta name="robots" content="{{ home_robots or 'index,follow' }}">
+  <link rel="canonical" href="{{ home_canonical or ('https://' ~ dominio ~ '/') }}">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ home_canonical or ('https://' ~ dominio ~ '/') }}">
+  <meta property="og:title" content="Doko Salud | {{ home_title or 'Encuentra especialistas y agenda tu cita en Tijuana' }}">
+  <meta property="og:description" content="{{ home_description or 'Directorio médico local para encontrar doctores, doctoras y especialistas en Tijuana.' }}">
+  <meta property="og:image" content="{{ 'https://' ~ dominio ~ '/static/img/logo-pwa.svg' }}">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Doko Salud | {{ home_title or 'Encuentra especialistas y agenda tu cita en Tijuana' }}">
+  <meta name="twitter:description" content="{{ home_description or 'Encuentra médicos y especialistas en Tijuana desde Doko.' }}">
+  <link rel="icon" href="/static/img/logo-pwa.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--navy:#163661;--navy-2:#102B4E;--soft:#EEF3F9;--wash:#F8FBFF;--ink:#101A2B;--muted:#5D6B7E;--line:#DDE6F0;--green:#047857;--card:#fff;--lav:#A77BD8;--lav-soft:#F5EEFF}
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;color:var(--ink);background:linear-gradient(180deg,#fff 0%,#FBFDFF 36%,#F8FBFF 100%);font-family:Inter,Arial,sans-serif} a{color:inherit}.wrap{width:min(1160px,calc(100% - 36px));margin:0 auto}
+    .top{background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}.top-inner{align-items:center;display:flex;gap:18px;justify-content:space-between;min-height:66px}.brand{align-items:center;display:flex;font-family:"DM Sans";font-size:1.22rem;font-weight:800;gap:10px;text-decoration:none}.brand-logo{border-radius:12px;height:38px;object-fit:cover;width:54px}.top-search{align-items:center;background:#fff;border:1px solid var(--line);border-radius:999px;box-shadow:0 12px 28px rgba(16,26,43,.06);display:grid;gap:0;grid-template-columns:minmax(180px,1fr) minmax(170px,.9fr) 118px;max-width:610px;overflow:hidden;width:48vw}.top-search input{border:0;border-right:1px solid var(--line);font:inherit;font-size:.86rem;min-height:42px;outline:none;padding:10px 13px}.top-search input:last-child{border-right:0}.top-search input[readonly]{background:var(--soft);color:var(--navy);font-weight:900}.nav{align-items:center;display:flex;gap:14px}.nav a{color:var(--muted);font-size:.9rem;font-weight:800;text-decoration:none}.button{align-items:center;border-radius:12px;display:inline-flex;font-weight:900;justify-content:center;min-height:46px;padding:12px 18px;text-decoration:none}.primary{background:var(--navy);color:#fff;box-shadow:0 16px 32px rgba(22,54,97,.18)}.secondary{background:#fff;border:1px solid var(--line);color:var(--navy)}
+    .hero{background:radial-gradient(circle at 82% 14%,rgba(167,123,216,.16),transparent 30%),radial-gradient(circle at 12% 84%,rgba(22,54,97,.07),transparent 28%),linear-gradient(120deg,#fff,var(--wash));border-bottom:1px solid rgba(221,230,240,.78);padding:30px 0 22px}.hero-grid{display:block}.eyebrow{color:var(--navy);font-size:.76rem;font-weight:900;letter-spacing:.1em;margin:0 0 10px;text-transform:uppercase}h1,h2,h3{font-family:"DM Sans";letter-spacing:0}h1{font-size:clamp(2rem,4vw,4rem);line-height:1.02;margin:0;max-width:780px}h1 span{color:var(--lav);display:block;font-size:clamp(1.05rem,1.8vw,1.48rem);margin-top:8px}.lead{color:var(--muted);font-size:1rem;line-height:1.55;margin:14px 0 0;max-width:690px}.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}.trust-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.trust-pill{background:rgba(255,255,255,.86);border:1px solid var(--line);border-radius:999px;box-shadow:0 10px 22px rgba(16,26,43,.04);color:var(--navy);font-size:.8rem;font-weight:900;padding:8px 11px}.search-card{background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:20px;box-shadow:0 18px 40px rgba(16,26,43,.08);margin-top:18px;padding:16px}.search-card-title{align-items:center;display:flex;gap:10px;justify-content:space-between;margin-bottom:10px}.search-card-title strong{color:var(--navy);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase}.search-card-title span{color:var(--muted);font-size:.82rem;font-weight:700}
+    section{padding:62px 0}.section-head{align-items:flex-end;display:flex;gap:18px;justify-content:space-between;margin-bottom:22px}.section-title{font-size:clamp(1.85rem,3.2vw,2.8rem);line-height:1.08;margin:0}.section-copy{color:var(--muted);line-height:1.65;margin:10px 0 0;max-width:720px}
+    .searchbar{display:grid;gap:10px;grid-template-columns:1.3fr 1fr 180px}.searchbar input{border:1px solid var(--line);border-radius:12px;font:inherit;min-height:44px;padding:10px 12px}.searchbar input[readonly]{background:var(--soft);color:var(--navy);font-weight:900}.quick-filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.quick-filter{background:var(--lav-soft);border:1px solid rgba(167,123,216,.24);border-radius:999px;color:#6D4AB0;cursor:pointer;font:inherit;font-size:.82rem;font-weight:900;padding:8px 11px}.quick-filter.clear{background:#fff;color:var(--navy);border-color:var(--line)}.mobile-directory-label{display:none}.doctor-grid{align-items:start;display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.doctor-card{background:#fff;border:1px solid #C6D2E1;border-radius:16px;box-shadow:0 10px 24px rgba(22,54,97,.09);display:grid;gap:13px;padding:18px;position:relative;overflow:hidden;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}.doctor-card:before{background:linear-gradient(90deg,#9C78C5,#C8B4DF 72%,#E7DDF2);content:"";height:5px;left:0;position:absolute;right:0;top:0}.doctor-card:hover{border-color:#AEBED2;box-shadow:0 16px 32px rgba(22,54,97,.13);transform:translateY(-2px)}.doctor-top{align-items:center;background:#F8F6FB;border:1px solid #E7DFF0;border-radius:13px;display:flex;gap:12px;margin-top:2px;padding:11px}.doctor-photo{background:#fff;border:1px solid #D6CBE3;border-radius:14px;height:64px;object-fit:contain;padding:5px;width:64px}.doctor-fallback{align-items:center;background:var(--navy);border-radius:14px;color:#fff;display:flex;font-weight:900;height:64px;justify-content:center;width:64px}.doctor-card h3{font-size:1.12rem;margin:0}.doctor-specialty{background:#EEE7F6;border:1px solid #DCCDEB;border-radius:999px;color:#614680;display:inline-flex;font-size:.76rem;font-weight:900;line-height:1.25;margin-top:6px;padding:5px 8px}.doctor-license{color:#111827;font-size:.8rem;font-weight:900;line-height:1.38;margin-top:6px}.doctor-license span{display:block}.doctor-meta{background:#F8FAFD;border:1px solid #DCE4EE;border-radius:13px;display:grid;gap:7px;padding:10px}.meta-line{color:var(--muted);font-size:.86rem;line-height:1.45}.meta-line strong{color:var(--navy)}.service-list{display:grid;gap:8px}.service-row{background:#fff;border:1px solid #D7E0EA;border-radius:12px;display:grid;gap:3px;padding:10px}.service-row strong{color:var(--ink);font-size:.88rem}.service-row span{color:var(--navy);font-size:.82rem;font-weight:900}.card-alert{background:#FFF7ED;border:1px solid #FED7AA;border-radius:14px;color:#9A3412;font-size:.84rem;font-weight:800;line-height:1.45;padding:10px}.tags{display:flex;flex-wrap:wrap;gap:8px}.tag{background:var(--soft);border-radius:999px;color:var(--navy);font-size:.76rem;font-weight:800;padding:7px 9px;text-decoration:none}.tag.service{background:var(--lav-soft);color:#6D4AB0}.tag.map-tag{background:#fff;border:1px solid var(--line)}.doctor-actions{display:grid;gap:8px;grid-template-columns:1fr 1fr}.empty{background:var(--wash);border:1px dashed var(--line);border-radius:18px;color:var(--muted);padding:24px;text-align:center}.how-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-top:22px}.how-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 14px 30px rgba(16,26,43,.05);padding:18px}.how-card strong{align-items:center;background:var(--navy);border-radius:999px;color:#fff;display:flex;height:30px;justify-content:center;margin-bottom:12px;width:30px}.how-card p{color:var(--muted);line-height:1.55;margin:0}
+    .band{background:#FAFBFD}.feature-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}.feature{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}.feature h3{font-size:1.08rem;margin:0 0 8px}.feature p{color:var(--muted);line-height:1.6;margin:0}.steps{counter-reset:step;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.step{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}.step:before{align-items:center;background:var(--navy);border-radius:999px;color:#fff;content:counter(step);counter-increment:step;display:flex;font-weight:900;height:34px;justify-content:center;margin-bottom:14px;width:34px}.story-box{background:linear-gradient(135deg,#fff 0%,#F8FBFF 62%,#F5EEFF 100%);border:1px solid var(--line);border-radius:24px;box-shadow:0 22px 48px rgba(16,26,43,.07);display:grid;gap:22px;grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr);padding:30px}.story-mark{align-items:center;background:var(--navy);border-radius:24px;color:#fff;display:flex;font-family:"DM Sans";font-size:2.6rem;font-weight:800;justify-content:center;min-height:210px}.story-copy{color:var(--muted);font-size:1rem;line-height:1.72;margin:0}.story-questions{display:grid;gap:9px;margin-top:14px}.story-questions span{background:#fff;border:1px solid rgba(221,230,240,.9);border-radius:999px;color:var(--navy);font-size:.88rem;font-weight:900;padding:9px 12px}.local-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.local-links a{background:#fff;border:1px solid var(--line);border-radius:999px;color:var(--navy);font-weight:900;padding:10px 13px;text-decoration:none}.specialty-strip{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.specialty-chip{background:#fff;border:1px solid var(--line);border-radius:16px;color:var(--ink);font-weight:900;padding:13px 15px}.specialty-chip strong{color:var(--navy)}.case-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:26px}.case-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}.case-card strong{color:var(--navy);display:block;font-size:1.35rem;margin-bottom:8px}.case-card p{color:var(--muted);line-height:1.6;margin:0}.suffy{background:linear-gradient(120deg,var(--navy),var(--navy-2));color:#fff}.suffy .section-copy,.suffy p{color:rgba(255,255,255,.82)}.suffy-card{border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:24px}.demo{background:radial-gradient(circle at 18% 12%,rgba(167,123,216,.14),transparent 28%),#fff}.demo-box{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 24px 58px rgba(16,26,43,.08);display:grid;gap:18px;grid-template-columns:minmax(0,1fr) auto;padding:26px}.legal{color:var(--muted);font-size:.83rem;line-height:1.6;margin-top:18px}footer{border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;padding:28px 0}.footer-inner{align-items:flex-start;display:grid;gap:18px;grid-template-columns:minmax(0,1fr) auto}.footer-links{display:flex;flex-wrap:wrap;gap:12px 16px}.footer-links a{color:var(--navy);font-weight:800;text-decoration:none}
+    .founder-badge{align-items:center;background:linear-gradient(135deg,#FFF7ED,#FFFBEB);border:1px solid #FCD34D;border-radius:999px;color:#92400E;display:inline-flex;font-size:.74rem;font-weight:900;gap:5px;letter-spacing:.02em;margin-top:7px;padding:6px 9px;width:max-content}
+    .released-slot{background:#ECFDF5;border:1px solid #A7F3D0;border-radius:14px;color:#065F46;display:grid;gap:6px;padding:11px}
+    .released-slot strong{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
+    .released-slot span{font-size:.95rem;font-weight:900}
+    .released-slot small{font-size:.76rem;line-height:1.35}
+    .released-slot .released-action{background:#fff;border:1px solid #A7F3D0;border-radius:999px;color:#047857;display:inline-flex;font-size:.78rem;font-weight:900;justify-content:center;padding:7px 10px;text-decoration:none;width:max-content}
+    @media(min-width:761px){.hero .search-card{display:none}}
+    @media(max-width:980px) and (min-width:761px){.top-search{grid-template-columns:minmax(150px,1fr) minmax(140px,.8fr);width:42vw}.top-search input:nth-child(3){display:none}.nav{gap:10px}.nav a{font-size:.82rem}}
+    @media(max-width:760px){.wrap{width:min(100% - 24px,1160px)}.top{position:sticky}.top-inner{min-height:56px;padding:8px 0}.brand{font-size:1.05rem}.brand-logo{border-radius:10px;height:34px;width:48px}.top-search{display:none}.nav{display:none}.hero{padding:16px 0 12px}.eyebrow{font-size:.66rem;margin-bottom:7px}h1{font-size:clamp(1.82rem,11.5vw,2.62rem);line-height:1}h1 span{font-size:.98rem;line-height:1.12;margin-top:7px}.lead{font-size:.9rem;line-height:1.42;margin-top:10px}.trust-row{display:none}.search-card{border-radius:16px;margin-top:12px;padding:12px;position:relative}.search-card-title{align-items:flex-start;flex-direction:column;gap:3px;margin-bottom:8px}.search-card-title span{font-size:.76rem}.searchbar{grid-template-columns:1fr}.searchbar input{font-size:.95rem;min-height:42px}.quick-filters{gap:7px;margin-top:10px;overflow-x:auto;padding-bottom:2px;flex-wrap:nowrap;scrollbar-width:none}.quick-filters::-webkit-scrollbar{display:none}.quick-filter{font-size:.78rem;white-space:nowrap}.demo-box,.story-box{grid-template-columns:1fr}.story-box{border-radius:18px;padding:18px}.story-mark{font-size:2rem;min-height:120px}.story-copy{font-size:.93rem;line-height:1.58}.story-questions span{border-radius:14px;font-size:.8rem}.section-head{align-items:flex-start;flex-direction:column;margin-bottom:10px}.section-copy{font-size:.92rem;line-height:1.45}.section-title{font-size:1.55rem}#medicos{padding:14px 0 34px}#medicos .section-head .eyebrow,#medicos .section-copy{display:none}.mobile-directory-label{align-items:center;color:var(--navy);display:flex;font-size:.76rem;font-weight:900;justify-content:space-between;letter-spacing:.08em;margin:0 0 9px;text-transform:uppercase}.doctor-grid{gap:10px;grid-template-columns:1fr}.doctor-card{border-radius:14px;gap:8px;padding:11px;box-shadow:0 12px 26px rgba(16,26,43,.06)}.doctor-top{align-items:flex-start;gap:10px}.doctor-photo,.doctor-fallback{border-radius:14px;height:50px;min-width:50px;width:50px}.doctor-card h3{font-size:.96rem;line-height:1.16}.doctor-card p{font-size:.78rem;line-height:1.32}.service-list{gap:5px}.service-row{border-radius:11px;grid-template-columns:minmax(0,1fr);padding:7px 8px}.service-row strong{font-size:.8rem}.service-row span{font-size:.76rem}.doctor-meta{gap:4px}.doctor-meta .meta-line:nth-child(n+5){display:none}.meta-line{font-size:.76rem}.card-alert{font-size:.76rem;padding:8px}.tag{font-size:.72rem}.doctor-actions{grid-template-columns:1fr 1fr}.button{border-radius:11px;font-size:.88rem;min-height:40px;padding:9px 10px}section{padding:40px 0}.how-grid,.feature-grid,.steps,.case-grid{grid-template-columns:1fr}.local-links,.specialty-strip{display:none}.footer-inner{align-items:flex-start;grid-template-columns:1fr}.footer-links{gap:10px 12px}}
+  </style>
+  <style>
+    .demo-tour{background:radial-gradient(circle at 18% 12%,rgba(167,123,216,.14),transparent 28%),linear-gradient(180deg,#fff 0%,#F8FBFF 100%)}
+    .demo-tour-grid{background:#fff;border:1px solid var(--line);border-radius:26px;box-shadow:0 24px 58px rgba(16,26,43,.09);display:grid;gap:22px;grid-template-columns:minmax(230px,.34fr) minmax(0,1fr);margin-top:24px;padding:22px}
+    .demo-tabs{display:grid;gap:9px}
+    .demo-tab{background:#F8FBFF;border:1px solid var(--line);border-radius:16px;color:var(--navy);cursor:pointer;font:inherit;font-weight:900;padding:13px 14px;text-align:left;transition:.18s ease}
+    .demo-tab span{color:var(--muted);display:block;font-size:.78rem;font-weight:700;line-height:1.35;margin-top:3px}
+    .demo-tab.active{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 14px 28px rgba(22,54,97,.16)}
+    .demo-tab.active span{color:rgba(255,255,255,.78)}
+    .demo-stage{background:linear-gradient(135deg,#F8FBFF 0%,#fff 58%,#F5EEFF 100%);border:1px solid rgba(221,230,240,.86);border-radius:22px;min-height:438px;overflow:hidden;padding:20px}
+    .demo-panel{display:none}.demo-panel.active{display:block}.demo-window{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 42px rgba(16,26,43,.08);overflow:hidden}.demo-window-head{align-items:center;background:#F8FBFF;border-bottom:1px solid var(--line);display:flex;gap:8px;justify-content:space-between;padding:12px 14px}.demo-dots{display:flex;gap:5px}.demo-dots i{background:#CBD5E1;border-radius:50%;height:8px;width:8px}.demo-window-title{color:var(--navy);font-size:.78rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.demo-content{display:grid;gap:12px;padding:16px}.demo-row{align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;display:flex;gap:12px;padding:12px}.demo-avatar{align-items:center;background:var(--lav-soft);border-radius:14px;color:#6D4AB0;display:flex;font-weight:900;height:48px;justify-content:center;width:48px}.demo-row strong{display:block}.demo-row small,.demo-note{color:var(--muted);font-size:.83rem;line-height:1.45}.demo-pill{background:var(--soft);border-radius:999px;color:var(--navy);display:inline-flex;font-size:.78rem;font-weight:900;padding:7px 10px;width:max-content}.demo-grid-mini{display:grid;gap:10px;grid-template-columns:repeat(3,1fr)}.demo-slot{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px;text-align:center}.demo-slot strong{color:var(--navy);display:block}.demo-slot.available{border-color:#A7F3D0;background:#ECFDF5;color:#065F46}.demo-agenda{display:grid;gap:9px}.demo-agenda-item{align-items:center;background:#fff;border:1px solid var(--line);border-left:4px solid var(--lav);border-radius:14px;display:grid;gap:5px;grid-template-columns:1fr auto;padding:11px}.demo-status{border-radius:999px;font-size:.76rem;font-weight:900;padding:6px 9px}.demo-status.ok{background:#ECFDF5;color:#047857}.demo-status.warn{background:#FFFBEB;color:#B45309}.demo-status.info{background:#EEF3F9;color:var(--navy)}.demo-email{background:#fff;border:1px solid var(--line);border-radius:18px;margin:auto;max-width:440px;padding:18px}.demo-email h3{color:#047857;margin:0 0 10px}.demo-email-actions{display:flex;gap:8px;margin-top:14px}.demo-email-actions span{border-radius:999px;color:#fff;font-size:.78rem;font-weight:900;padding:9px 12px}.demo-email-actions .green{background:#047857}.demo-email-actions .red{background:#dc2626}.demo-metrics{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}.demo-metric{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}.demo-metric strong{color:var(--navy);display:block;font-size:1.4rem}.demo-supply{display:grid;gap:10px}.demo-supply-row{background:#fff;border:1px solid var(--line);border-radius:14px;display:grid;gap:4px;padding:12px}.demo-safe{color:var(--muted);font-size:.86rem;line-height:1.55;margin:14px 0 0}.demo-cta{align-items:center;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;margin-top:20px}
+    .demo-doko-shell{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 18px 42px rgba(16,26,43,.08);display:grid;grid-template-columns:190px minmax(0,1fr);overflow:hidden}.demo-doko-side{background:#F8FBFF;border-right:1px solid var(--line);padding:16px}.demo-doko-side strong{color:var(--navy);display:block;font-size:.76rem;letter-spacing:.08em;margin-bottom:12px;text-transform:uppercase}.demo-doko-nav{display:grid;gap:8px}.demo-doko-nav span{background:#fff;border:1px solid var(--line);border-radius:10px;color:var(--navy);font-size:.88rem;font-weight:900;padding:10px}.demo-doko-nav span.active{background:var(--navy);border-color:var(--navy);color:#fff}.demo-doko-main{padding:18px}.demo-doko-header{align-items:center;border-bottom:1px solid var(--line);display:flex;gap:12px;justify-content:space-between;margin:-18px -18px 16px;padding:14px 18px}.demo-doctor-mini{align-items:center;display:flex;gap:10px}.demo-logo-mini{align-items:center;background:var(--lav-soft);border:1px solid rgba(167,123,216,.28);border-radius:999px;color:#6D4AB0;display:flex;font-weight:900;height:42px;justify-content:center;width:42px}.demo-doko-kpis{display:grid;gap:10px;grid-template-columns:repeat(4,1fr);margin-bottom:14px}.demo-doko-kpis div{background:#F8FBFF;border:1px solid var(--line);border-radius:12px;padding:10px}.demo-doko-kpis strong{color:var(--navy);display:block;font-size:1.25rem}.demo-doko-kpis span{color:var(--muted);font-size:.74rem;font-weight:800}.demo-table{border:1px solid var(--line);border-radius:14px;overflow:hidden}.demo-table-row{align-items:center;border-bottom:1px solid var(--line);display:grid;gap:10px;grid-template-columns:minmax(130px,1fr) 110px 120px 100px;padding:11px 12px}.demo-table-row:last-child{border-bottom:0}.demo-table-head{background:#F8FBFF;color:var(--muted);font-size:.74rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase}.demo-profile-grid{display:grid;gap:12px;grid-template-columns:repeat(2,1fr)}.demo-profile-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px}.demo-profile-card strong{color:var(--navy);display:block;margin-bottom:6px}.demo-shop-grid{display:grid;gap:12px;grid-template-columns:repeat(3,1fr)}.demo-product{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px}.demo-product strong{display:block}.demo-product span{color:var(--navy);display:block;font-weight:900;margin-top:6px}.demo-portal-real{display:grid;gap:14px;grid-template-columns:220px minmax(0,1fr);position:relative}.demo-portal-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px}.demo-portal-logo{align-items:center;background:var(--lav-soft);border:1px solid rgba(167,123,216,.28);border-radius:18px;color:#6D4AB0;display:flex;font-weight:900;height:64px;justify-content:center;margin-bottom:12px;width:64px}.demo-portal-card h3{font-size:1.25rem;line-height:1.05;margin:0}.demo-portal-card p{color:var(--lav);font-weight:900;margin:6px 0 14px}.demo-portal-info{border:1px solid var(--line);border-radius:12px;margin-top:8px;padding:10px}.demo-portal-info strong{display:block;font-size:.78rem}.demo-portal-info span{color:var(--muted);font-size:.84rem}.demo-calendar{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}.demo-calendar-head{align-items:center;border-bottom:1px solid var(--line);display:flex;gap:14px;justify-content:space-between;padding:16px}.demo-google{color:#4285F4;font-weight:900}.demo-calendar-body{display:grid;gap:12px;grid-template-columns:1fr 1.4fr;padding:16px}.demo-calendar-copy strong{display:block;font-size:1.2rem;margin-bottom:8px}.demo-calendar-copy small{color:var(--muted);display:block;line-height:1.45}.demo-calendar-frame{border:1px solid var(--line);border-radius:14px;padding:12px}.demo-calendar-days{display:grid;gap:8px;grid-template-columns:repeat(3,1fr)}.demo-calendar-days span{background:#fff;border:1px solid var(--line);border-radius:999px;color:#2563EB;font-weight:900;padding:9px;text-align:center}.demo-calendar-days .busy{background:#F8FAFC;color:#94A3B8;text-decoration:line-through}.demo-mail-alert{background:var(--lav-soft);border:1px solid rgba(167,123,216,.28);border-radius:14px;color:#6D4AB0;font-size:.86rem;font-weight:900;grid-column:1/-1;padding:11px}.demo-mascot{align-items:center;background:#fff;border:1px solid var(--line);border-radius:999px;bottom:12px;box-shadow:0 12px 26px rgba(16,26,43,.12);color:#6D4AB0;display:flex;font-weight:900;gap:7px;padding:8px 10px;position:absolute;right:12px}
+    .demo-toolbar{align-items:center;display:grid;gap:10px;grid-template-columns:minmax(0,1fr) auto auto;margin-bottom:12px}.demo-search{background:#fff;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:.84rem;padding:10px 12px}.demo-create{background:var(--navy);border-radius:12px;color:#fff;font-weight:900;padding:10px 12px}.demo-refresh{background:#fff;border:1px solid var(--line);border-radius:12px;color:var(--navy);font-weight:900;padding:10px 12px}.demo-action-chip{border-radius:999px;border:1px solid var(--line);color:var(--navy);display:inline-flex;font-size:.74rem;font-weight:900;justify-content:center;padding:7px 9px}.demo-action-chip.primary{background:var(--navy);border-color:var(--navy);color:#fff}.demo-action-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.demo-field-stack{display:grid;gap:9px}.demo-field{background:#F8FBFF;border:1px solid var(--line);border-radius:13px;padding:10px}.demo-field span{color:var(--muted);display:block;font-size:.72rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}.demo-field strong{display:block;margin-top:4px}.demo-calendar-frame{background:linear-gradient(180deg,#fff 0%,#F8FBFF 100%);min-height:168px}.demo-calendar-mini-head{align-items:center;color:var(--muted);display:flex;font-size:.78rem;font-weight:900;justify-content:space-between;margin-bottom:10px}.demo-calendar-grid{display:grid;gap:8px;grid-template-columns:72px repeat(3,1fr)}.demo-calendar-grid span{background:#fff;border:1px solid var(--line);border-radius:999px;color:#2563EB;font-size:.82rem;font-weight:900;padding:8px;text-align:center}.demo-calendar-grid .label{background:transparent;border:0;color:#94A3B8;text-align:right}.demo-calendar-grid .busy{background:#F8FAFC;color:#94A3B8;text-decoration:line-through}.demo-suffy-flow{display:grid;gap:10px;grid-template-columns:repeat(4,1fr);margin-top:12px}.demo-suffy-step{background:#F8FBFF;border:1px solid var(--line);border-radius:14px;padding:12px}.demo-suffy-step strong{color:var(--navy);display:block}.demo-suffy-step small{color:var(--muted);display:block;line-height:1.4;margin-top:4px}
+    @media(max-width:760px){.demo-tour-grid{grid-template-columns:1fr;padding:14px;border-radius:18px}.demo-tabs{display:flex;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.demo-tabs::-webkit-scrollbar{display:none}.demo-tab{font-size:.82rem;min-width:176px}.demo-stage{min-height:auto;padding:12px}.demo-grid-mini,.demo-metrics,.demo-profile-grid,.demo-shop-grid,.demo-portal-real,.demo-calendar-body,.demo-suffy-flow{grid-template-columns:1fr}.demo-row{align-items:flex-start}.demo-cta{align-items:flex-start;flex-direction:column}.demo-cta .button{width:100%}.demo-doko-shell{grid-template-columns:1fr}.demo-doko-side{border-right:0;border-bottom:1px solid var(--line)}.demo-doko-nav{grid-template-columns:repeat(3,1fr)}.demo-doko-nav span{text-align:center}.demo-doko-kpis{grid-template-columns:repeat(2,1fr)}.demo-table-row{grid-template-columns:1fr}.demo-table-head{display:none}.demo-toolbar{grid-template-columns:1fr 1fr}.demo-search{grid-column:1/-1}.demo-refresh{display:none}.demo-calendar-grid{grid-template-columns:54px repeat(3,1fr)}.demo-calendar-grid span{font-size:.74rem;padding:7px 5px}.demo-portal-card{display:grid;gap:10px;grid-template-columns:58px minmax(0,1fr)}.demo-portal-logo{height:54px;margin:0;width:54px}.demo-portal-card h3,.demo-portal-card p{grid-column:2}.demo-portal-info{grid-column:1/-1}.demo-calendar-head{align-items:flex-start;flex-direction:column}.demo-mascot{bottom:8px;font-size:.78rem;right:8px}}
+  </style>
+  <style>
+    /* Home layout refinements: keep the existing data and interactions intact. */
+    .hero-grid{align-items:center;display:grid;gap:42px;grid-template-columns:minmax(0,1.12fr) minmax(300px,.88fr)}
+    .hero-copy{min-width:0}
+    .hero-side{display:grid;gap:10px}
+    .path-card{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:18px;box-shadow:0 16px 34px rgba(16,26,43,.07);padding:16px}
+    .path-card.professional{background:var(--navy);border-color:var(--navy);color:#fff}
+    .path-card strong{display:block;font-family:"DM Sans";font-size:1.05rem}
+    .path-card p{color:var(--muted);font-size:.86rem;line-height:1.45;margin:5px 0 12px}
+    .path-card.professional p{color:rgba(255,255,255,.78)}
+    .path-link{color:var(--navy);font-size:.82rem;font-weight:900;text-decoration:none}
+    .path-card.professional .path-link{color:#fff}
+    .doctor-whatsapp{color:#047857;display:inline-flex;font-size:.78rem;font-weight:900;justify-content:center;margin-top:-2px;text-decoration:none}
+    .doctor-more{border-top:1px solid var(--line);margin-top:2px;padding-top:8px}
+    .doctor-more summary{color:var(--navy);cursor:pointer;font-size:.78rem;font-weight:900;list-style:none}
+    .doctor-more summary::-webkit-details-marker{display:none}
+    .doctor-more summary:after{content:" +"}
+    .doctor-more[open] summary:after{content:" −"}
+    .doctor-more-content{display:grid;gap:6px;margin-top:8px}
+    .doctor-card{display:flex;flex-direction:column}
+    .doctor-actions{margin-top:auto}
+    .doctor-actions.only-agenda{grid-template-columns:minmax(0,1fr)}
+    .doctor-actions .button{min-width:0}
+    .mobile-primary-nav{display:none}
+    .demo-table-row [data-label]::before{display:none}
+    @media(max-width:760px){
+      .hero-grid{display:block}
+      .hero-side{margin-top:16px}
+      .mobile-primary-nav{align-items:center;background:#fff;border-bottom:1px solid var(--line);display:flex;gap:8px;overflow-x:auto;padding:8px 12px;position:sticky;top:56px;z-index:9;scrollbar-width:none}
+      .mobile-primary-nav::-webkit-scrollbar{display:none}
+      .mobile-primary-nav a{background:var(--soft);border:1px solid var(--line);border-radius:999px;color:var(--navy);flex:0 0 auto;font-size:.76rem;font-weight:900;padding:7px 10px;text-decoration:none}
+      .mobile-primary-nav a.primary-link{background:var(--navy);border-color:var(--navy);color:#fff}
+      .doctor-more{margin-top:0}
+      .doctor-actions,.doctor-actions.only-agenda{grid-template-columns:1fr}
+      .demo-stage{margin-inline:auto;max-width:390px}
+      .demo-doko-main{padding:12px}
+      .demo-doko-header{align-items:flex-start;flex-direction:column;margin:-12px -12px 12px;padding:12px}
+      .demo-table-row{gap:5px;grid-template-columns:1fr;padding:10px}
+      .demo-table-row:not(.demo-table-head) [data-label]{color:var(--muted);font-size:.78rem}
+      .demo-table-row:not(.demo-table-head) [data-label]::before{color:var(--navy);display:inline;font-size:.7rem;font-weight:900;margin-right:5px;text-transform:uppercase;content:attr(data-label) ":"}
+      .demo-tabs{gap:7px}
+      .demo-tab{flex:0 0 158px;min-width:158px;padding:10px 11px}
+      .demo-tab span{font-size:.72rem}
+      .demo-mascot{bottom:auto;justify-self:end;position:static}
+    }
+    @media(min-width:761px) and (max-width:1050px){.hero-grid{gap:24px;grid-template-columns:minmax(0,1fr) minmax(260px,.72fr)}}
+  </style>
+  <style>
+    /* Final card pass: stable hierarchy and consistent touch targets. */
+    h1{font-size:3.75rem}
+    h1 span{font-size:1.35rem}
+    .doctor-card{min-height:100%;padding:18px}
+    .doctor-top{min-height:70px}
+    .doctor-actions{align-items:stretch}
+    .doctor-actions .button{min-height:42px}
+    .doctor-whatsapp{min-height:1.1rem}
+    .button:focus-visible,.quick-filter:focus-visible,.tag:focus-visible{outline:3px solid rgba(22,54,97,.34);outline-offset:2px}
+    @media(max-width:1100px) and (min-width:761px){h1{font-size:3.15rem}h1 span{font-size:1.18rem}}
+    @media(max-width:760px){
+      h1{font-size:2.25rem}
+      h1 span{font-size:1rem}
+      .doctor-card{padding:11px}
+      .doctor-top{min-height:52px}
+      .doctor-actions .button{min-height:42px}
+      .doctor-whatsapp{padding:2px 0}
+    }
+  </style>
+  <style>
+    /* Final home pass: quieter surfaces, clearer states, no backend changes. */
+    body{background:#fff}
+    .hero{background:#F8FBFF;border-bottom:1px solid var(--line)}
+    .path-card{box-shadow:0 10px 24px rgba(16,26,43,.06);padding:14px}
+    .path-card.professional{background:var(--navy)}
+    #medicos{background:#F2F3F8;border-bottom:1px solid #DEE3EC;border-top:1px solid #E2E6EE}
+    .searchbar{grid-template-columns:1.25fr 1fr 150px auto}.home-search-submit{background:var(--navy);border:0;border-radius:10px;color:#fff;cursor:pointer;font:inherit;font-weight:900;min-height:44px;padding:9px 15px}.quick-filter{text-decoration:none}.home-directory-more{display:flex;justify-content:center;margin-top:18px}
+    .directory-count{color:var(--muted);font-size:.82rem;font-weight:800;white-space:nowrap}
+    .directory-empty{background:#F8FBFF;border:1px dashed var(--line);border-radius:16px;color:var(--muted);display:grid;gap:8px;justify-items:center;margin-top:14px;padding:24px;text-align:center}
+    .directory-empty strong{color:var(--navy);font-family:"DM Sans";font-size:1.05rem}
+    .directory-empty[hidden]{display:none}
+    .demo-tour{background:#F8FBFF}
+    .demo-tour-grid{box-shadow:0 16px 36px rgba(16,26,43,.06)}
+    .demo-step-status{color:var(--muted);font-size:.78rem;font-weight:900;margin-top:12px}
+    .demo-tab:focus-visible,.demo-action-chip:focus-visible{outline:3px solid rgba(22,54,97,.34);outline-offset:2px}
+    @media(max-width:760px){
+      .searchbar{grid-template-columns:1fr}.home-search-submit{min-height:42px}
+      .directory-count{font-size:.74rem}
+      .directory-empty{margin-top:10px;padding:20px 14px}
+      .demo-step-status{font-size:.74rem}
+    }
+  </style>
+  <link rel="stylesheet" href="/static/css/directorio_medico.css?v=20260712-directory-v1">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="brand" href="/"><img class="brand-logo" src="/static/img/logo-pwa.svg" alt="Doko">Doko</a>
+      <form class="top-search" action="/medicos-en-tijuana" method="get" aria-label="Buscar médicos desde encabezado">
+        <input name="nombre" placeholder="Nombre o clínica">
+        <input name="especialidad" placeholder="Servicio o especialidad">
+        <input name="ciudad" placeholder="Tijuana" value="Tijuana" readonly>
+      </form>
+      <nav class="nav" aria-label="Navegación principal">
+        <a href="#medicos">Médicos</a>
+        <a href="#pacientes">Pacientes</a>
+        <a href="#profesionales">Profesionales</a>
+        <a href="#suffy">Doko Suffy</a>
+        <a href="#demo">Demo</a>
+      </nav>
+    </div>
+  </header>
+  <nav class="mobile-primary-nav" aria-label="Accesos rápidos">
+    <a class="primary-link" href="#medicos">Médicos</a>
+    <a href="#profesionales">Profesionales</a>
+    <a href="#demo">Demo</a>
+    <a href="#suffy">Suffy</a>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">{{ home_eyebrow or 'Doko · Tijuana' }}</p>
+          <h1>{{ home_title or 'Doko: donde encuentras a tu médico en Tijuana' }}<span>{{ home_subtitle or 'Servicios, ubicación y agenda desde un solo lugar' }}</span></h1>
+          <p class="lead">Busca médicos, doctoras y especialistas en Tijuana. Revisa servicios, ubicación, formas de pago, aseguradoras y agenda desde el portal de cada consultorio.</p>
+          <div class="search-card">
+            <div class="search-card-title">
+              <strong>Busca en Tijuana</strong>
+              <span>Nombre, clínica, servicio o especialidad</span>
+            </div>
+            <form class="searchbar" action="/medicos-en-tijuana" method="get" aria-label="Buscar médicos en Doko">
+              <input name="nombre" placeholder="Buscar por nombre o clínica">
+              <input name="especialidad" placeholder="Servicio o especialidad">
+              <input name="ciudad" placeholder="Tijuana" value="Tijuana" readonly>
+              <button class="home-search-submit" type="submit">Buscar</button>
+            </form>
+            <div class="quick-filters" aria-label="Filtros rápidos">
+              <a class="quick-filter" href="/ginecologia-tijuana">Ginecología</a>
+              <a class="quick-filter" href="/especialistas-en-tijuana">Especialistas</a>
+              <a class="quick-filter" href="/colposcopia-tijuana">Colposcopia</a>
+              <a class="quick-filter" href="/papanicolaou-tijuana">Papanicolaou</a>
+              <a class="quick-filter" href="/medicos-en-tijuana?especialidad=VPH&amp;ciudad=Tijuana">VPH</a>
+              <a class="quick-filter clear" href="/medicos-en-tijuana">Ver todos</a>
+            </div>
+          </div>
+          <div class="trust-row" aria-label="Ventajas de Doko">
+            <span class="trust-pill">Tijuana primero</span>
+            <span class="trust-pill">Perfiles cuidados</span>
+            <span class="trust-pill">Doctores y especialistas</span>
+            <span class="trust-pill">Servicios y ubicación claros</span>
+          </div>
+        </div>
+        <aside class="hero-side" aria-label="Elige tu recorrido en Doko">
+          <div class="path-card">
+            <strong>Soy paciente</strong>
+            <p>Encuentra un médico, revisa sus servicios y entra a su portal para agendar.</p>
+            <a class="path-link" href="/medicos-en-tijuana">Buscar médico →</a>
+          </div>
+          <div class="path-card professional">
+            <strong>Soy profesional</strong>
+            <p>Conoce cómo Doko acompaña la presencia digital y la operación del consultorio.</p>
+            <a class="path-link" href="#profesionales">Conocer Doko →</a>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="medicos">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Directorio médico local</p>
+            <h2 class="section-title">Médicos disponibles en Tijuana</h2>
+            <p class="section-copy">Perfiles reales con servicios, cédula cuando está capturada, ubicación, formas de pago y acceso para agendar.</p>
+          </div>
+          <span class="directory-count">{{ total_doctores or doctores|length }} perfiles</span>
+        </div>
+        {% if doctores %}
+        <div class="mobile-directory-label">
+          <span>Doctores disponibles</span>
+          <span>{{ total_doctores or doctores|length }}</span>
+        </div>
+        <div class="doctor-grid" id="doctor-grid">
+          {% for doctor in doctores %}
+          {{ doctor_card(doctor, dominio, portal_base, 'home') }}
+          {% endfor %}
+        </div>
+        <div class="home-directory-more"><a class="button secondary" href="/medicos-en-tijuana">Ver todos los médicos</a></div>
+        {% else %}
+        <div class="empty">Pronto mostraremos médicos con perfiles publicados en Doko.</div>
+        {% endif %}
+        <div class="local-links" aria-label="Búsquedas locales Doko">
+          <a href="/medicos-en-tijuana">Médicos en Tijuana</a>
+          <a href="/doctores-en-tijuana">Doctores en Tijuana</a>
+          <a href="/especialistas-en-tijuana">Especialistas en Tijuana</a>
+          <a href="/ginecologia-tijuana">Ginecología en Tijuana</a>
+          {% for ruta in seo_local_routes or [] %}
+          <a href="/{{ ruta.slug }}">{{ ruta.titulo }}</a>
+          {% endfor %}
+        </div>
+        {% if show_ginecology_services %}
+        <div class="specialty-strip" aria-label="Servicios ginecológicos disponibles dentro de perfiles">
+          <span class="specialty-chip"><strong>Servicios dentro de ginecología:</strong></span>
+          <span class="specialty-chip">Colposcopia</span>
+          <span class="specialty-chip">Papanicolaou</span>
+          <span class="specialty-chip">VPH</span>
+          <span class="specialty-chip">Consulta ginecológica</span>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="band" id="pacientes">
+      <div class="wrap">
+        <p class="eyebrow">Para pacientes</p>
+        <h2 class="section-title">Encuentra, revisa y agenda sin dar vueltas</h2>
+        <p class="section-copy">Doko concentra lo básico antes de elegir horario: quién atiende, qué servicios ofrece, dónde está el consultorio y cómo confirmar tu asistencia.</p>
+        <div class="how-grid">
+          <article class="how-card"><strong>1</strong><p>Elige una doctora o servicio disponible en Tijuana.</p></article>
+          <article class="how-card"><strong>2</strong><p>Revisa ubicación, formas de pago, aseguradoras y servicios.</p></article>
+          <article class="how-card"><strong>3</strong><p>Toca <b>Agendar</b> y selecciona un horario disponible.</p></article>
+          <article class="how-card"><strong>4</strong><p>Confirma tu asistencia desde el correo que recibirás.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="profesionales">
+      <div class="wrap">
+        <p class="eyebrow">Para profesionales de la salud</p>
+        <h2 class="section-title">Doko ordena tu consultorio y presenta mejor tu trabajo</h2>
+        <p class="section-copy">Una plataforma para mostrar servicios claros, guiar pacientes y apoyar la operación diaria del consultorio en Tijuana.</p>
+        <div class="feature-grid" style="margin-top:26px;">
+          <article class="feature"><h3>Presencia digital médica</h3><p>Página profesional por doctora con servicios, educación al paciente, ubicación, credenciales y llamada clara para agendar.</p></article>
+          <article class="feature"><h3>Portal del Paciente</h3><p>El paciente consulta información del consultorio y agenda desde una experiencia simple, pensada para no perderlo en el proceso.</p></article>
+          <article class="feature"><h3>Herramientas para asistente</h3><p>La asistente puede consultar citas, confirmar manualmente, crear bloqueos, actualizar datos y mantener el perfil del consultorio al día.</p></article>
+          <article class="feature"><h3>Confirmaciones configurables</h3><p>Cada doctora puede trabajar con confirmación manual, 24h o 48h con liberación automática según su operación.</p></article>
+          <article class="feature"><h3>Información clara para pacientes</h3><p>Servicios, precios publicados, pagos, aseguradoras, ubicación y avisos del consultorio reunidos en una experiencia coherente.</p></article>
+          <article class="feature"><h3>Doko Suffy B2B</h3><p>Insumos básicos, pedidos, cotizaciones especiales y entrega directa al consultorio como apoyo adicional.</p></article>
+        </div>
+      </div>
+    </section>
+    <section class="band">
+      <div class="wrap">
+        <p class="eyebrow">Implementación acompañada</p>
+        <h2 class="section-title">Un plan simple para activar Doko en consultorio</h2>
+        <div class="steps" style="margin-top:26px;">
+          <article class="step"><h3>Revisamos tu flujo actual</h3><p>Servicios, asistente, dirección, horarios, formas de pago y forma real de confirmar pacientes.</p></article>
+          <article class="step"><h3>Configuramos Doko</h3><p>Portal, página médica, servicios, perfil público, políticas de confirmación y acceso para asistente.</p></article>
+          <article class="step"><h3>Probamos con tu equipo</h3><p>Se revisan citas reales, confirmaciones, avisos, bloqueos y datos que verá el paciente.</p></article>
+          <article class="step"><h3>Acompañamos la operación</h3><p>El equipo Doko ajusta detalles y ayuda a que el consultorio adopte el flujo sin fricción.</p></article>
+        </div>
+        <div class="hero-actions" style="margin-top:26px;">
+          <a class="button primary" href="#demo">Solicitar una demostración</a>
+          <a class="button secondary" href="#medicos">Ver médicos en Doko</a>
+        </div>
+      </div>
+    </section>
+    <section class="demo-tour" id="demo">
+      <div class="wrap">
+        <p class="eyebrow">Recorrido visual de Doko</p>
+        <h2 class="section-title">Mira cómo Doko organiza un consultorio</h2>
+        <p class="section-copy">Una vista visual de lo que usan doctora, asistente y pacientes, con datos ficticios.</p>
+        <div class="demo-step-status" id="demo-step-status" aria-live="polite">Paso 1 de 5 · Panel médico/asistente</div>
+        <div class="demo-tour-grid" aria-label="Demo visual de Doko con datos ficticios">
+          <div class="demo-tabs" role="tablist" aria-label="Pasos de la demo Doko">
+            <button class="demo-tab active" type="button" data-demo-step="panel" role="tab" aria-selected="true">Panel médico/asistente<span>Citas, bloqueos, apartados y confirmación.</span></button>
+            <button class="demo-tab" type="button" data-demo-step="perfil" role="tab" aria-selected="false">Perfil médico<span>Datos que alimentan portal y página.</span></button>
+            <button class="demo-tab" type="button" data-demo-step="portal" role="tab" aria-selected="false">Portal paciente<span>Información, aviso y calendario.</span></button>
+            <button class="demo-tab" type="button" data-demo-step="avisos" role="tab" aria-selected="false">Confirmaciones<span>Correo y recordatorios configurables.</span></button>
+            <button class="demo-tab" type="button" data-demo-step="suffy" role="tab" aria-selected="false">Doko Suffy<span>Catálogo B2B, pedidos y entrega.</span></button>
+          </div>
+          <div class="demo-stage">
+            <div class="demo-panel active" data-demo-panel="panel">
+              <div class="demo-doko-shell">
+                <aside class="demo-doko-side">
+                  <strong>Panel médico</strong>
+                  <div class="demo-doko-nav">
+                    <span class="active">Citas</span>
+                    <span>Perfil</span>
+                    <span>Insumos</span>
+                  </div>
+                </aside>
+                <div class="demo-doko-main">
+                  <div class="demo-doko-header">
+                    <div class="demo-doctor-mini"><span class="demo-logo-mini">DE</span><div><strong>Dra. Ejemplo</strong><small>Ginecología · Panel compartido con asistente</small></div></div>
+                    <span class="demo-pill">Abrir página pública</span>
+                  </div>
+                  <div class="demo-toolbar">
+                    <div class="demo-search">Buscar paciente, teléfono o fecha</div>
+                    <span class="demo-create">+ Crear</span>
+                    <span class="demo-refresh">Actualizar</span>
+                  </div>
+                  <div class="demo-doko-kpis">
+                    <div><strong>7</strong><span>Citas próximas</span></div>
+                    <div><strong>1</strong><span>Apartado</span></div>
+                    <div><strong>1</strong><span>Bloqueo</span></div>
+                    <div><strong>5</strong><span>Confirmadas</span></div>
+                  </div>
+                  <div class="demo-table">
+                    <div class="demo-table-row demo-table-head"><span>Paciente</span><span>Servicio</span><span>Fecha</span><span>Acción</span></div>
+                    <div class="demo-table-row"><strong>Paciente Demo</strong><span data-label="Servicio">Consulta general</span><span data-label="Fecha">jue. 10 · 10:30</span><span data-label="Acción" class="demo-action-chip">Editar</span></div>
+                    <div class="demo-table-row"><strong>Paciente pendiente</strong><span data-label="Servicio">Primera vez</span><span data-label="Fecha">jue. 10 · 11:00</span><span data-label="Acción" class="demo-action-chip primary">Confirmar</span></div>
+                    <div class="demo-table-row"><strong>Bloqueo consultorio</strong><span data-label="Servicio">Interno</span><span data-label="Fecha">jue. 10 · 11:30</span><span data-label="Acción" class="demo-action-chip">Liberar</span></div>
+                    <div class="demo-table-row"><strong>Apartado temporal</strong><span data-label="Servicio">Vence hoy</span><span data-label="Fecha">jue. 10 · 12:00</span><span data-label="Acción" class="demo-action-chip primary">Hacer cita</span></div>
+                  </div>
+                  <div class="demo-action-row"><span class="demo-action-chip primary">Nueva cita</span><span class="demo-action-chip">Bloquear horario</span><span class="demo-action-chip">Apartado temporal</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="demo-panel" data-demo-panel="perfil">
+              <div class="demo-doko-shell">
+                <aside class="demo-doko-side">
+                  <strong>Panel médico</strong>
+                  <div class="demo-doko-nav">
+                    <span>Citas</span>
+                    <span class="active">Perfil</span>
+                    <span>Insumos</span>
+                  </div>
+                </aside>
+                <div class="demo-doko-main">
+                  <div class="demo-doko-header">
+                    <div><strong>Perfil médico</strong><small>La doctora valida qué información se muestra.</small></div>
+                    <span class="demo-pill">Guardar cambios</span>
+                  </div>
+                  <div class="demo-profile-grid">
+                    <div class="demo-profile-card"><strong>Datos públicos</strong><small>Nombre, especialidad, teléfono, dirección, cédula profesional y cédula de especialidad.</small></div>
+                    <div class="demo-profile-card"><strong>Servicios del consultorio</strong><small>Nombre del servicio, descripción y tipo de precio: fijo, valoración o durante consulta.</small></div>
+                    <div class="demo-profile-card"><strong>Pagos y aseguradoras</strong><small>Efectivo, tarjeta, transferencia y convenios capturados por consultorio.</small></div>
+                    <div class="demo-profile-card"><strong>Avisos y tema visual</strong><small>Vacaciones, horarios especiales, colores, logo y página médica del consultorio.</small></div>
+                  </div>
+                  <div class="demo-field-stack" style="margin-top:12px;">
+                    <div class="demo-field"><span>Vista pública</span><strong>Portal del Paciente + página médica + tarjeta en doko.lat</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="demo-panel" data-demo-panel="portal">
+              <div class="demo-portal-real">
+                <aside class="demo-portal-card">
+                  <div class="demo-portal-logo">DE</div>
+                  <h3>Dra. Ejemplo</h3>
+                  <p>Ginecología y Obstetricia</p>
+                  <div class="demo-portal-info"><strong>Teléfono del consultorio</strong><span>664 000 0000</span></div>
+                  <div class="demo-portal-info"><strong>Dirección</strong><span>Zona Río, Tijuana</span></div>
+                </aside>
+                <div class="demo-calendar">
+                  <div class="demo-calendar-head"><strong>Agenda tu cita</strong><span class="demo-google">Google Calendar</span></div>
+                  <div class="demo-calendar-body">
+                    <div class="demo-calendar-copy">
+                      <strong>Horarios de citas</strong>
+                      <small>El paciente agenda desde el calendario del consultorio. Doko mantiene visible la información clave, el aviso de correo y el asistente.</small>
+                    </div>
+                    <div class="demo-calendar-frame">
+                      <div class="demo-calendar-mini-head"><span>Julio</span><span>Google Calendar</span></div>
+                      <div class="demo-calendar-grid">
+                        <span class="label"></span><span>Jue 10</span><span>Vie 11</span><span>Sáb 12</span>
+                        <span class="label">9 AM</span><span class="busy">Ocupado</span><span>9:30</span><span>9:30</span>
+                        <span class="label">10 AM</span><span>10:30</span><span class="busy">Ocupado</span><span>10:30</span>
+                        <span class="label">11 AM</span><span>11:30</span><span>11:30</span><span class="busy">Ocupado</span>
+                      </div>
+                    </div>
+                    <div class="demo-mail-alert">Google puede enviar un correo al agendar. Doko envía el correo de confirmación 24h/48h según el consultorio.</div>
+                  </div>
+                </div>
+                <div class="demo-mascot">D Preguntar</div>
+              </div>
+            </div>
+            <div class="demo-panel" data-demo-panel="avisos">
+              <div class="demo-email">
+                <h3>Confirma tu cita en Doko</h3>
+                <p class="demo-note">Hola Paciente Demo, necesitamos confirmar tu asistencia. Cada consultorio puede trabajar con confirmación manual, 24h o 48h.</p>
+                <p class="demo-note"><strong>Fecha:</strong> 15/07/2026<br><strong>Hora:</strong> 10:30 AM<br><strong>Doctora:</strong> Dra. Ejemplo</p>
+                <div class="demo-email-actions"><span class="green">Confirmar asistencia</span><span class="red">Cancelar cita</span></div>
+                <p class="demo-safe">Si no encuentras el correo de Doko, revisa spam o correo no deseado. Los horarios sin confirmar pueden liberarse según la política del consultorio.</p>
+              </div>
+            </div>
+            <div class="demo-panel" data-demo-panel="suffy">
+              <div class="demo-doko-shell">
+                <aside class="demo-doko-side">
+                  <strong>Doko Suffy</strong>
+                  <div class="demo-doko-nav">
+                    <span class="active">Catálogo</span>
+                    <span>Pedidos</span>
+                    <span>Cotización</span>
+                  </div>
+                </aside>
+                <div class="demo-doko-main">
+                  <div class="demo-doko-header">
+                    <div><strong>Insumos B2B para consultorio</strong><small>Catálogo, pedido, preparación y entrega directa.</small></div>
+                    <span class="demo-pill">Pedido Demo</span>
+                  </div>
+                  <div class="demo-shop-grid">
+                    <div class="demo-product"><strong>Guantes de exploración</strong><small>Stock Doko · entrega a consultorio</small><span>$ Demo</span></div>
+                    <div class="demo-product"><strong>Pedido Demo #024</strong><small>Preparación en bodega · repartidor asignado</small><span>En preparación</span></div>
+                    <div class="demo-product"><strong>Cotización especial</strong><small>Instrumental o insumo difícil bajo solicitud.</small><span>Solicitar</span></div>
+                  </div>
+                  <div class="demo-suffy-flow">
+                    <div class="demo-suffy-step"><strong>1. Catálogo</strong><small>Insumos básicos para consultorio.</small></div>
+                    <div class="demo-suffy-step"><strong>2. Pedido</strong><small>El consultorio solicita productos.</small></div>
+                    <div class="demo-suffy-step"><strong>3. Bodega</strong><small>Doko prepara y registra el pedido.</small></div>
+                    <div class="demo-suffy-step"><strong>4. Entrega</strong><small>Reparto a consultorio en Tijuana.</small></div>
+                  </div>
+                  <p class="demo-safe">Doko Suffy es B2B para consultorios. No es venta abierta al público y no maneja medicamentos controlados.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="demo-safe">Esta demo usa datos ficticios. La operación real se configura por consultorio.</p>
+        <div class="demo-cta">
+          <p class="section-copy" style="margin:0;">Doko no promete resultados SEO garantizados. La implementación se acompaña con contenido real, información aprobada y cumplimiento médico-publicitario.</p>
+          {% if whatsapp_numero %}
+          <a class="button primary" href="https://wa.me/{{ whatsapp_numero }}?text={{ demo_mensaje|urlencode }}" target="_blank" rel="noopener">Solicitar una demostración</a>
+          {% else %}
+          <a class="button primary" href="mailto:contacto@doko.lat?subject=Solicitar%20demo%20Doko">Solicitar una demostración</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+    <section class="suffy" id="suffy">
+      <div class="wrap">
+        <div class="suffy-card">
+          <p class="eyebrow" style="color:#fff;">Doko Suffy</p>
+          <h2 class="section-title">Abastecimiento B2B para consultorios médicos</h2>
+          <p class="section-copy">Doko Suffy conecta consultorios con insumos médicos básicos y pedidos preparados para entrega directa al consultorio.</p>
+          <p class="section-copy" style="margin-top:10px;">La búsqueda y cotización de instrumental o material especializado es un apoyo adicional. No es venta abierta al público y no maneja medicamentos controlados.</p>
+        </div>
+      </div>
+    </section>
+    <section id="sobre-doko">
+      <div class="wrap">
+        <div class="story-box">
+          <div>
+            <p class="eyebrow">Sobre Doko</p>
+            <h2 class="section-title">Una pregunta sencilla: ¿dónde?</h2>
+            <p class="story-copy"><strong style="color:var(--navy);">Doko (どこ)</strong> significa <strong style="color:var(--navy);">"¿Dónde?"</strong> en japonés. Esa pregunta inspiró el nombre de nuestra plataforma.</p>
+            <div class="story-questions" aria-label="Preguntas que responde Doko">
+              <span>¿Dónde encuentro un médico?</span>
+              <span>¿Dónde puedo agendar?</span>
+              <span>¿Dónde está mi cita?</span>
+              <span>¿Dónde está el horario disponible?</span>
+              <span>¿Dónde encuentro el insumo que necesito?</span>
+            </div>
+            <p class="story-copy" style="margin-top:14px;">Todos los días, pacientes y consultorios se hacen preguntas parecidas. Doko nació para responderlas desde un solo lugar.</p>
+          </div>
+          <div>
+            <div class="story-mark">Doko</div>
+            <h3 style="font-size:1.22rem;margin:18px 0 10px;"><strong>Por qué nació Doko</strong></h3>
+            <p class="story-copy">Doko nació al observar el trabajo real de consultorios médicos y detectar cuánto tiempo se pierde en tareas repetitivas: llamadas, confirmaciones, organización de horarios y búsqueda de información.</p>
+            <p class="story-copy" style="margin-top:12px;">No busca reemplazar la forma de trabajar de cada consultorio. Busca acompañarla, ordenar la información y crear una experiencia más clara para médicos, asistentes y pacientes.</p>
+            <p class="story-copy" style="margin-top:12px;">Nuestro objetivo es simple: que el tiempo del personal se dedique a las personas, no a procesos repetitivos.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="band" id="casos-doko">
+      <div class="wrap">
+        <p class="eyebrow">Consultorios en Doko</p>
+        <h2 class="section-title">Los doctores son el centro de la experiencia Doko</h2>
+        <p class="section-copy">Doko ayuda a que cada consultorio muestre mejor su información, guíe pacientes y opere con más orden sin perder su forma de trabajar.</p>
+        <div class="case-grid">
+          <article class="case-card"><strong>Agenda</strong><p>El paciente encuentra información clara y entra al portal de la doctora para elegir un horario disponible.</p></article>
+          <article class="case-card"><strong>Asistente</strong><p>El equipo del consultorio puede operar citas, avisos, perfil y servicios sin depender de procesos dispersos.</p></article>
+          <article class="case-card"><strong>Presencia digital</strong><p>Cada doctora puede tener una página médica de captación conectada al Portal del Paciente Doko.</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <div>
+        <strong style="color:var(--navy);display:block;margin-bottom:6px;">Doko</strong>
+        <span>Doko · Plataforma médica operativa en Tijuana</span>
+        <div class="footer-links" style="margin-top:12px;">
+          <a href="#sobre-doko">Sobre Doko</a>
+          <a href="#profesionales">Para médicos</a>
+          <a href="#medicos">Encuentra tu médico</a>
+          <a href="#demo">Contacto</a>
+          <a href="/privacidad">Privacidad</a>
+          <a href="/terminos">Términos</a>
+        </div>
+      </div>
+      <span>Powered by KB-Tech</span>
+    </div>
+  </footer>
+  <script>
+    const demoTabs = Array.from(document.querySelectorAll('[data-demo-step]'));
+    const demoPanels = Array.from(document.querySelectorAll('[data-demo-panel]'));
+    const demoStepStatus = document.getElementById('demo-step-status');
+    const demoStepLabels = {
+      panel: 'Panel médico/asistente',
+      perfil: 'Perfil médico',
+      portal: 'Portal del paciente',
+      avisos: 'Confirmaciones',
+      sufy: 'Doko Suffy'
+    };
+    demoTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const paso = tab.dataset.demoStep;
+        demoTabs.forEach(item => {
+          const activo = item === tab;
+          item.classList.toggle('active', activo);
+          item.setAttribute('aria-selected', activo ? 'true' : 'false');
+        });
+        demoPanels.forEach(panel => {
+          panel.classList.toggle('active', panel.dataset.demoPanel === paso);
+        });
+        if (demoStepStatus) {
+          const numeroPaso = demoTabs.findIndex(item => item === tab) + 1;
+          demoStepStatus.textContent = `Paso ${numeroPaso} de ${demoTabs.length} · ${demoStepLabels[paso] || 'Recorrido Doko'}`;
+        }
+      });
+    });
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": {{ ('https://' ~ dominio ~ '/#organization')|tojson }},
+        "name": "Doko Salud",
+        "alternateName": ["Doko", "Doko para Consultorios", "Portal Doko"],
+        "url": {{ ('https://' ~ dominio ~ '/')|tojson }},
+        "logo": {{ ('https://' ~ dominio ~ '/static/img/logo-pwa.svg')|tojson }},
+        "areaServed": "Tijuana, Baja California, México",
+        "description": "Doko conecta pacientes con consultorios médicos en Tijuana y ayuda a organizar presencia digital, agenda y comunicación con pacientes."
+      },
+      {
+        "@type": "WebSite",
+        "@id": {{ ('https://' ~ dominio ~ '/#website')|tojson }},
+        "name": "Doko Salud",
+        "url": {{ ('https://' ~ dominio ~ '/')|tojson }},
+        "publisher": {"@id": {{ ('https://' ~ dominio ~ '/#organization')|tojson }}},
+        "inLanguage": "es-MX",
+        "description": {{ (home_description or 'Directorio médico local y plataforma operativa para consultorios en Tijuana.')|tojson }},
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {{ ('https://' ~ dominio ~ '/medicos-en-tijuana?buscar={search_term_string}')|tojson }},
+          "query-input": "required name=search_term_string"
+        }
+      }
+    ]
+  }
+  </script>
+  {% if doctores %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for doctor in doctores %}
+      {
+        "@type": "ListItem",
+        "position": {{ loop.index }},
+        "url": {{ ('https://' ~ doctor.subdominio ~ '.' ~ dominio ~ '/')|tojson }},
+        "name": {{ (doctor.nombre_directorio or doctor.nombre_clinica_publico or doctor.nombre_doctor)|tojson }}
+      }{{ "," if not loop.last else "" }}
+      {% endfor %}
+    ]
+  }
+  </script>
+  {% endif %}
+</body>
+</html>
+

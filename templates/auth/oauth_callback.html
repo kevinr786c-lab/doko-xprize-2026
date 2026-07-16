@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autenticando...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #F8FAFD;
+            color: #163661;
+        }
+        .container { text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Conectando con Doko...</h2>
+        <p>Puedes cerrar esta ventana.</p>
+    </div>
+
+    <script>
+        const payload = {
+            jwt: "{{ jwt }}",
+            onboarding: {{ "true" if onboarding is sameas true else "false" }}
+        };
+        const loginUrl = {{ login_url|tojson }};
+        const fallbackUrl = `${loginUrl}#doctor_token=${encodeURIComponent(payload.jwt)}&onboarding=${payload.onboarding ? '1' : '0'}`;
+
+        if (window.opener && !window.opener.closed) {
+            window.opener.postMessage(payload, window.location.origin);
+            setTimeout(() => {
+                window.close();
+                window.location.replace(fallbackUrl);
+            }, 700);
+        } else {
+            window.location.replace(fallbackUrl);
+        }
+    </script>
+</body>
+</html>

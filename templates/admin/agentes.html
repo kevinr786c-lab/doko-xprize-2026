@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Doko | Agentes por área{% endblock %}
+{% block page_title %}Agentes por área{% endblock %}
+{% block contenido %}
+<section class="panel-card" style="padding:24px;margin-bottom:16px">
+    <p class="eyebrow">Compatibilidad</p>
+    <h2>Los asistentes ahora viven donde se usan</h2>
+    <p class="muted">Cada lectura está dentro de su módulo. Ningún agente ejecuta acciones sin aprobación humana.</p>
+</section>
+<section class="admin-module-grid">
+    <a class="panel-card admin-work-card" href="/admin/suffy/comercial"><strong>Comercial</strong><span>Doko Suffy · reactivación de consultorios</span></a>
+    <a class="panel-card admin-work-card" href="/admin/inventario/compras"><strong>Compras</strong><span>Inventario · propuestas de reabastecimiento</span></a>
+    <a class="panel-card admin-work-card" href="/admin/administracion/finanzas"><strong>Financiero</strong><span>Administración · margen y lectura del mes</span></a>
+</section>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Doko | Centro de Mando{% endblock %}
+{% block page_title %}Centro de Mando{% endblock %}
+{% block contenido %}
+<section class="panel-card owner-status {{ 'owner-status-critical' if nivel_general == 'Crítico' else '' }}">
+    <div>
+        <p class="eyebrow">Estado general</p>
+        <h2>{{ 'Error de sistema' if nivel_general == 'Crítico' else nivel_general }}</h2>
+        <p>{{ resumen_operativo }}</p>
+    </div>
+    <div class="owner-actions">
+        <strong>Qué revisar ahora</strong>
+        {% for accion in acciones_hoy %}<a href="{{ accion.url }}">{{ accion.texto }}</a>{% endfor %}
+    </div>
+</section>
+
+<section class="panel-card owner-attention">
+    <div class="section-head">
+        <div>
+            <p class="eyebrow">Atención requerida</p>
+            <h2>Pendientes del dueño</h2>
+        </div>
+        <span class="status-pill">{{ alertas_total }} alertas</span>
+    </div>
+    {% if alertas %}
+    <div class="owner-alert-list">
+        {% for alerta in alertas %}
+        <article class="{{ 'critical' if alerta.nivel == 'Crítico' else 'warning' }}">
+            <div><strong>{{ 'Error de sistema' if alerta.nivel == 'Crítico' else 'Requiere atención' }}</strong><span>{{ alerta.texto }}</span></div>
+            {% if alerta.url %}<a href="{{ alerta.url }}">{{ alerta.accion or 'Revisar' }}</a>{% endif %}
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="admin-empty-state"><strong>Operación estable</strong><span>No hay pendientes prioritarios.</span></div>
+    {% endif %}
+</section>
+
+<section class="owner-modules" aria-label="Áreas de Doko">
+    <a class="panel-card" href="/admin/doctores"><p class="eyebrow">Médicos</p><strong>{{ doctores_activos }}</strong><span>Perfiles activos · rendimiento y políticas dentro del módulo</span></a>
+    <a class="panel-card" href="/admin/presencia-digital"><p class="eyebrow">Presencia digital</p><strong>{{ presencia_metricas.sitios_activos|int }}</strong><span>Sitios publicados · {{ presencia_metricas.visitas_30|int }} visitas en 30 días</span></a>
+    <a class="panel-card" href="/admin/pedidos"><p class="eyebrow">Doko Suffy</p><strong>{{ pedidos_abiertos }}</strong><span>Pedidos abiertos · {{ pedidos_entregados_mes }} entregados este mes</span></a>
+    <a class="panel-card" href="/bodega/inventario"><p class="eyebrow">Inventario</p><strong>{{ productos_bajo_stock + productos_sin_stock }}</strong><span>Productos que requieren revisión</span></a>
+    <a class="panel-card" href="/reparto/mis_pedidos"><p class="eyebrow">Reparto</p><strong>Ruta</strong><span>Entregas, evidencia y cierre en campo</span></a>
+    <a class="panel-card" href="/admin/facturas"><p class="eyebrow">Administración</p><strong>{{ proveedores_activos }}</strong><span>Proveedores activos · facturas, accesos y finanzas</span></a>
+    <a class="panel-card" href="/admin/supervisor"><p class="eyebrow">Sistema</p><strong>{{ fallas_google_oauth_24h }}</strong><span>Cuentas o servicios con fallas recientes</span></a>
+</section>
+
+<section class="panel-card owner-notifications">
+    <div>
+        <p class="eyebrow">Avisos de Mi Centro</p>
+        <h2>Notificaciones del operador</h2>
+        <p>Solo avisan errores reales de sistema o pendientes de negocio; nunca datos clínicos individuales.</p>
+    </div>
+    <button class="status-pill" type="button" id="doko-notification-toggle">Activar notificaciones</button>
+</section>
+
+<script>
+const alertasDoko = {{ alertas|tojson }};
+const notificationButton = document.getElementById('doko-notification-toggle');
+function actualizarBotonNotificaciones() {
+    if (!('Notification' in window)) { notificationButton.disabled = true; notificationButton.textContent = 'No disponible'; return; }
+    notificationButton.textContent = Notification.permission === 'granted' ? 'Notificaciones activas' : 'Activar notificaciones';
+}
+notificationButton.addEventListener('click', async () => {
+    if (!('Notification' in window)) return;
+    const permission = await Notification.requestPermission();
+    actualizarBotonNotificaciones();
+    if (permission === 'granted' && alertasDoko.length) {
+        const alerta = alertasDoko[0];
+        new Notification('Doko · Mi Centro', {body: alerta.texto, icon: '/static/img/doko-icon-192.png'});
+    }
+});
+actualizarBotonNotificaciones();
+</script>
+
+<style>
+.owner-status,.owner-attention,.owner-notifications{margin-bottom:16px;padding:22px}.owner-status{align-items:center;border-left:5px solid #16a34a;display:flex;gap:24px;justify-content:space-between}.owner-status-critical{border-left-color:#dc2626}.owner-status h2,.owner-attention h2,.owner-notifications h2{margin:4px 0 7px}.owner-status p,.owner-notifications p{color:var(--color-texto-suave);margin:0}.owner-actions{align-items:flex-end;display:flex;flex-direction:column;gap:7px;min-width:230px}.owner-actions a,.owner-alert-list a{color:var(--color-primario);font-weight:800;text-decoration:none}.owner-alert-list{display:grid;gap:9px}.owner-alert-list article{align-items:center;background:#fffbeb;border-left:4px solid #f59e0b;border-radius:7px;display:flex;gap:14px;justify-content:space-between;padding:13px}.owner-alert-list article.critical{background:#fef2f2;border-left-color:#dc2626}.owner-alert-list article div{display:grid;gap:3px}.owner-alert-list article span{color:var(--color-texto-suave)}.owner-modules{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-bottom:16px}.owner-modules a{color:inherit;display:grid;gap:5px;padding:18px;text-decoration:none}.owner-modules a>strong{color:var(--color-primario);font-size:1.8rem}.owner-modules a>span{color:var(--color-texto-suave);font-size:.86rem}.owner-notifications{align-items:center;display:flex;gap:18px;justify-content:space-between}.admin-empty-state{background:var(--color-fondo-alt);border:1px dashed var(--color-borde);border-radius:7px;display:grid;gap:4px;padding:18px}.admin-empty-state span{color:var(--color-texto-suave)}@media(max-width:620px){.owner-status,.owner-notifications,.owner-alert-list article{align-items:flex-start;flex-direction:column}.owner-actions{align-items:flex-start;min-width:0}.owner-modules{grid-template-columns:1fr}}
+</style>
+{% endblock %}

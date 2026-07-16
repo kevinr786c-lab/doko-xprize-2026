@@ -1,0 +1,809 @@
+{% extends "base.html" %}
+{% block title %}Doko | Presencia digital{% endblock %}
+{% block page_title %}Presencia digital m&eacute;dica{% endblock %}
+{% block contenido %}
+{% if migracion_pendiente %}
+<section class="panel-card pd-empty">
+    <p class="eyebrow">Preparaci&oacute;n requerida</p>
+    <h2>La migraci&oacute;n de Presencia Digital a&uacute;n no est&aacute; aplicada.</h2>
+    <p>El c&oacute;digo est&aacute; listo. Aplica la migraci&oacute;n junto con el despliegue antes de crear una p&aacute;gina m&eacute;dica.</p>
+</section>
+{% else %}
+<section class="panel-card pd-intro">
+    <div>
+        <p class="eyebrow">Presencia digital</p>
+        {% if sitio_actual %}
+        <h2>{{ sitio_actual.nombre_doctor }}</h2>
+        <p>Edita una secci&oacute;n a la vez. Los datos del perfil Doko se reutilizan y no necesitan capturarse nuevamente.</p>
+        {% elif request.args.get('nuevo') == '1' %}
+        <h2>Nueva p&aacute;gina m&eacute;dica</h2>
+        <p>Vincula una doctora y guarda la configuraci&oacute;n inicial antes de agregar fotos, educaci&oacute;n o redes.</p>
+        {% else %}
+        <h2>P&aacute;ginas m&eacute;dicas</h2>
+        <p>Selecciona un sitio para editarlo, revisar sus resultados o abrir una vista previa.</p>
+        {% endif %}
+    </div>
+    <span class="status-pill">{{ sitios|length }} sitios</span>
+</section>
+
+{% set editando_sitio = sitio_actual or request.args.get('nuevo') == '1' %}
+<section class="pd-editor-shell {{ 'pd-editor-shell-list' if not editando_sitio else '' }}">
+    {% if editando_sitio %}
+    <aside class="pd-editor-nav" aria-label="Secciones del sitio m&eacute;dico">
+        <div class="pd-editor-nav-head">
+            <span>Editando</span>
+            <strong>{{ sitio_actual.nombre_doctor if sitio_actual else 'Nueva p&aacute;gina' }}</strong>
+            {% if sitio_actual %}<small>{{ sitio_actual.estado }} &middot; {{ sitio_actual.estado_dominio }}</small>{% endif %}
+        </div>
+        <label class="pd-editor-mobile-select">Secci&oacute;n
+            <select id="pd-section-select">
+                <option value="publicacion">Publicaci&oacute;n</option>
+                <option value="perfil">Perfil y portada</option>
+                {% if sitio_actual %}
+                <option value="servicios">Servicios y educaci&oacute;n</option>
+                <option value="fotos">Fotos y trayectoria</option>
+                {% endif %}
+                <option value="ubicacion">Ubicaci&oacute;n y contacto</option>
+                <option value="legal">Legal y SEO</option>
+                {% if sitio_actual %}
+                <option value="metricas">Redes y m&eacute;tricas</option>
+                {% endif %}
+            </select>
+        </label>
+        <nav class="pd-editor-nav-list">
+            <button type="button" data-pd-section="publicacion"><span><strong>Publicaci&oacute;n</strong><small>Estado, dominio y plantilla</small></span><em>{{ 'Pendiente' if checklist else 'Listo' }}</em></button>
+            <button type="button" data-pd-section="perfil"><span><strong>Perfil y portada</strong><small>Presentaci&oacute;n e im&aacute;genes</small></span><em>{{ 'Listo' if sitio_actual and sitio_actual.hero_titulo and sitio_actual.biografia else 'Pendiente' }}</em></button>
+            {% if sitio_actual %}
+            <button type="button" data-pd-section="servicios"><span><strong>Servicios y educaci&oacute;n</strong><small>Cat&aacute;logo y temas informativos</small></span><em>{{ 'Listo' if sitio_actual and sitio_actual.faqs else 'Opcional' }}</em></button>
+            <button type="button" data-pd-section="fotos"><span><strong>Fotos y trayectoria</strong><small>Consultorio y reconocimientos</small></span><em>{{ 'Listo' if sitio_actual and sitio_actual.media else 'Opcional' }}</em></button>
+            {% endif %}
+            <button type="button" data-pd-section="ubicacion"><span><strong>Ubicaci&oacute;n y contacto</strong><small>Maps, pagos y aseguradoras</small></span><em>{{ 'Listo' if sitio_actual and sitio_actual.ciudad else 'Pendiente' }}</em></button>
+            <button type="button" data-pd-section="legal"><span><strong>Legal y SEO</strong><small>COFEPRIS y buscadores</small></span><em>{{ 'Listo' if sitio_actual and sitio_actual.titulo_seo and sitio_actual.descripcion_seo else 'Pendiente' }}</em></button>
+            {% if sitio_actual %}
+            <button type="button" data-pd-section="metricas"><span><strong>Redes y m&eacute;tricas</strong><small>Enlaces y resultados</small></span><em>Opcional</em></button>
+            {% endif %}
+        </nav>
+        <a class="pd-back-sites" href="/admin/presencia-digital">Volver a todos los sitios</a>
+    </aside>
+    {% endif %}
+    <div class="pd-editor-workspace">
+    <article class="panel-card pd-card pd-editor-card {{ 'pd-initial-hidden' if not editando_sitio else '' }}">
+        <p class="eyebrow">Configuraci&oacute;n</p>
+        <div class="pd-title-row">
+            <h2>{{ 'Editar sitio' if sitio_actual else 'Crear sitio' }}</h2>
+            <div class="pd-actions-mini">
+                {% if sitio_actual %}
+                <a class="preview-link" href="/admin/presencia-digital/{{ sitio_actual.id_sitio }}/preview" target="_blank" rel="noopener">Vista previa</a>
+                <a class="preview-link" href="/preview/sitio/{{ sitio_actual.id_sitio }}" target="_blank" rel="noopener">Compartir vista previa</a>
+                <a class="preview-link" href="/admin/presencia-digital?nuevo=1">Crear otra p&aacute;gina</a>
+                {% elif sitios %}
+                <a class="preview-link" href="/admin/presencia-digital">Volver a sitios</a>
+                {% endif %}
+            </div>
+        </div>
+        <form id="sitio-form">
+            {% if sitio_actual %}<input type="hidden" name="id_sitio" value="{{ sitio_actual.id_sitio }}">{% endif %}
+            <label class="pd-doctor-field" data-pd-panel="publicacion">Doctora
+                <select name="correo_doctor" id="correo_doctor" required {% if sitio_actual %}disabled{% endif %}>
+                    {% for doctora in doctores %}
+                    <option value="{{ doctora.correo_doctor }}" {{ 'selected' if sitio_actual and sitio_actual.correo_doctor == doctora.correo_doctor else '' }}>
+                        {{ doctora.nombre_doctor }}{% if doctora.especialidad %} &middot; {{ doctora.especialidad }}{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if sitio_actual %}<input type="hidden" name="correo_doctor" value="{{ sitio_actual.correo_doctor }}">{% endif %}
+            </label>
+
+            <div class="doko-source" id="doko-source" data-pd-panel="publicacion">
+                <p class="eyebrow">1. Datos autom&aacute;ticos del perfil Doko</p>
+                <div class="source-grid">
+                    <div><strong>Nombre</strong><span data-source="nombre_doctor">-</span></div>
+                    <div><strong>Especialidad</strong><span data-source="especialidad">-</span></div>
+                    <div><strong>Tel&eacute;fono / WhatsApp</strong><span data-source="telefono_consultorio">-</span></div>
+                    <div><strong>Direcci&oacute;n</strong><span data-source="direccion_consultorio">-</span></div>
+                    <div><strong>Horarios</strong><span data-source="horarios_atencion">-</span></div>
+                    <div><strong>Pagos</strong><span data-source="metodos_pago_aceptados">-</span></div>
+                    <div><strong>Aseguradoras</strong><span data-source="aseguradoras_aceptadas">-</span></div>
+                    <div><strong>Portal Doko</strong><span data-source="id_publico">-</span></div>
+                </div>
+                <small>Estos datos se llenan desde el perfil m&eacute;dico. No los captures dos veces: si cambian en el perfil, la p&aacute;gina los refleja.</small>
+            </div>
+
+            {% if sitio_actual %}
+            <div class="pd-section checklist-box" data-pd-panel="publicacion">
+                <p class="eyebrow">Checklist de publicaci&oacute;n</p>
+                {% if checklist %}
+                <ul>
+                    {% for item in checklist %}<li>{{ item }}</li>{% endfor %}
+                </ul>
+                {% else %}
+                <p class="ready">Contenido m&iacute;nimo listo para publicar.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="pd-section" id="pd-publicacion" data-pd-panel="publicacion">
+                <p class="eyebrow">1. Publicaci&oacute;n y dominio</p>
+                <div class="pd-two">
+                    <label>Subdominio
+                        <input name="subdominio" required value="{{ sitio_actual.subdominio|default('', true) if sitio_actual else '' }}" placeholder="ginecologia-tijuana">
+                        <small>Usar&aacute; subdominio.{{ dominio }} cuando el dominio est&eacute; configurado.</small>
+                    </label>
+                    <label>Plantilla
+                        <select name="plantilla">
+                            <option value="clinica_clara" {{ 'selected' if not sitio_actual or sitio_actual.plantilla == 'clinica_clara' else '' }}>Cl&iacute;nica clara</option>
+                            <option value="especialista_editorial" {{ 'selected' if sitio_actual and sitio_actual.plantilla == 'especialista_editorial' else '' }}>Especialista editorial</option>
+                            <option value="consulta_moderna" {{ 'selected' if sitio_actual and sitio_actual.plantilla == 'consulta_moderna' else '' }}>Consulta moderna</option>
+                        </select>
+                        <small>Por ahora usa la misma base segura; el color, portada, fotos y contenido dan la personalidad de cada doctora.</small>
+                    </label>
+                    {% set visual = sitio_actual.visual_config if sitio_actual and sitio_actual.visual_config is mapping else {} %}
+                    <label>Tema visual
+                        <select name="tema_visual">
+                            <option value="marino" {{ 'selected' if visual.get('tema_visual', 'marino') == 'marino' else '' }}>Doko marino</option>
+                            <option value="lila" {{ 'selected' if visual.get('tema_visual') == 'lila' else '' }}>Lavanda / lila</option>
+                            <option value="sakura" {{ 'selected' if visual.get('tema_visual') == 'sakura' else '' }}>Rosa sakura</option>
+                            <option value="verde" {{ 'selected' if visual.get('tema_visual') == 'verde' else '' }}>Verde salud</option>
+                            <option value="turquesa" {{ 'selected' if visual.get('tema_visual') == 'turquesa' else '' }}>Turquesa</option>
+                            <option value="vino" {{ 'selected' if visual.get('tema_visual') == 'vino' else '' }}>Vino sobrio</option>
+                        </select>
+                        <small>Cambia solo la apariencia de la p&aacute;gina web; no cambia citas, servicios ni agenda.</small>
+                    </label>
+                </div>
+                <div class="pd-two">
+                    <label>Publicaci&oacute;n
+                        <select name="estado">
+                            <option value="BORRADOR" {{ 'selected' if sitio_actual and sitio_actual.estado == 'BORRADOR' else '' }}>Borrador</option>
+                            <option value="PUBLICADO" {{ 'selected' if sitio_actual and sitio_actual.estado == 'PUBLICADO' else '' }}>Publicado</option>
+                            <option value="PAUSADO" {{ 'selected' if sitio_actual and sitio_actual.estado == 'PAUSADO' else '' }}>Pausado</option>
+                        </select>
+                    </label>
+                    <label>Dominio
+                        <select name="estado_dominio">
+                            <option value="PENDIENTE_DOMINIO" {{ 'selected' if not sitio_actual or sitio_actual.estado_dominio == 'PENDIENTE_DOMINIO' else '' }}>Pendiente de dominio</option>
+                            <option value="CONFIGURADO" {{ 'selected' if sitio_actual and sitio_actual.estado_dominio == 'CONFIGURADO' else '' }}>DNS configurado</option>
+                            <option value="VERIFICADO" {{ 'selected' if sitio_actual and sitio_actual.estado_dominio == 'VERIFICADO' else '' }}>Verificado</option>
+                            <option value="ERROR" {{ 'selected' if sitio_actual and sitio_actual.estado_dominio == 'ERROR' else '' }}>Requiere revisi&oacute;n</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="toggle-grid">
+                    <label><input type="checkbox" name="indexable" {{ 'checked' if sitio_actual and sitio_actual.indexable else '' }}> Permitir indexaci&oacute;n cuando est&eacute; publicada</label>
+                    <label><input type="checkbox" name="schema_medico_activo" {{ 'checked' if not sitio_actual or sitio_actual.schema_medico_activo else '' }}> Schema m&eacute;dico<input type="hidden" name="schema_medico_activo" value="0"></label>
+                    <label><input type="checkbox" name="faq_schema_activo" {{ 'checked' if not sitio_actual or sitio_actual.faq_schema_activo else '' }}> Schema FAQ<input type="hidden" name="faq_schema_activo" value="0"></label>
+                </div>
+            </div>
+
+            <div class="pd-section" id="pd-portada" data-pd-panel="perfil">
+                <p class="eyebrow">2. Portada y tema visual</p>
+                <div class="pd-two">
+                    <label>Nombre p&uacute;blico de cl&iacute;nica
+                        <input name="nombre_clinica_publico" value="{{ sitio_actual.nombre_clinica_publico|default('', true) if sitio_actual else '' }}" placeholder="Cl&iacute;nica de Ginecolog&iacute;a y Colposcopia">
+                    </label>
+                    <label>Especialidad p&uacute;blica
+                        <input name="especialidad_publica" value="{{ sitio_actual.especialidad_publica|default('', true) if sitio_actual else '' }}" placeholder="Gineco-Obstetra-Colposcopia">
+                    </label>
+                </div>
+                <div class="pd-two">
+                    <label>Ciudad<input name="ciudad" value="{{ sitio_actual.ciudad|default('Tijuana', true) if sitio_actual else 'Tijuana' }}"></label>
+                    <label>Estado / regi&oacute;n<input name="estado_region" value="{{ sitio_actual.estado_region|default('Baja California', true) if sitio_actual else 'Baja California' }}"></label>
+                </div>
+                <label>T&iacute;tulo principal<input name="hero_titulo" value="{{ sitio_actual.hero_titulo|default('', true) if sitio_actual else '' }}" placeholder="Dra. Alba Patricia Rojas F."></label>
+                <label>Subt&iacute;tulo<input name="hero_subtitulo" value="{{ sitio_actual.hero_subtitulo|default('', true) if sitio_actual else '' }}" placeholder="Atenci&oacute;n ginecol&oacute;gica en Tijuana"></label>
+                <label>Texto de confianza<textarea name="hero_texto_confianza" rows="3" placeholder="Texto breve, claro y profesional para la portada.">{{ sitio_actual.hero_texto_confianza|default('', true) if sitio_actual else '' }}</textarea></label>
+                <div class="pd-two">
+                    <label>Texto bot&oacute;n Agenda<input name="texto_boton_principal" value="{{ sitio_actual.texto_boton_principal|default('Agendar cita', true) if sitio_actual else 'Agendar cita' }}"></label>
+                    <label>Destino bot&oacute;n Agenda<input name="destino_boton_principal" value="{{ sitio_actual.destino_boton_principal|default('', true) if sitio_actual else '' }}" placeholder="Vac&iacute;o usa el Portal Doko"></label>
+                </div>
+                <div class="pd-two">
+                    <label>Texto bot&oacute;n WhatsApp<input name="texto_boton_whatsapp" value="{{ sitio_actual.texto_boton_whatsapp|default('Enviar WhatsApp', true) if sitio_actual else 'Enviar WhatsApp' }}"></label>
+                    <label>Color secundario<input name="color_secundario" value="{{ sitio_actual.color_secundario|default('', true) if sitio_actual else '' }}" placeholder="#C9A7E8"></label>
+                </div>
+                <div class="toggle-grid">
+                    <label><input type="checkbox" name="mostrar_agenda" {{ 'checked' if not sitio_actual or sitio_actual.mostrar_agenda else '' }}> Mostrar bot&oacute;n Agenda<input type="hidden" name="mostrar_agenda" value="0"></label>
+                    <label><input type="checkbox" name="mostrar_whatsapp" {{ 'checked' if not sitio_actual or sitio_actual.mostrar_whatsapp else '' }}> Mostrar WhatsApp<input type="hidden" name="mostrar_whatsapp" value="0"></label>
+                </div>
+                <details class="pd-section pd-nested pd-advanced">
+                    <summary><span>Ajuste visual de portada</span><strong>Opcional</strong></summary>
+                    <div class="pd-three">
+                        <label>Estilo de imagen
+                            <select name="hero_image_style">
+                                <option value="foto_completa" {{ 'selected' if visual.get('hero_image_style', 'foto_completa') == 'foto_completa' else '' }}>Foto completa</option>
+                                <option value="foto_contain" {{ 'selected' if visual.get('hero_image_style') == 'foto_contain' else '' }}>Foto sin recorte</option>
+                                <option value="emblema_redondo" {{ 'selected' if visual.get('hero_image_style') == 'emblema_redondo' else '' }}>Emblema redondo</option>
+                                <option value="emblema_suave" {{ 'selected' if visual.get('hero_image_style') == 'emblema_suave' else '' }}>Emblema suave</option>
+                            </select>
+                        </label>
+                        <label>Tama&ntilde;o
+                            <select name="hero_image_size">
+                                <option value="compacto" {{ 'selected' if visual.get('hero_image_size') == 'compacto' else '' }}>Compacto</option>
+                                <option value="normal" {{ 'selected' if visual.get('hero_image_size', 'normal') == 'normal' else '' }}>Normal</option>
+                                <option value="grande" {{ 'selected' if visual.get('hero_image_size') == 'grande' else '' }}>Grande</option>
+                            </select>
+                        </label>
+                        <label>Decoraci&oacute;n
+                            <select name="hero_decoration">
+                                <option value="ninguna" {{ 'selected' if visual.get('hero_decoration', 'ninguna') == 'ninguna' else '' }}>Ninguna</option>
+                                <option value="lavanda" {{ 'selected' if visual.get('hero_decoration') == 'lavanda' else '' }}>Lavanda</option>
+                                <option value="cerezos" {{ 'selected' if visual.get('hero_decoration') == 'cerezos' else '' }}>Cerezos suaves</option>
+                                <option value="flores" {{ 'selected' if visual.get('hero_decoration') == 'flores' else '' }}>Flores discretas</option>
+                            </select>
+                        </label>
+                    </div>
+                    <small>Estos controles solo ajustan c&oacute;mo se presenta la imagen principal; no cambian la foto guardada ni los datos cl&iacute;nicos.</small>
+                </details>
+                <div class="pd-section pd-directory-control" id="pd-directorio-local" data-pd-panel="legal">
+                    <p class="eyebrow">Directorio local</p>
+                    <h3>Tarjeta en doko.lat y SEO por especialidad</h3>
+                    <small>Controla c&oacute;mo aparece este perfil en doko.lat para b&uacute;squedas locales como ginec&oacute;logo en Tijuana, cardi&oacute;logo en Tijuana o servicios del consultorio.</small>
+                    <div class="pd-directory-preview">
+                        <div><span>Visibilidad</span><strong>{{ 'Visible en doko.lat' if visual.get('visible_en_directorio', true) != false else 'Oculto del directorio' }}</strong></div>
+                        <div><span>Rotaci&oacute;n</span><strong>{% if visual.get('destacado_directorio') %}Destacado editorial{% elif visual.get('orden_directorio') %}Orden {{ visual.get('orden_directorio') }}{% else %}Rotaci&oacute;n semanal{% endif %}</strong></div>
+                        <div><span>Confianza</span><strong>{{ 'M&eacute;dico fundador' if visual.get('medico_fundador') else 'Normal' }}</strong></div>
+                    </div>
+                    <div class="toggle-grid">
+                        <label><input type="checkbox" name="visible_en_directorio" {{ 'checked' if visual.get('visible_en_directorio', true) != false else '' }}> Mostrar en directorio<input type="hidden" name="visible_en_directorio" value="0"></label>
+                        <label><input type="checkbox" name="destacado_directorio" {{ 'checked' if visual.get('destacado_directorio') else '' }}> Destacado moderado<input type="hidden" name="destacado_directorio" value="0"></label>
+                        <label><input type="checkbox" name="medico_fundador" {{ 'checked' if visual.get('medico_fundador') else '' }}> Médico fundador<input type="hidden" name="medico_fundador" value="0"></label>
+                    </div>
+                    <div class="pd-two">
+                        <label>Desempate editorial
+                            <input type="number" min="0" name="orden_directorio" value="{{ visual.get('orden_directorio', '') }}">
+                        </label>
+                        <label>Servicios destacados
+                            <input name="servicios_destacados_directorio" value="{{ visual.get('servicios_destacados_directorio', '') }}" placeholder="Colposcopia, Papanicolaou, VPH">
+                            <small>Usa servicios reales del consultorio, separados por coma. No repetir palabras solo por SEO.</small>
+                        </label>
+                    </div>
+                    <div class="pd-directory-note">Solo aplica a Tijuana por ahora. La rotaci&oacute;n se calcula por perfiles completos, destacado editorial y semana actual. No usa compras de insumos para ordenar.</div>
+                </div>
+            </div>
+
+            <div class="pd-section" id="pd-doctora" data-pd-panel="perfil">
+                <p class="eyebrow">3. Informaci&oacute;n de la doctora</p>
+                <label>Presentaci&oacute;n principal<textarea name="biografia" rows="5" placeholder="Presentaci&oacute;n humana y profesional de la doctora.">{{ sitio_actual.biografia|default('', true) if sitio_actual else '' }}</textarea></label>
+                <label>Resumen corto<textarea name="biografia_corta" rows="3" placeholder="Texto breve para tarjetas o secciones compactas.">{{ sitio_actual.biografia_corta|default('', true) if sitio_actual else '' }}</textarea></label>
+                <label>Trayectoria ampliada<textarea name="biografia_larga" rows="5" placeholder="Solo si quieres ampliar experiencia, formaci&oacute;n o historia profesional.">{{ sitio_actual.biografia_larga|default('', true) if sitio_actual else '' }}</textarea></label>
+                <div class="pd-two">
+                    <label>Enfoque de atenci&oacute;n<textarea name="enfoque_atencion" rows="3">{{ sitio_actual.enfoque_atencion|default('', true) if sitio_actual else '' }}</textarea></label>
+                    <label>Formaci&oacute;n resumida<textarea name="formacion_resumida" rows="3">{{ sitio_actual.formacion_resumida|default('', true) if sitio_actual else '' }}</textarea></label>
+                </div>
+                <div class="pd-two">
+                    <label>A&ntilde;os de experiencia<input type="number" min="0" name="anios_experiencia" value="{{ sitio_actual.anios_experiencia|default('', true) if sitio_actual else '' }}"></label>
+                    <label>Firma visible<input name="firma_visible" value="{{ sitio_actual.firma_visible|default('', true) if sitio_actual else '' }}"></label>
+                </div>
+                <label>Frase destacada<input name="frase_destacada" value="{{ sitio_actual.frase_destacada|default('', true) if sitio_actual else '' }}"></label>
+            </div>
+
+            <details class="pd-section pd-advanced" id="pd-seo" data-pd-panel="legal">
+                <summary><span>8. Google, redes y SEO local</span><strong>Avanzado</strong></summary>
+                <small>Estos textos ayudan a Google y redes sociales a entender el perfil. Deben ser claros para pacientes, sin prometer primer lugar ni resultados garantizados.</small>
+                <label>T&iacute;tulo SEO<input name="titulo_seo" value="{{ sitio_actual.titulo_seo|default('', true) if sitio_actual else '' }}" placeholder="Ginecolog&iacute;a en Tijuana | Dra. ..."></label>
+                <label>Descripci&oacute;n SEO<textarea name="descripcion_seo" rows="3" placeholder="Texto breve para Google y redes sociales.">{{ sitio_actual.descripcion_seo|default('', true) if sitio_actual else '' }}</textarea></label>
+                <div class="pd-two">
+                    <label>OG title<input name="og_title" value="{{ sitio_actual.og_title|default('', true) if sitio_actual else '' }}"></label>
+                    <label>OG image URL<input name="og_image" value="{{ sitio_actual.og_image|default('', true) if sitio_actual else '' }}" placeholder="Opcional, usa portada si se deja vac&iacute;o"></label>
+                </div>
+                <label>OG description<textarea name="og_description" rows="2">{{ sitio_actual.og_description|default('', true) if sitio_actual else '' }}</textarea></label>
+                <div class="pd-two">
+                    <label>Canonical URL<input name="canonical_url" value="{{ sitio_actual.canonical_url|default('', true) if sitio_actual else '' }}"></label>
+                    <label>Keywords internas<input name="keywords_internas" value="{{ sitio_actual.keywords_internas|default('', true) if sitio_actual else '' }}" placeholder="colposcopia, ginecolog&iacute;a, tijuana"></label>
+                </div>
+            </details>
+
+            <div class="pd-section" id="pd-ubicacion" data-pd-panel="ubicacion">
+                <p class="eyebrow">6. Ubicaci&oacute;n y contacto</p>
+                <small>La direcci&oacute;n, el tel&eacute;fono y Maps vienen del perfil Doko de la doctora. La p&aacute;gina mostrar&aacute; una referencia fija y el bot&oacute;n abrir&aacute; Google Maps.</small>
+                <div class="source-grid pd-location-source">
+                    <div><strong>Direcci&oacute;n del perfil</strong><span data-location-source="direccion_consultorio">No configurada</span></div>
+                    <div><strong>Tel&eacute;fono del perfil</strong><span data-location-source="telefono_consultorio">No configurado</span></div>
+                    <div><strong>Google Maps</strong><span data-location-source="maps_url">No configurado</span></div>
+                    <div><strong>Horarios</strong><span data-location-source="horarios_atencion">No configurados</span></div>
+                </div>
+                <label>Estacionamiento<input name="estacionamiento" value="{{ sitio_actual.estacionamiento|default('', true) if sitio_actual else '' }}" placeholder="Ej. Estacionamiento disponible en plaza"></label>
+                <label>Instrucciones de llegada<textarea name="instrucciones_llegada" rows="2">{{ sitio_actual.instrucciones_llegada|default('', true) if sitio_actual else '' }}</textarea></label>
+                <small>Para agregar fotos de fachada o estacionamiento usa la secci&oacute;n "Fotos para la p&aacute;gina" y selecciona el tipo correspondiente.</small>
+            </div>
+
+            <div class="pd-section pd-payments-section" data-pd-panel="ubicacion">
+                <p class="eyebrow">Pagos y aseguradoras</p>
+                <div class="toggle-grid">
+                    <label><input type="checkbox" name="mostrar_pagos" {{ 'checked' if not sitio_actual or sitio_actual.mostrar_pagos else '' }}> Mostrar formas de pago<input type="hidden" name="mostrar_pagos" value="0"></label>
+                    <label><input type="checkbox" name="mostrar_aseguradoras" {{ 'checked' if not sitio_actual or sitio_actual.mostrar_aseguradoras else '' }}> Mostrar aseguradoras<input type="hidden" name="mostrar_aseguradoras" value="0"></label>
+                </div>
+                <div class="pd-two">
+                    <label>Texto de pagos<textarea name="texto_pagos" rows="2">{{ sitio_actual.texto_pagos|default('', true) if sitio_actual else '' }}</textarea></label>
+                    <label>Texto de aseguradoras<textarea name="texto_aseguradoras" rows="2">{{ sitio_actual.texto_aseguradoras|default('', true) if sitio_actual else '' }}</textarea></label>
+                </div>
+            </div>
+
+            <div class="doko-source" id="pd-legal" data-pd-panel="legal">
+                <p class="eyebrow">7. Legal / COFEPRIS</p>
+                <small>Estos datos aparecen en el footer p&uacute;blico. Para publicar son obligatorios. Evita frases como "la mejor", "garantizado", "sin riesgo", "infalible", testimonios milagro o promesas de resultado.</small>
+                <div class="pd-two" style="margin-top:12px;">
+                    <label>C&eacute;dula profesional
+                        <input name="cedula_profesional" value="{{ sitio_actual.cedula_profesional|default('', true) if sitio_actual else '' }}" placeholder="Ej. 1234567">
+                    </label>
+                    <label>C&eacute;dula de especialidad
+                        <input name="cedula_especialidad" value="{{ sitio_actual.cedula_especialidad|default('', true) if sitio_actual else '' }}" placeholder="Ej. 7654321">
+                    </label>
+                </div>
+                <label>Instituci&oacute;n que expidi&oacute; los t&iacute;tulos
+                    <input name="institucion_titulo" value="{{ sitio_actual.institucion_titulo|default('', true) if sitio_actual else '' }}" placeholder="Universidad / instituci&oacute;n">
+                </label>
+                <label>Aviso de publicidad COFEPRIS
+                    <input name="aviso_publicidad_cofepris" value="{{ sitio_actual.aviso_publicidad_cofepris|default('', true) if sitio_actual else '' }}" placeholder="N&uacute;mero de aviso autorizado">
+                </label>
+            </div>
+
+            <div class="asset-grid pd-asset-grid" data-pd-panel="perfil">
+                <div class="asset-field">
+                    <span class="asset-title">Sub portada / imagen principal</span>
+                    <input type="hidden" name="portada_url" id="portada_url" value="{{ sitio_actual.portada_url|default('', true) if sitio_actual else '' }}">
+                    <label class="asset-upload">Subir sub portada
+                        <input type="file" id="portada_file" accept="image/png,image/jpeg,image/webp">
+                    </label>
+                    <button class="asset-remove" type="button" data-clear-asset="portada_url" data-preview="portada_preview" data-empty="Sin sub portada">Quitar sub portada</button>
+                    <div class="asset-preview" id="portada_preview">
+                        {% if sitio_actual and sitio_actual.portada_url %}<img src="{{ sitio_actual.portada_url }}" alt="Sub portada">{% else %}<span>Sin sub portada</span>{% endif %}
+                    </div>
+                </div>
+                <div class="asset-field">
+                    <span class="asset-title">Logo o foto</span>
+                    <input type="hidden" name="logo_url" id="logo_url" value="{{ sitio_actual.logo_url|default('', true) if sitio_actual else '' }}">
+                    <label class="asset-upload">Subir logo
+                        <input type="file" id="logo_file" accept="image/png,image/jpeg,image/webp">
+                    </label>
+                    <button class="asset-remove" type="button" data-clear-asset="logo_url" data-preview="logo_preview" data-empty="Usa la foto del perfil Doko si no subes logo">Quitar logo</button>
+                    <div class="asset-preview logo-preview" id="logo_preview">
+                        {% if sitio_actual and sitio_actual.logo_url %}
+                            <img src="{{ sitio_actual.logo_url }}" alt="Logo">
+                        {% elif sitio_actual and sitio_actual.foto_perfil_url %}
+                            <img src="{{ sitio_actual.foto_perfil_url }}" alt="Foto del doctor">
+                        {% else %}
+                            <span>Usa la foto del perfil Doko si no subes logo</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <label class="pd-whatsapp-field" data-pd-panel="ubicacion">WhatsApp
+                <input name="whatsapp_numero" id="whatsapp_numero" value="{{ sitio_actual.whatsapp_numero|default('', true) if sitio_actual else '' }}" placeholder="Se puede usar el tel&eacute;fono del consultorio">
+                <small>Si lo dejas vac&iacute;o, la p&aacute;gina usar&aacute; el n&uacute;mero general configurado en Doko.</small>
+            </label>
+
+            <div class="pd-actions admin-sticky-actions">
+                <button class="btn-primary" type="submit">Guardar sitio</button>
+                {% if sitio_actual %}
+                <a class="preview-link" href="/admin/presencia-digital/{{ sitio_actual.id_sitio }}/preview" target="_blank" rel="noopener">Abrir vista previa</a>
+                <a class="preview-link" href="/preview/sitio/{{ sitio_actual.id_sitio }}" target="_blank" rel="noopener">Compartir vista previa</a>
+                {% if sitio_actual.estado == 'BORRADOR' %}<button class="preview-link danger-link" type="button" data-delete-draft="{{ sitio_actual.id_sitio }}">Eliminar borrador</button>{% endif %}
+                {% endif %}
+            </div>
+            <span id="sitio-status" class="muted"></span>
+        </form>
+    </article>
+
+    <article class="panel-card pd-card pd-sites-card {{ 'pd-initial-hidden' if editando_sitio else '' }}">
+        <p class="eyebrow">Sitios</p>
+        <div class="pd-title-row">
+            <h2>Configurados</h2>
+            <a class="preview-link" href="/admin/presencia-digital?nuevo=1">Nuevo sitio</a>
+        </div>
+        <div class="pd-sites-grid">
+            {% for sitio in sitios %}
+            <article class="pd-site-row">
+                <div class="pd-site-row-main">
+                    <div><strong>{{ sitio.nombre_doctor }}</strong><span>{{ sitio.especialidad or 'Especialidad pendiente' }}</span></div>
+                    <span class="pd-site-state pd-site-state-{{ sitio.estado|lower }}">{{ sitio.estado }}</span>
+                </div>
+                <p>{{ sitio.subdominio }}.{{ dominio }}</p>
+                <div class="pd-site-metrics"><span>{{ sitio.visitas_30|int }} visitas</span><span>{{ sitio.agenda_30|default(0)|int }} Agenda</span><span>{{ sitio.maps_30|default(0)|int }} Maps</span></div>
+                <div class="pd-site-actions">
+                    <a class="btn-primary" href="/admin/presencia-digital?sitio={{ sitio.id_sitio }}">Editar</a>
+                    <a class="btn-secundario" href="/admin/presencia-digital/{{ sitio.id_sitio }}/preview" target="_blank" rel="noopener">Vista previa</a>
+                    <a class="btn-secundario" href="/preview/sitio/{{ sitio.id_sitio }}" target="_blank" rel="noopener">Compartir</a>
+                    {% if sitio.estado == 'BORRADOR' %}<button class="danger-link" type="button" data-delete-draft="{{ sitio.id_sitio }}">Eliminar</button>{% endif %}
+                </div>
+            </article>
+            {% else %}
+            <p class="muted">A&uacute;n no hay sitios configurados.</p>
+            {% endfor %}
+        </div>
+    </article>
+{% if sitio_actual %}
+<section class="pd-grid pd-content pd-step-content pd-initial-hidden">
+    <article class="panel-card pd-card" id="pd-fotos" data-pd-panel="fotos">
+        <p class="eyebrow">5. Fotos y trayectoria</p>
+        <h2>Consultorio, diplomas y reconocimientos</h2>
+        <form id="media-form" enctype="multipart/form-data">
+            <input type="hidden" name="id_sitio" value="{{ sitio_actual.id_sitio }}">
+            <label>Tipo de foto
+                <select name="tipo">
+                    <option value="CONSULTORIO">Consultorio</option>
+                    <option value="RECEPCION">Recepci&oacute;n</option>
+                    <option value="FACHADA">Fachada / exterior</option>
+                    <option value="ESTACIONAMIENTO">Estacionamiento</option>
+                    <option value="EQUIPO">Equipo</option>
+                    <option value="DIPLOMA">T&iacute;tulo / diploma</option>
+                    <option value="CERTIFICACION">Certificaci&oacute;n</option>
+                    <option value="RECONOCIMIENTO">Reconocimiento</option>
+                    <option value="CEDULA">C&eacute;dula</option>
+                    <option value="ASOCIACION">Asociaci&oacute;n</option>
+                    <option value="OTRO">Otro</option>
+                </select>
+            </label>
+            <label>Fotos
+                <input type="file" name="file" accept="image/png,image/jpeg,image/webp" multiple required>
+                <small>Usa esta secci&oacute;n para interior, exterior, estacionamiento, t&iacute;tulos, diplomas o reconocimientos. No subir pacientes identificables, procedimientos, cirug&iacute;as, genitales, antes/despu&eacute;s ni im&aacute;genes cl&iacute;nicas sensibles.</small>
+            </label>
+            <label>T&iacute;tulo<input name="titulo" placeholder="Recepci&oacute;n del consultorio"></label>
+            <label>Descripci&oacute;n<textarea name="descripcion" rows="2" placeholder="Descripci&oacute;n breve opcional."></textarea></label>
+            <label>Texto alternativo<input name="texto_alternativo" placeholder="Consultorio de ginecolog&iacute;a en Tijuana"></label>
+            <button class="btn-primary">Subir fotos</button>
+        </form>
+        <div class="pd-images">
+            {% for item in sitio_actual.media if item.activo %}
+            <figure>
+                <img src="{{ item.url }}" alt="{{ item.texto_alternativo or '' }}">
+                <figcaption><strong>{{ item.tipo|capitalize }}</strong>{% if item.titulo %}<span>{{ item.titulo }}</span>{% endif %}</figcaption>
+                <button type="button" data-delete-media="{{ item.id_media }}">Quitar</button>
+            </figure>
+            {% endfor %}
+        </div>
+    </article>
+
+    <details class="panel-card pd-card optional-card pd-compact-section" data-pd-panel="fotos">
+        <summary><span>Detalle de credenciales</span><strong>Opcional avanzado</strong></summary>
+        <p class="muted">Si solo quieres subir la foto del diploma o reconocimiento, usa "Fotos y trayectoria". Esta secci&oacute;n sirve cuando quieres agregar instituci&oacute;n, descripci&oacute;n o datos m&aacute;s formales.</p>
+        <form id="credencial-form" enctype="multipart/form-data">
+            <input type="hidden" name="id_sitio" value="{{ sitio_actual.id_sitio }}">
+            <label>Tipo<select name="tipo"><option value="CERTIFICACION">Certificaci&oacute;n</option><option value="CEDULA">C&eacute;dula</option><option value="DIPLOMA">Diploma</option><option value="ASOCIACION">Asociaci&oacute;n</option><option value="RECONOCIMIENTO">Reconocimiento</option></select></label>
+            <label>T&iacute;tulo<input name="titulo"></label>
+            <label>Instituci&oacute;n<input name="institucion"></label>
+            <label>Descripci&oacute;n<textarea name="descripcion" rows="3"></textarea></label>
+            <label>Texto alternativo<input name="texto_alternativo" placeholder="Diploma de especialidad"></label>
+            <label>Foto del t&iacute;tulo o reconocimiento
+                <input type="file" name="file" accept="image/png,image/jpeg,image/webp">
+                <small>Opcional. Sube diploma, constancia o reconocimiento si la doctora quiere mostrarlo.</small>
+            </label>
+            <button class="btn-primary">Agregar detalle</button>
+        </form>
+        <div class="pd-credentials-admin">
+            {% for item in sitio_actual.credenciales if item.activo %}
+            <article>
+                {% if item.imagen_url %}<img src="{{ item.imagen_url }}" alt="{{ item.titulo }}">{% endif %}
+                <div>
+                    <small>{{ item.tipo|capitalize }}</small>
+                    <strong>{{ item.titulo }}</strong>
+                    {% if item.institucion %}<span>{{ item.institucion }}</span>{% endif %}
+                </div>
+                <button type="button" data-delete-credential="{{ item.id_credencial }}">Quitar</button>
+            </article>
+            {% else %}
+            <p class="muted">Sin credenciales visibles.</p>
+            {% endfor %}
+        </div>
+    </details>
+
+    <details class="panel-card pd-card pd-compact-section" data-pd-panel="metricas" open>
+        <summary><span>Redes sociales</span><strong>{{ sitio_actual.redes|length }} enlaces</strong></summary>
+        <form id="red-form">
+            <input type="hidden" name="id_sitio" value="{{ sitio_actual.id_sitio }}">
+            <label>Red<select name="red"><option value="INSTAGRAM">Instagram</option><option value="FACEBOOK">Facebook</option><option value="TIKTOK">TikTok</option><option value="YOUTUBE">YouTube</option><option value="LINKEDIN">LinkedIn</option><option value="WEB">Sitio externo</option></select></label>
+            <label>URL<input type="url" name="url" required placeholder="https://"></label>
+            <button class="btn-primary">Agregar enlace</button>
+        </form>
+        <div class="pd-simple">{% for item in sitio_actual.redes %}<a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.red|capitalize }}</a>{% endfor %}</div>
+    </details>
+
+    <article class="panel-card pd-card" id="pd-metricas" data-pd-panel="metricas">
+        <p class="eyebrow">Resultados de 30 d&iacute;as</p>
+        <h2>Visibilidad y contacto</h2>
+        <div class="pd-metrics">
+            <div><strong>{{ metricas.visitas|default(0)|int }}</strong><span>Visitas</span></div>
+            <div><strong>{{ metricas.agenda|default(0)|int }}</strong><span>Clics a agenda</span></div>
+            <div><strong>{{ metricas.whatsapp|default(0)|int }}</strong><span>Clics a WhatsApp</span></div>
+            <div><strong>{{ metricas.maps|default(0)|int }}</strong><span>Clics a Maps</span></div>
+            <div><strong>{{ metricas.telefono|default(0)|int }}</strong><span>Clics a tel&eacute;fono</span></div>
+        </div>
+    </article>
+
+    <details class="panel-card pd-card pd-compact-section" id="pd-servicios" data-pd-panel="servicios" open>
+        <summary><span>4. Servicios y educaci&oacute;n</span><strong>{{ sitio_actual.faqs|selectattr('activo')|list|length }} temas</strong></summary>
+        <h2>Servicios publicados por el consultorio</h2>
+        <p class="muted">Estos servicios se reutilizan desde el perfil m&eacute;dico. Para cambiar nombre, precio o descripci&oacute;n se editan en M&eacute;dicos; aqu&iacute; no se duplican.</p>
+        <div class="pd-service-source">
+            {% for servicio in sitio_actual.servicios %}
+            <article><div><strong>{{ servicio.nombre_servicio }}</strong><span>{{ servicio.descripcion or 'Sin descripci&oacute;n adicional' }}</span></div><em>{% if servicio.tipo_precio == 'fijo' and servicio.precio is not none %}${{ servicio.precio }}{% else %}{{ servicio.tipo_precio|replace('_', ' ')|title }}{% endif %}</em></article>
+            {% else %}<div class="admin-empty-state"><strong>Sin servicios activos</strong><span>Agrega los servicios desde el perfil m&eacute;dico.</span></div>{% endfor %}
+        </div>
+        <h2>Educaci&oacute;n para web y chatbot</h2>
+        <p class="muted">Agrega temas informativos aprobados, por ejemplo: qu&eacute; es VPH, Papanicolaou o colposcopia. No uses promesas, diagn&oacute;sticos ni testimonios.</p>
+        <form id="educacion-form">
+            <input type="hidden" name="id_sitio" value="{{ sitio_actual.id_sitio }}">
+            <label>Tema o pregunta
+                <input name="palabras_clave" required placeholder="VPH, virus del papiloma humano">
+            </label>
+            <label>Respuesta informativa
+                <textarea name="respuesta" rows="5" required placeholder="Texto claro, informativo y sin promesas de resultado."></textarea>
+            </label>
+            <div class="pd-two">
+                <label>Categor&iacute;a<input name="categoria" value="EDUCACION"></label>
+                <label>Orden<input name="orden" type="number" min="0" value="0"></label>
+            </div>
+            <button class="btn-primary">Agregar tema</button>
+        </form>
+        <div class="pd-simple">
+            {% for faq in sitio_actual.faqs if faq.activo %}
+            <span>
+                <strong>{{ faq.palabras_clave }}</strong>
+                <button type="button" data-delete-educacion="{{ faq.id_faq }}" style="margin-left:auto;background:white;border:1px solid var(--color-borde);border-radius:999px;color:var(--color-cancelado);cursor:pointer;font-weight:800;padding:6px 10px;">Quitar</button>
+            </span>
+            {% else %}
+            <p class="muted">A&uacute;n no hay temas educativos propios de esta doctora.</p>
+            {% endfor %}
+        </div>
+    </details>
+
+</section>
+{% else %}
+<section class="panel-card pd-empty">
+    <p class="eyebrow">Siguiente paso</p>
+    <h2>Guarda el sitio para agregar fotos del consultorio.</h2>
+    <p>Primero se crea el sitio m&eacute;dico. Despu&eacute;s podr&aacute;s subir varias fotos de interior y exterior.</p>
+</section>
+{% endif %}
+    </div>
+</section>
+{% endif %}
+
+<style>
+.pd-intro,.pd-empty{align-items:center;display:flex;gap:18px;justify-content:space-between;padding:24px}.pd-intro h2,.pd-empty h2,.pd-card h2{margin:5px 0 16px}.pd-title-row{align-items:center;display:flex;gap:12px;justify-content:space-between}.pd-title-row h2{margin-bottom:12px}.pd-actions{align-items:center;display:flex;gap:10px;flex-wrap:wrap}.preview-link,.pd-preview-list{background:var(--color-primario-suave);border:1px solid #c9d7e6;border-radius:999px;color:var(--color-primario);display:inline-flex;font-size:.82rem;font-weight:800;padding:8px 12px;text-decoration:none;width:max-content}.danger-link{background:#fff1f2!important;border-color:#fecdd3!important;color:#be123c!important;cursor:pointer}.pd-preview-list{justify-content:center;margin-top:-4px;padding:7px 10px}.pd-intro p,.pd-empty p{color:var(--color-texto-suave);margin:0}.pd-grid{display:grid;gap:18px;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);margin-top:18px}.pd-content{grid-template-columns:repeat(2,minmax(0,1fr))}.pd-card{padding:24px}.pd-card form{display:grid;gap:14px}.pd-card label{display:grid;font-size:.87rem;font-weight:700;gap:6px}.pd-card input,.pd-card select,.pd-card textarea{padding:10px 12px;width:100%}.pd-card small{color:var(--color-texto-suave);font-weight:500}.pd-section{border:1px solid var(--color-borde);border-radius:14px;display:grid;gap:12px;padding:16px}.pd-section .eyebrow{margin-bottom:0}.pd-section-map{background:linear-gradient(135deg,#fff,var(--color-fondo-alt))}.section-index{display:flex;flex-wrap:wrap;gap:8px}.section-index a{background:#fff;border:1px solid var(--color-borde);border-radius:999px;color:var(--color-primario);font-size:.78rem;font-weight:900;padding:8px 10px;text-decoration:none}.pd-advanced,.pd-compact-section{background:#fbfdff;border-style:dashed}.pd-advanced summary,.pd-compact-section summary{align-items:center;cursor:pointer;display:flex;font-weight:900;justify-content:space-between;list-style:none}.pd-advanced summary::-webkit-details-marker,.pd-compact-section summary::-webkit-details-marker{display:none}.pd-advanced summary span,.pd-compact-section summary span{color:var(--color-primario)}.pd-advanced summary strong,.pd-compact-section summary strong{background:#fff;border:1px solid var(--color-borde);border-radius:999px;color:var(--color-texto-suave);font-size:.72rem;padding:5px 9px}.pd-advanced[open],.pd-compact-section[open]{display:grid}.pd-advanced[open] summary,.pd-compact-section[open] summary{margin-bottom:4px}.pd-compact-section{padding:16px}.pd-compact-section h2{font-size:1.05rem;margin:2px 0 8px}.pd-compact-section form{margin-top:10px}.pd-nested{background:var(--color-fondo-alt);border-style:dashed}.editorial-flow{background:linear-gradient(135deg,#fff,var(--color-fondo-alt))}.editorial-flow div{background:#fff;border:1px solid var(--color-borde);border-radius:11px;display:grid;gap:3px;padding:10px 12px}.editorial-flow strong{color:var(--color-primario);font-size:.84rem}.editorial-flow span{color:var(--color-texto-suave);font-size:.82rem;line-height:1.4}.toggle-grid{display:flex;flex-wrap:wrap;gap:10px}.toggle-grid label{align-items:center;background:#fff;border:1px solid var(--color-borde);border-radius:10px;display:flex!important;gap:8px;padding:9px 11px}.toggle-grid input{width:auto}.checklist-box{background:#fffaf0}.checklist-box ul{margin:0;padding-left:18px}.checklist-box li{color:#9a3412;font-weight:700;margin:4px 0}.checklist-box .ready{color:#047857;font-weight:800;margin:0}.pd-two,.asset-grid{display:grid;gap:12px;grid-template-columns:1fr 1fr}.pd-three{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}.doko-source{background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:12px;padding:14px}.source-grid{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr));margin:10px 0}.source-grid div{background:#fff;border:1px solid var(--color-borde);border-radius:9px;padding:10px}.source-grid strong{display:block;font-size:.75rem;text-transform:uppercase;color:var(--color-texto-suave)}.source-grid span{display:block;font-size:.9rem;margin-top:4px;overflow-wrap:anywhere}.asset-field{border:1px solid var(--color-borde);border-radius:12px;padding:12px}.asset-title{display:block;font-size:.86rem;font-weight:800;margin-bottom:8px}.asset-upload{align-items:center;background:var(--color-fondo-alt);border:1px dashed var(--color-borde);border-radius:9px;cursor:pointer;display:flex!important;justify-content:center;min-height:42px;text-align:center}.asset-upload input{display:none}.asset-remove{background:#fff;border:1px solid var(--color-borde);border-radius:9px;color:#8a1f2d;cursor:pointer;font-size:.78rem;font-weight:800;margin-top:8px;padding:8px 10px;width:100%}.asset-preview{align-items:center;background:#fff;border:1px solid var(--color-borde);border-radius:10px;color:var(--color-texto-suave);display:flex;font-size:.78rem;justify-content:center;margin-top:10px;min-height:120px;overflow:hidden;text-align:center}.asset-preview img{height:100%;max-height:180px;object-fit:cover;width:100%}.logo-preview{min-height:92px}.logo-preview img{max-height:110px;object-fit:contain;padding:8px}.pd-list,.pd-simple{display:grid;gap:10px}.pd-simple span{align-items:center;background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:9px;display:flex;gap:10px;padding:10px}.pd-simple a{background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:999px;color:var(--color-primario);display:inline-flex;font-size:.82rem;font-weight:900;padding:8px 10px;text-decoration:none;width:max-content}.credential-thumb{border-radius:7px;height:46px;object-fit:cover;width:46px}.pd-list a{align-items:center;background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:10px;color:inherit;display:flex;justify-content:space-between;padding:13px;text-decoration:none}.pd-list span,.pd-list small{color:var(--color-texto-suave);display:block;font-size:.84rem}.pd-list small{margin-top:6px;text-align:right}.pd-images{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin-top:16px}.pd-images figure{background:#fff;border:1px solid var(--color-borde);border-radius:11px;margin:0;overflow:hidden;position:relative}.pd-images img{aspect-ratio:4/3;border-radius:0;display:block;object-fit:cover;width:100%}.pd-images figcaption{display:grid;gap:2px;min-height:48px;padding:8px 9px 38px}.pd-images figcaption strong{color:var(--color-primario);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase}.pd-images figcaption span{color:var(--color-texto-suave);font-size:.78rem}.pd-images button{background:rgba(255,255,255,.96);border:1px solid var(--color-borde);border-radius:999px;bottom:7px;color:#8a1f2d;cursor:pointer;font-size:.72rem;font-weight:900;left:50%;padding:6px 10px;position:absolute;transform:translateX(-50%)}.pd-credentials-admin{display:grid;gap:10px;margin-top:16px}.pd-credentials-admin article{align-items:center;background:#fff;border:1px solid var(--color-borde);border-radius:12px;display:grid;gap:12px;grid-template-columns:64px minmax(0,1fr) auto;padding:10px}.pd-credentials-admin img{border-radius:9px;height:64px;object-fit:cover;width:64px}.pd-credentials-admin small{color:var(--color-primario);font-size:.7rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase}.pd-credentials-admin strong{display:block}.pd-credentials-admin span{color:var(--color-texto-suave);display:block;font-size:.84rem;margin-top:3px}.pd-credentials-admin button{background:#fff1f2;border:1px solid #fecdd3;border-radius:999px;color:#be123c;cursor:pointer;font-size:.75rem;font-weight:900;padding:7px 10px}.pd-metrics{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(92px,1fr))}.pd-metrics div{background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:9px;padding:12px}.pd-metrics strong{color:var(--color-primario);display:block;font-size:1.35rem}.pd-metrics span{color:var(--color-texto-suave);font-size:.78rem}.pd-directory-control{background:linear-gradient(135deg,#fff,var(--color-fondo-alt));border-style:solid!important}.pd-directory-control h3{margin:0}.pd-directory-preview{display:grid;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr))}.pd-directory-preview div{background:#fff;border:1px solid var(--color-borde);border-radius:10px;padding:11px}.pd-directory-preview span{color:var(--color-texto-suave);display:block;font-size:.72rem;font-weight:900;text-transform:uppercase}.pd-directory-preview strong{color:var(--color-primario);display:block;margin-top:4px}.pd-directory-note{background:#fff;border:1px solid var(--color-borde);border-radius:10px;color:var(--color-texto-suave);font-size:.82rem;padding:10px}.optional-card{opacity:.92}.pd-step-hidden{display:none!important}.pd-stepper{background:#fff;border:1px solid var(--color-borde);border-radius:var(--radio-card);box-shadow:var(--sombra-card);margin-top:18px;padding:12px}.pd-editor-card.pd-step-hidden,.pd-sites-card.pd-step-hidden,.pd-step-content.pd-step-hidden{display:none!important}.pd-step-content{grid-template-columns:repeat(2,minmax(0,1fr))}.pd-step-content .pd-step-hidden{display:none!important}@media(max-width:860px){.pd-grid,.pd-content,.pd-step-content{grid-template-columns:1fr}.pd-three,.pd-directory-preview{grid-template-columns:1fr}}@media(max-width:560px){.pd-intro,.pd-empty,.pd-list a,.pd-title-row{align-items:flex-start;flex-direction:column}.pd-two,.asset-grid,.pd-metrics,.source-grid{grid-template-columns:1fr}.pd-list small{text-align:left}.pd-credentials-admin article{grid-template-columns:52px minmax(0,1fr)}.pd-credentials-admin img{height:52px;width:52px}.pd-credentials-admin button{grid-column:1 / -1;width:max-content}}
+</style>
+
+<style>
+.pd-editor-shell{align-items:start;display:grid;gap:18px;grid-template-columns:250px minmax(0,1fr);margin-top:18px}.pd-editor-shell-list{grid-template-columns:1fr}.pd-editor-workspace{min-width:0}.pd-editor-nav{background:#fff;border:1px solid var(--color-borde);border-radius:8px;overflow:hidden;position:sticky;top:16px}.pd-editor-nav-head{background:var(--color-fondo-alt);border-bottom:1px solid var(--color-borde);display:grid;gap:3px;padding:16px}.pd-editor-nav-head>span{color:var(--color-texto-suave);font-size:.72rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}.pd-editor-nav-head>strong{color:var(--color-primario)}.pd-editor-nav-head>small{color:var(--color-texto-suave)}.pd-editor-nav-list{display:grid;padding:8px}.pd-editor-nav-list button{align-items:center;background:transparent;border:0;border-left:4px solid transparent;border-radius:6px;color:var(--color-texto-base);cursor:pointer;display:flex;gap:8px;justify-content:space-between;padding:11px 10px;text-align:left;width:100%}.pd-editor-nav-list button:hover{background:var(--color-fondo-alt)}.pd-editor-nav-list button.active{background:var(--color-primario-suave);border-left-color:var(--color-primario);color:var(--color-primario)}.pd-editor-nav-list button span{display:grid;gap:2px}.pd-editor-nav-list button strong{font-size:.84rem}.pd-editor-nav-list button small{color:var(--color-texto-suave);font-size:.7rem;font-weight:600}.pd-editor-nav-list button em{background:#fff;border:1px solid var(--color-borde);border-radius:999px;color:var(--color-texto-suave);font-size:.62rem;font-style:normal;font-weight:900;padding:4px 6px}.pd-back-sites{border-top:1px solid var(--color-borde);color:var(--color-primario);display:block;font-size:.8rem;font-weight:900;padding:13px 16px;text-decoration:none}.pd-editor-mobile-select{display:none}.pd-editor-workspace>.pd-editor-card,.pd-editor-workspace>.pd-sites-card{margin:0;width:100%}.pd-editor-card>form{gap:22px}.pd-editor-card [data-pd-panel].pd-section{border:0;border-bottom:1px solid var(--color-borde);border-radius:0;padding:0 0 22px}.pd-editor-card [data-pd-panel].pd-section:last-of-type{border-bottom:0}.pd-editor-card .admin-sticky-actions{background:rgba(255,255,255,.97);border-top:1px solid var(--color-borde);bottom:0;margin:0 -24px -24px;padding:14px 24px;position:sticky;z-index:5}.pd-step-content{gap:16px;margin:0}.pd-step-content>[data-pd-panel="servicios"]{grid-column:1/-1}.pd-sites-card{padding:24px}.pd-sites-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.pd-site-row{border:1px solid var(--color-borde);border-radius:8px;display:grid;gap:11px;padding:16px}.pd-site-row-main{align-items:flex-start;display:flex;gap:12px;justify-content:space-between}.pd-site-row-main>div{display:grid;gap:3px}.pd-site-row-main span,.pd-site-row>p{color:var(--color-texto-suave);font-size:.82rem;margin:0}.pd-site-state{border-radius:999px;font-size:.66rem!important;font-weight:900;padding:5px 7px;text-transform:uppercase}.pd-site-state-publicado{background:#ecfdf5;color:#047857!important}.pd-site-state-borrador{background:#fff7ed;color:#9a3412!important}.pd-site-state-pausado{background:#f1f5f9;color:#475569!important}.pd-site-metrics{display:flex;flex-wrap:wrap;gap:7px}.pd-site-metrics span{background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:999px;color:var(--color-texto-suave);font-size:.72rem;font-weight:800;padding:5px 8px}.pd-site-actions{display:flex;flex-wrap:wrap;gap:8px}.pd-site-actions a,.pd-site-actions button{font-size:.76rem;padding:8px 10px;text-decoration:none}.pd-site-actions .danger-link{border-radius:7px}.pd-initial-hidden{display:none!important}
+@media(max-width:900px){.pd-editor-shell{grid-template-columns:1fr}.pd-editor-nav{position:static}.pd-editor-nav-head,.pd-editor-nav-list,.pd-back-sites{display:none}.pd-editor-mobile-select{display:grid;font-size:.78rem;font-weight:900;gap:6px;padding:13px}.pd-editor-mobile-select select{border:1px solid var(--color-borde);border-radius:7px;padding:10px;width:100%}.pd-step-content{grid-template-columns:1fr}.pd-step-content>[data-pd-panel]{grid-column:1}.pd-editor-card .admin-sticky-actions{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}}
+.pd-service-source{display:grid;gap:8px;margin:4px 0 18px}.pd-service-source article{align-items:flex-start;background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:7px;display:flex;gap:12px;justify-content:space-between;padding:11px}.pd-service-source article>div{display:grid;gap:3px}.pd-service-source article span{color:var(--color-texto-suave);font-size:.8rem}.pd-service-source article em{color:var(--color-primario);font-size:.76rem;font-style:normal;font-weight:900;white-space:nowrap}
+</style>
+
+<script>
+const doctoresDoko = {{ doctores|tojson }};
+const directorioLocalPanel = document.getElementById('pd-directorio-local');
+const seoPanel = document.getElementById('pd-seo');
+if (directorioLocalPanel && seoPanel) seoPanel.insertAdjacentElement('afterend', directorioLocalPanel);
+
+function normalizarTelefono(valor) {
+    return (valor || '').replace(/\D/g, '');
+}
+
+function doctorSeleccionado() {
+    const select = document.getElementById('correo_doctor');
+    const correo = select?.value;
+    return doctoresDoko.find((doctor) => doctor.correo_doctor === correo) || {};
+}
+
+function mostrarDato(nombre, valor) {
+    const elemento = document.querySelector(`[data-source="${nombre}"]`);
+    if (elemento) elemento.textContent = valor || 'No configurado';
+}
+
+function mostrarDatoUbicacion(nombre, valor) {
+    document.querySelectorAll(`[data-location-source="${nombre}"]`).forEach((elemento) => {
+        elemento.textContent = valor || 'No configurado';
+    });
+}
+
+function actualizarDatosDoko() {
+    const doctor = doctorSeleccionado();
+    mostrarDato('nombre_doctor', doctor.nombre_doctor);
+    mostrarDato('especialidad', doctor.especialidad);
+    mostrarDato('telefono_consultorio', doctor.telefono_consultorio);
+    mostrarDato('direccion_consultorio', doctor.direccion_consultorio);
+    mostrarDato('horarios_atencion', doctor.horarios_atencion);
+    mostrarDato('metodos_pago_aceptados', doctor.metodos_pago_aceptados);
+    mostrarDato('aseguradoras_aceptadas', doctor.aseguradoras_aceptadas);
+    mostrarDato('id_publico', doctor.id_publico ? `/p/${doctor.id_publico}` : '');
+    mostrarDatoUbicacion('direccion_consultorio', doctor.direccion_consultorio);
+    mostrarDatoUbicacion('telefono_consultorio', doctor.telefono_consultorio);
+    mostrarDatoUbicacion('maps_url', doctor.maps_url);
+    mostrarDatoUbicacion('horarios_atencion', doctor.horarios_atencion);
+
+    const whatsapp = document.getElementById('whatsapp_numero');
+    if (whatsapp && !whatsapp.value && doctor.telefono_consultorio) {
+        const limpio = normalizarTelefono(doctor.telefono_consultorio);
+        whatsapp.placeholder = limpio ? `Sugerido: 52${limpio}` : 'Se puede usar el telefono del consultorio';
+    }
+
+    const logoHidden = document.getElementById('logo_url');
+    const logoPreview = document.getElementById('logo_preview');
+    if (logoHidden && !logoHidden.value && logoPreview && doctor.foto_perfil_url) {
+        logoPreview.innerHTML = `<img src="${doctor.foto_perfil_url}" alt="Foto del doctor">`;
+    }
+}
+
+async function uploadAsset(inputId, hiddenId, previewId, tipo) {
+    const input = document.getElementById(inputId);
+    if (!input || !input.files || !input.files[0]) return;
+    const status = document.getElementById('sitio-status');
+    const formData = new FormData();
+    formData.append('file', input.files[0]);
+    formData.append('tipo', tipo);
+    if (status) status.textContent = 'Subiendo imagen...';
+    const response = await fetch('/admin/presencia-digital/asset', {method: 'POST', body: formData});
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+        throw new Error(response.redirected ? 'Tu sesión expiró. Vuelve a iniciar sesión.' : 'El servidor no devolvió una respuesta válida.');
+    }
+    const data = await response.json();
+    if (!data.ok) throw new Error(data.error || 'No se pudo subir la imagen.');
+    document.getElementById(hiddenId).value = data.url;
+    document.getElementById(previewId).innerHTML = `<img src="${data.url}" alt="${tipo}">`;
+    if (status) status.textContent = 'Imagen lista. Guarda el sitio para conservar el cambio.';
+}
+
+async function asegurarAssetsAntesDeGuardar() {
+    const portadaInput = document.getElementById('portada_file');
+    const logoInput = document.getElementById('logo_file');
+    if (portadaInput?.files?.[0]) {
+        await uploadAsset('portada_file', 'portada_url', 'portada_preview', 'SUBPORTADA');
+        portadaInput.value = '';
+    }
+    if (logoInput?.files?.[0]) {
+        await uploadAsset('logo_file', 'logo_url', 'logo_preview', 'LOGO');
+        logoInput.value = '';
+    }
+}
+
+document.getElementById('correo_doctor')?.addEventListener('change', actualizarDatosDoko);
+document.getElementById('portada_file')?.addEventListener('change', () => uploadAsset('portada_file', 'portada_url', 'portada_preview', 'SUBPORTADA').catch((error) => {
+    const status = document.getElementById('sitio-status');
+    if (status) status.textContent = error.message;
+}));
+document.getElementById('logo_file')?.addEventListener('change', () => uploadAsset('logo_file', 'logo_url', 'logo_preview', 'LOGO').catch((error) => {
+    const status = document.getElementById('sitio-status');
+    if (status) status.textContent = error.message;
+}));
+
+document.querySelectorAll('[data-clear-asset]').forEach((button) => {
+    button.addEventListener('click', () => {
+        const hidden = document.getElementById(button.dataset.clearAsset);
+        const preview = document.getElementById(button.dataset.preview);
+        if (hidden) hidden.value = '';
+        if (preview) preview.innerHTML = `<span>${button.dataset.empty || 'Sin imagen'}</span>`;
+        const status = document.getElementById('sitio-status');
+        if (status) status.textContent = 'Imagen quitada. Guarda el sitio para conservar el cambio.';
+    });
+});
+
+document.querySelectorAll('[data-delete-media]').forEach((button) => {
+    button.addEventListener('click', async () => {
+        const status = document.getElementById('sitio-status');
+        if (!window.confirm('¿Quitar esta foto de la página?')) return;
+        try {
+            const response = await fetch(`/admin/presencia-digital/media/${button.dataset.deleteMedia}/quitar`, {method: 'POST'});
+            const data = await response.json();
+            if (!data.ok) throw new Error(data.error || 'No se pudo quitar la foto.');
+            button.closest('figure')?.remove();
+            if (status) status.textContent = 'Foto quitada de la página.';
+        } catch (error) {
+            if (status) status.textContent = error.message;
+        }
+    });
+});
+
+document.querySelectorAll('[data-delete-credential]').forEach((button) => {
+    button.addEventListener('click', async () => {
+        const status = document.getElementById('sitio-status');
+        if (!window.confirm('¿Quitar esta credencial de la página?')) return;
+        try {
+            const response = await fetch(`/admin/presencia-digital/credencial/${button.dataset.deleteCredential}/quitar`, {method: 'POST'});
+            const data = await response.json();
+            if (!data.ok) throw new Error(data.error || 'No se pudo quitar la credencial.');
+            button.closest('article')?.remove();
+            if (status) status.textContent = 'Credencial quitada de la página.';
+        } catch (error) {
+            if (status) status.textContent = error.message;
+        }
+    });
+});
+
+document.querySelectorAll('[data-delete-educacion]').forEach((button) => {
+    button.addEventListener('click', async () => {
+        const status = document.getElementById('sitio-status');
+        if (!window.confirm('¿Quitar este tema educativo?')) return;
+        try {
+            const response = await fetch(`/admin/presencia-digital/educacion/${button.dataset.deleteEducacion}/quitar`, {method: 'POST'});
+            const data = await response.json();
+            if (!data.ok) throw new Error(data.error || 'No se pudo quitar el tema.');
+            button.closest('span')?.remove();
+            if (status) status.textContent = 'Tema educativo quitado.';
+        } catch (error) {
+            if (status) status.textContent = error.message;
+        }
+    });
+});
+
+function wire(id, url, file) {
+    const form = document.getElementById(id);
+    if (!form) return;
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const status = document.getElementById('sitio-status');
+        try {
+            if (id === 'sitio-form') await asegurarAssetsAntesDeGuardar();
+            const response = await fetch(url, {method: 'POST', body: file ? new FormData(form) : new URLSearchParams(new FormData(form))});
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                throw new Error(response.redirected ? 'Tu sesión expiró. Vuelve a iniciar sesión.' : 'El servidor no devolvió una respuesta válida.');
+            }
+            const data = await response.json();
+            if (!data.ok) throw Error(data.error || 'No se pudo guardar.');
+            if (status) status.textContent = data.count ? `${data.count} foto(s) guardadas.` : 'Guardado correctamente.';
+            if (data.id_sitio) window.location.href = `/admin/presencia-digital?sitio=${data.id_sitio}`;
+            else window.location.reload();
+        } catch (error) {
+            if (status) status.textContent = error.message;
+            else if (window.dokoNotificar) window.dokoNotificar(error.message, 'error');
+        }
+    });
+}
+wire('sitio-form', '/admin/presencia-digital/sitio');
+wire('media-form', '/admin/presencia-digital/media', true);
+wire('credencial-form', '/admin/presencia-digital/credencial', true);
+wire('red-form', '/admin/presencia-digital/red');
+wire('educacion-form', '/admin/presencia-digital/educacion');
+document.querySelectorAll('[data-delete-draft]').forEach((button) => {
+    button.addEventListener('click', async () => {
+        if (!confirm('¿Eliminar este borrador? Esta acción no afecta sitios publicados.')) return;
+        try {
+            const response = await fetch(`/admin/presencia-digital/${button.dataset.deleteDraft}/eliminar-borrador`, {method: 'POST'});
+            const data = await response.json();
+            if (!data.ok) throw Error(data.error || 'No se pudo eliminar.');
+            window.location.href = '/admin/presencia-digital';
+        } catch (error) {
+            if (window.dokoNotificar) window.dokoNotificar(error.message, 'error');
+            else alert(error.message);
+        }
+    });
+});
+
+function cambiarSeccionPresencia(section) {
+    const allowedSections = ['sitios', 'publicacion', 'perfil', 'servicios', 'fotos', 'ubicacion', 'legal', 'metricas'];
+    const targetSection = allowedSections.includes(section) ? section : 'sitios';
+    const editorCard = document.querySelector('.pd-editor-card');
+    const sitesCard = document.querySelector('.pd-sites-card');
+    const contentGrid = document.querySelector('.pd-step-content');
+    const editorSections = ['publicacion', 'perfil', 'ubicacion', 'legal'];
+    const contentSections = ['servicios', 'fotos', 'metricas'];
+
+    document.querySelectorAll('.pd-initial-hidden').forEach((element) => element.classList.remove('pd-initial-hidden'));
+
+    if (editorCard) editorCard.classList.toggle('pd-step-hidden', !editorSections.includes(targetSection));
+    if (sitesCard) sitesCard.classList.toggle('pd-step-hidden', targetSection !== 'sitios');
+    if (contentGrid) contentGrid.classList.toggle('pd-step-hidden', !contentSections.includes(targetSection));
+
+    document.querySelectorAll('[data-pd-panel]').forEach((panel) => {
+        panel.classList.toggle('pd-step-hidden', panel.dataset.pdPanel !== targetSection);
+    });
+
+    document.querySelectorAll('[data-pd-section]').forEach((button) => {
+        button.classList.toggle('active', button.dataset.pdSection === targetSection);
+    });
+    const select = document.getElementById('pd-section-select');
+    if (select && select.value !== targetSection) select.value = targetSection;
+}
+
+document.querySelectorAll('[data-pd-section]').forEach((button) => {
+    button.addEventListener('click', () => cambiarSeccionPresencia(button.dataset.pdSection));
+});
+document.getElementById('pd-section-select')?.addEventListener('change', (event) => {
+    cambiarSeccionPresencia(event.target.value);
+});
+
+const seccionInicialPresencia = {{ "'publicacion'" if editando_sitio else "'sitios'" }};
+cambiarSeccionPresencia(seccionInicialPresencia);
+actualizarDatosDoko();
+</script>
+{% endblock %}

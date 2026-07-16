@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Doko | Movimientos{% endblock %}
+{% block page_title %}Movimientos de inventario{% endblock %}
+{% block contenido %}
+<div class="panel-card" style="padding:22px;overflow-x:auto;">
+    <p class="eyebrow">Trazabilidad</p>
+    <h2 style="margin:4px 0 16px;">Entradas, salidas y ajustes</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:0.92rem;">
+        <thead>
+            <tr>
+                <th style="padding:12px;text-align:left;">Tipo</th>
+                <th style="padding:12px;text-align:left;">Producto</th>
+                <th style="padding:12px;text-align:left;">Lote</th>
+                <th style="padding:12px;text-align:left;">Cantidad</th>
+                <th style="padding:12px;text-align:left;">Referencia</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for m in movimientos %}
+            <tr>
+                <td style="padding:12px;"><span class="status-pill">{{ m.tipo_movimiento }}</span></td>
+                <td style="padding:12px;">{{ m.nombre_comercial or '—' }}</td>
+                <td style="padding:12px;font-family:var(--fuente-codigo);">{{ m.lote_proveedor or '—' }}</td>
+                <td style="padding:12px;font-weight:800;">{{ m.cantidad }}</td>
+                <td style="padding:12px;">{{ m.referencia_doc or '—' }}</td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5" style="padding:24px;text-align:center;color:var(--color-texto-suave);">Sin movimientos registrados.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

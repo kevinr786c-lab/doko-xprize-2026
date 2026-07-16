@@ -1,0 +1,45 @@
+name: Validate Doko
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Compile Python
+        run: python -m compileall app_elite.py routes helpers agentes
+
+      - name: Import app and compile Jinja templates
+        env:
+          APP_IMPORT_OK: "1"
+        run: |
+          python - <<'PY'
+          from app_elite import app
+
+          templates = app.jinja_env.list_templates()
+          for template in templates:
+              app.jinja_env.get_template(template)
+
+          print(f"APP_IMPORT_OK; JINJA_ALL_OK={len(templates)}")
+          print(f"ROUTES_OK={len(list(app.url_map.iter_rules()))}")
+          PY

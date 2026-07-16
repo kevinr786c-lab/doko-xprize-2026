@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1>FAQ Chatbot</h1>
+<div class="card" style="background:white;padding:20px;border-radius:12px;margin-top:20px;">
+    {% for faq in faqs %}
+    <div style="border-bottom:1px solid var(--color-borde);padding:12px 0;">
+        <strong>{{ faq.palabras_clave }}</strong>
+        <p style="margin:8px 0 0;color:var(--color-texto-medio);">{{ faq.respuesta }}</p>
+    </div>
+    {% else %}
+    <p style="color:var(--color-texto-suave);">Sin FAQs globales</p>
+    {% endfor %}
+</div>
+{% endblock %}

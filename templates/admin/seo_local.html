@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Doko | Especialidades y SEO local{% endblock %}
+{% block page_title %}Especialidades y SEO local{% endblock %}
+{% block head %}
+<style>
+    .seo-local-page{display:grid;gap:18px}.seo-local-header{align-items:flex-start;display:flex;gap:16px;justify-content:space-between}.seo-local-header h2{margin:4px 0 6px}.seo-local-header p{color:#5d6b7e;line-height:1.55;margin:0;max-width:720px}.seo-local-grid{display:grid;gap:18px;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr)}.seo-local-list{display:grid;gap:10px}.seo-route{align-items:center;background:#fff;border:1px solid #dbe4ef;border-radius:10px;display:grid;gap:12px;grid-template-columns:minmax(0,1fr) auto;padding:14px}.seo-route h3{font-size:1rem;margin:0}.seo-route p{color:#5d6b7e;font-size:.84rem;margin:5px 0 0}.seo-route-actions{align-items:center;display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}.seo-status{border-radius:999px;font-size:.72rem;font-weight:800;padding:5px 8px}.seo-status.publicado{background:#ecfdf5;color:#047857}.seo-status.borrador{background:#eef3f9;color:#163661}.seo-status.pausado{background:#fff7ed;color:#9a3412}.seo-count{color:#163661;font-size:.76rem;font-weight:800}.seo-link{border:1px solid #d5dfeb;border-radius:8px;color:#163661;font-size:.78rem;font-weight:800;padding:7px 9px;text-decoration:none}.seo-editor{background:#fff;border:1px solid #d5dfeb;border-radius:12px;padding:18px}.seo-editor h3{margin:0 0 4px}.seo-editor>p{color:#5d6b7e;font-size:.86rem;line-height:1.5;margin:0 0 16px}.seo-form{display:grid;gap:12px}.seo-form label{color:#26364c;display:grid;font-size:.84rem;font-weight:700;gap:6px}.seo-form input,.seo-form select,.seo-form textarea{background:#fff;border:1px solid #cfd9e6;border-radius:9px;font:inherit;padding:10px 11px;width:100%}.seo-form textarea{line-height:1.45;resize:vertical}.seo-form-row{display:grid;gap:10px;grid-template-columns:1fr 1fr}.seo-form-actions{align-items:center;display:flex;gap:10px;justify-content:flex-end;margin-top:4px}.seo-save{background:#163661;border:0;border-radius:9px;color:#fff;cursor:pointer;font:inherit;font-weight:800;min-height:42px;padding:10px 15px}.seo-save:disabled{cursor:wait;opacity:.65}.seo-message{font-size:.82rem;font-weight:700;min-height:18px}.seo-message.error{color:#b91c1c}.seo-system-routes{display:flex;flex-wrap:wrap;gap:8px}.seo-system-routes a{background:#f7f9fc;border:1px solid #dbe4ef;border-radius:999px;color:#163661;font-size:.76rem;font-weight:800;padding:7px 10px;text-decoration:none}.seo-migration{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;color:#9a3412;padding:14px}.seo-empty{background:#f8fbff;border:1px dashed #cbd7e6;border-radius:10px;color:#5d6b7e;padding:18px;text-align:center}@media(max-width:900px){.seo-local-grid{grid-template-columns:1fr}.seo-local-header{display:grid}.seo-form-row{grid-template-columns:1fr}.seo-route{grid-template-columns:1fr}.seo-route-actions{justify-content:flex-start}.seo-editor{padding:14px}}
+</style>
+{% endblock %}
+{% block contenido %}
+<div class="seo-local-page">
+    <header class="seo-local-header">
+        <div>
+            <p class="eyebrow">doko.lat</p>
+            <h2>Especialidades y SEO local</h2>
+            <p>Crea páginas locales con médicos reales. Las páginas publicadas aparecen en el sitemap y reutilizan el directorio actual de Doko.</p>
+        </div>
+        <a class="btn-secondary" href="/admin/presencia-digital">Administrar páginas médicas</a>
+    </header>
+
+    {% if not tabla_disponible %}
+    <div class="seo-migration"><strong>Migración pendiente.</strong> Aplica <code>20260712_seo_local_rutas.sql</code> antes de crear especialidades.</div>
+    {% else %}
+    <div class="seo-local-grid">
+        <section class="seo-local-list" aria-label="Páginas SEO locales">
+            {% if rutas %}
+                {% for ruta in rutas %}
+                <article class="seo-route">
+                    <div>
+                        <h3>{{ ruta.titulo }}</h3>
+                        <p>/{{ ruta.slug }} · {{ ruta.especialidad }} · {{ ruta.ciudad }}</p>
+                    </div>
+                    <div class="seo-route-actions">
+                        <span class="seo-count">{{ ruta.medicos_coincidentes }} médico{{ '' if ruta.medicos_coincidentes == 1 else 's' }}</span>
+                        <span class="seo-status {{ ruta.estado|lower }}">{{ ruta.estado|capitalize }}</span>
+                        <a class="seo-link" href="/admin/presencia-digital/seo-local?editar={{ ruta.id_ruta }}">Editar</a>
+                        <a class="seo-link" href="/admin/presencia-digital/seo-local/{{ ruta.id_ruta }}/preview" target="_blank" rel="noopener">Vista previa</a>
+                        {% if ruta.estado == 'PUBLICADO' and ruta.medicos_coincidentes %}<a class="seo-link" href="/{{ ruta.slug }}" target="_blank" rel="noopener">Abrir ↗</a>{% endif %}
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+                <div class="seo-empty">Todavía no hay especialidades administrables. Crea la primera cuando exista un médico real en el directorio.</div>
+            {% endif %}
+
+            <section class="panel-card">
+                <p class="eyebrow">Rutas protegidas</p>
+                <h3>Páginas actuales de Doko</h3>
+                <p>Se mantienen fijas para no afectar su indexación.</p>
+                <div class="seo-system-routes">
+                    {% for ruta in rutas_fijas %}<a href="/{{ ruta.slug }}" target="_blank" rel="noopener">{{ ruta.titulo }} ↗</a>{% endfor %}
+                </div>
+            </section>
+        </section>
+
+        <aside class="seo-editor">
+            <h3>{{ 'Editar especialidad' if ruta_actual else 'Nueva especialidad' }}</h3>
+            <p>Guárdala como borrador mientras preparas el perfil médico. Doko bloqueará la publicación si no encuentra médicos coincidentes.</p>
+            <form class="seo-form" id="seo-local-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="id_ruta" value="{{ ruta_actual.id_ruta if ruta_actual else '' }}">
+                <div class="seo-form-row">
+                    <label>Especialidad o categoría
+                        <input name="especialidad" id="seo-especialidad" required value="{{ ruta_actual.especialidad if ruta_actual else '' }}" placeholder="Cardiología">
+                    </label>
+                    <label>Ciudad
+                        <input name="ciudad" value="Tijuana" readonly>
+                    </label>
+                </div>
+                <label>Ruta pública
+                    <input name="slug" id="seo-slug" required value="{{ ruta_actual.slug if ruta_actual else '' }}" placeholder="cardiologia-tijuana">
+                    <small>Solo letras, números y guiones. No se recomienda cambiarla después de publicar.</small>
+                </label>
+                <label>Título
+                    <input name="titulo" required maxlength="140" value="{{ ruta_actual.titulo if ruta_actual else '' }}" placeholder="Cardiólogos en Tijuana">
+                </label>
+                <label>Subtítulo
+                    <input name="subtitulo" required maxlength="220" value="{{ ruta_actual.subtitulo if ruta_actual else '' }}" placeholder="Especialistas con información clara y agenda desde Doko">
+                </label>
+                <label>Descripción para pacientes y Google
+                    <textarea name="descripcion" required maxlength="500" rows="4" placeholder="Encuentra cardiólogos en Tijuana...">{{ ruta_actual.descripcion if ruta_actual else '' }}</textarea>
+                </label>
+                <label>Términos relacionados
+                    <input name="terminos_busqueda" value="{{ ruta_actual.terminos|join(', ') if ruta_actual else '' }}" placeholder="cardiólogo, cardiología, electrocardiograma">
+                    <small>Usa términos reales separados por coma. Doko también incluirá la especialidad principal.</small>
+                </label>
+                <div class="seo-form-row">
+                    <label>Estado
+                        <select name="estado">
+                            {% set estado = ruta_actual.estado if ruta_actual else 'BORRADOR' %}
+                            <option value="BORRADOR" {{ 'selected' if estado == 'BORRADOR' else '' }}>Borrador</option>
+                            <option value="PUBLICADO" {{ 'selected' if estado == 'PUBLICADO' else '' }}>Publicado</option>
+                            <option value="PAUSADO" {{ 'selected' if estado == 'PAUSADO' else '' }}>Pausado</option>
+                        </select>
+                    </label>
+                    <label>Orden
+                        <input type="number" name="orden" min="0" value="{{ ruta_actual.orden if ruta_actual else 999 }}">
+                    </label>
+                </div>
+                <div class="seo-message" id="seo-local-message" aria-live="polite"></div>
+                <div class="seo-form-actions">
+                    {% if ruta_actual %}<a class="seo-link" href="/admin/presencia-digital/seo-local">Cancelar edición</a>{% endif %}
+                    <button class="seo-save" type="submit">Guardar especialidad</button>
+                </div>
+            </form>
+        </aside>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+{% if tabla_disponible %}
+<script>
+(() => {
+    const form = document.getElementById('seo-local-form');
+    const specialty = document.getElementById('seo-especialidad');
+    const slug = document.getElementById('seo-slug');
+    const message = document.getElementById('seo-local-message');
+    const save = form?.querySelector('.seo-save');
+    let slugEdited = Boolean(slug?.value);
+    const slugify = value => (value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    slug?.addEventListener('input', () => { slugEdited = true; });
+    specialty?.addEventListener('input', () => {
+        if (!slugEdited && slug) slug.value = `${slugify(specialty.value)}-tijuana`;
+    });
+    form?.addEventListener('submit', async event => {
+        event.preventDefault();
+        message.textContent = '';
+        message.classList.remove('error');
+        save.disabled = true;
+        try {
+            const response = await fetch('/admin/presencia-digital/seo-local/guardar', {
+                method: 'POST',
+                headers: {'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''},
+                body: new FormData(form)
+            });
+            const data = await response.json();
+            if (!response.ok || !data.ok) throw new Error(data.error || 'No se pudo guardar la especialidad.');
+            window.location.href = '/admin/presencia-digital/seo-local';
+        } catch (error) {
+            message.textContent = error.message;
+            message.classList.add('error');
+            save.disabled = false;
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

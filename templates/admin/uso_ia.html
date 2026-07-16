@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Doko | Uso de IA{% endblock %}
+{% block page_title %}Uso de IA{% endblock %}
+{% block contenido %}
+<header class="admin-page-header">
+    <div>
+        <p class="admin-page-kicker">Sistema</p>
+        <h2>Asistente Doko</h2>
+        <p>Consumo agregado del panel. No se guardan preguntas, respuestas, citas ni datos de pacientes.</p>
+    </div>
+</header>
+
+{% if migracion_pendiente %}
+<section class="admin-work-card">
+    <h3>Telemetr&iacute;a pendiente</h3>
+    <p>Aplica la migraci&oacute;n <code>20260714_ia_asistente_uso.sql</code> para activar cuotas y m&eacute;tricas.</p>
+</section>
+{% else %}
+<section class="ai-usage-summary" aria-label="Resumen de uso de IA">
+    <article class="ai-metric-card">
+        <span class="ai-metric-label">Preguntas procesadas hoy</span>
+        <div class="ai-metric-value"><strong>{{ resumen.preguntas_hoy or 0 }}</strong></div>
+        <small>Consultas al asistente</small>
+    </article>
+    <article class="ai-metric-card ai-metric-card--rules">
+        <span class="ai-metric-label">Resueltas sin IA</span>
+        <div class="ai-metric-value"><strong>{{ resumen.reglas_hoy or 0 }}</strong></div>
+        <small>Respondidas por reglas locales</small>
+    </article>
+    <article class="ai-metric-card ai-metric-card--gemini">
+        <span class="ai-metric-label">Consultas a Gemini</span>
+        <div class="ai-metric-value"><strong>{{ resumen.gemini_hoy or 0 }}</strong></div>
+        <small>Solo para clasificar intenci&oacute;n</small>
+    </article>
+    <article class="ai-metric-card ai-metric-card--quota">
+        <span class="ai-metric-label">Cuota global disponible</span>
+        <div class="ai-metric-value">
+            <strong>{{ resumen.cuota_global_restante or 0 }}</strong>
+            <small>de {{ limite_global }}</small>
+        </div>
+        <progress value="{{ resumen.cuota_global_restante or 0 }}" max="{{ limite_global }}" aria-label="Cuota global restante"></progress>
+    </article>
+    <article class="ai-metric-card">
+        <span class="ai-metric-label">Tokens de entrada</span>
+        <div class="ai-metric-value"><strong>{{ resumen.tokens_entrada_hoy or 0 }}</strong></div>
+        <small>Consumidos hoy</small>
+    </article>
+    <article class="ai-metric-card">
+        <span class="ai-metric-label">Tokens de salida</span>
+        <div class="ai-metric-value"><strong>{{ resumen.tokens_salida_hoy or 0 }}</strong></div>
+        <small>Generados hoy</small>
+    </article>
+    <article class="ai-metric-card ai-metric-card--cost">
+        <span class="ai-metric-label">Costo estimado hoy</span>
+        <div class="ai-metric-value"><strong>${{ '%.4f'|format(resumen.costo_hoy or 0) }}</strong><small>USD</small></div>
+        <small>Estimaci&oacute;n por uso registrado</small>
+    </article>
+    <article class="ai-metric-card ai-metric-card--cost">
+        <span class="ai-metric-label">Costo estimado 30 d&iacute;as</span>
+        <div class="ai-metric-value"><strong>${{ '%.4f'|format(resumen.costo_30d or 0) }}</strong><small>USD</small></div>
+        <small>Acumulado estimado</small>
+    </article>
+</section>
+
+<section class="admin-page-toolbar">
+    <div>
+        <h3>Uso por consultorio</h3>
+        <p>Solo las clasificaciones que realmente llaman a Gemini consumen la cuota diaria de {{ limite_consultorio }}.</p>
+    </div>
+</section>
+
+<section class="admin-data-card">
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Consultorio</th>
+                    <th>Preguntas</th>
+                    <th>Reglas</th>
+                    <th>Gemini</th>
+                    <th>Restante</th>
+                    <th>Tokens</th>
+                    <th>Costo 30 d&iacute;as</th>
+                    <th>&Uacute;ltima actividad</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for fila in consultorios %}
+                <tr>
+                    <td><strong>{{ fila.nombre_doctor }}</strong></td>
+                    <td>{{ fila.preguntas_hoy or 0 }}</td>
+                    <td>{{ fila.reglas_hoy or 0 }}</td>
+                    <td>{{ fila.gemini_hoy or 0 }}</td>
+                    <td>{{ fila.cuota_restante }}</td>
+                    <td>{{ fila.tokens_hoy or 0 }}</td>
+                    <td>${{ '%.4f'|format(fila.costo_30d or 0) }} USD</td>
+                    <td>{{ fila.ultima_actividad or 'Sin uso' }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="8">No hay consultorios activos.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="admin-summary-grid">
+    <article class="admin-work-card">
+        <h3>Errores hoy</h3>
+        <p>{{ resumen.errores_hoy or 0 }} llamada(s) no completada(s). Las reglas locales continuaron disponibles.</p>
+    </article>
+    <article class="admin-work-card">
+        <h3>Solicitudes limitadas</h3>
+        <p>{{ resumen.limitadas_hoy or 0 }} intento(s) detenido(s) por cuota, concurrencia o espera breve.</p>
+    </article>
+</section>
+
+<header class="admin-page-header ai-evaluation-heading">
+    <div>
+        <p class="admin-page-kicker">Implementaci&oacute;n operativa</p>
+        <h2>Revisi&oacute;n de protocolos</h2>
+        <p>Consumo separado de las revisiones solicitadas manualmente desde M&eacute;dicos. No se guardan preguntas ni respuestas en esta telemetr&iacute;a.</p>
+    </div>
+    <a class="btn-secundario" href="/admin/doctores/implementacion">Abrir implementaci&oacute;n</a>
+</header>
+
+{% if evaluacion_disponible %}
+<section class="ai-usage-summary" aria-label="Uso de IA en implementaci&oacute;n operativa">
+    <article class="ai-metric-card ai-metric-card--gemini">
+        <span class="ai-metric-label">An&aacute;lisis hoy</span>
+        <div class="ai-metric-value"><strong>{{ evaluacion_resumen.analisis_hoy or 0 }}</strong></div>
+        <small>Solicitados manualmente</small>
+    </article>
+    <article class="ai-metric-card ai-metric-card--rules">
+        <span class="ai-metric-label">Completados</span>
+        <div class="ai-metric-value"><strong>{{ evaluacion_resumen.resueltos_hoy or 0 }}</strong></div>
+        <small>Con respuesta estructurada</small>
+    </article>
+    <article class="ai-metric-card ai-metric-card--quota">
+        <span class="ai-metric-label">Cuota global disponible</span>
+        <div class="ai-metric-value"><strong>{{ evaluacion_resumen.cuota_global_restante or 0 }}</strong><small>de {{ limite_evaluacion_global }}</small></div>
+        <progress value="{{ evaluacion_resumen.cuota_global_restante or 0 }}" max="{{ limite_evaluacion_global }}" aria-label="Cuota de implementaci&oacute;n restante"></progress>
+    </article>
+    <article class="ai-metric-card">
+        <span class="ai-metric-label">Tokens hoy</span>
+        <div class="ai-metric-value"><strong>{{ evaluacion_resumen.tokens_hoy or 0 }}</strong></div>
+        <small>Entrada, salida y razonamiento</small>
+    </article>
+    <article class="ai-metric-card ai-metric-card--cost">
+        <span class="ai-metric-label">Costo estimado 30 d&iacute;as</span>
+        <div class="ai-metric-value"><strong>${{ '%.4f'|format(evaluacion_resumen.costo_30d or 0) }}</strong><small>USD</small></div>
+        <small>Solo este m&oacute;dulo</small>
+    </article>
+    <article class="ai-metric-card">
+        <span class="ai-metric-label">Errores / limitados</span>
+        <div class="ai-metric-value"><strong>{{ evaluacion_resumen.errores_hoy or 0 }} / {{ evaluacion_resumen.limitados_hoy or 0 }}</strong></div>
+        <small>El editor sigue disponible</small>
+    </article>
+</section>
+
+<section class="admin-data-card">
+    <div class="table-responsive">
+        <table>
+            <thead><tr><th>Consultorio</th><th>An&aacute;lisis hoy</th><th>Restante</th><th>Tokens</th><th>Costo 30 d&iacute;as</th><th>&Uacute;ltima actividad</th></tr></thead>
+            <tbody>
+            {% for fila in evaluacion_consultorios %}
+                <tr>
+                    <td><strong>{{ fila.nombre_doctor }}</strong></td>
+                    <td>{{ fila.analisis_hoy or 0 }}</td>
+                    <td>{{ fila.cuota_restante }} de {{ limite_evaluacion_consultorio }}</td>
+                    <td>{{ fila.tokens_hoy or 0 }}</td>
+                    <td>${{ '%.4f'|format(fila.costo_30d or 0) }} USD</td>
+                    <td>{{ fila.ultima_actividad or 'Sin uso' }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6">No hay consultorios activos.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% else %}
+<section class="admin-work-card">
+    <h3>Telemetr&iacute;a de implementaci&oacute;n pendiente</h3>
+    <p>Aplica la migraci&oacute;n <code>20260715_implementacion_operativa.sql</code>.</p>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

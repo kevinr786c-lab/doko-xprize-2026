@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Doko | {{ titulo }}{% endblock %}
+{% block page_title %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<section class="admin-page-toolbar agent-page-toolbar">
+    <div>
+        <p class="admin-page-kicker">{{ area }}</p>
+        <h2>{{ titulo }}</h2>
+        <p>{{ descripcion }}</p>
+    </div>
+    <button class="btn-primario" id="agent-run" type="button">{{ action_label }}</button>
+</section>
+
+<section class="admin-summary-grid">
+    <article class="admin-work-card agent-signal-card">
+        <span>Modo</span>
+        <strong>Manual</strong>
+        <p>Solo lee datos y propone acciones.</p>
+    </article>
+    <article class="admin-work-card agent-signal-card">
+        <span>Historial</span>
+        <strong>{{ historial|length }}</strong>
+        <p>Lecturas guardadas.</p>
+    </article>
+    <article class="admin-work-card agent-signal-card">
+        <span>Control humano</span>
+        <strong>Activo</strong>
+        <p>No compra, no env&iacute;a y no mueve dinero.</p>
+    </article>
+</section>
+
+<section class="admin-data-card agent-result" id="agent-result" aria-live="polite">
+    <p class="admin-page-kicker">Lectura actual</p>
+    <h3>Listo para revisar</h3>
+    <p>La ejecuci&oacute;n es manual y no realiza acciones sin su aprobaci&oacute;n.</p>
+</section>
+
+<section class="admin-data-card agent-history">
+    <div class="agent-section-head">
+        <div>
+            <p class="admin-page-kicker">Historial</p>
+            <h2>&Uacute;ltimas lecturas guardadas</h2>
+        </div>
+        <span class="status-pill">{{ historial|length }}</span>
+    </div>
+    {% if historial %}
+    <div class="agent-history-list">
+        {% for item in historial %}
+        <article>
+            <div class="agent-history-title">
+                <strong>Lectura {{ loop.index }}</strong>
+                {% if item.fecha_deteccion %}<span>{{ item.fecha_deteccion }}</span>{% endif %}
+                {% if item.fecha_generacion %}<span>{{ item.fecha_generacion }}</span>{% endif %}
+                {% if item.fecha_analisis %}<span>{{ item.fecha_analisis }}</span>{% endif %}
+            </div>
+            <dl>
+                {% for key, value in item.items() if key not in ['contexto_sql', 'propuesta_json', 'detalles_json'] and value is not none %}
+                <div><dt>{{ key|replace('_', ' ')|title }}</dt><dd>{{ value }}</dd></div>
+                {% endfor %}
+            </dl>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="admin-empty-state"><strong>Sin lecturas guardadas</strong><span>La primera lectura aparecer&aacute; aqu&iacute; cuando encuentre informaci&oacute;n &uacute;til.</span></div>
+    {% endif %}
+</section>
+
+<script>
+document.getElementById('agent-run').addEventListener('click', async function () {
+    const button = this;
+    const box = document.getElementById('agent-result');
+    button.disabled = true;
+    button.textContent = 'Analizando...';
+    box.innerHTML = '<p class="admin-page-kicker">Lectura actual</p><h3>Procesando informaci&oacute;n</h3><p>Esto no ejecuta compras, env&iacute;os ni movimientos de dinero.</p>';
+    try {
+        const response = await fetch({{ action_url|tojson }}, {method: 'POST'});
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) throw new Error('El servidor no devolvi&oacute; una respuesta v&aacute;lida.');
+        const envelope = await response.json();
+        const result = envelope.resultado || envelope;
+        if (!response.ok || !envelope.ok || result.ok === false) throw new Error(result.error || envelope.error || 'No se pudo completar la lectura.');
+        const count = Number(result[{{ result_key|tojson }}] || 0);
+        if (!count) {
+            box.innerHTML = '<p class="admin-page-kicker">Lectura actual</p><h3>Sin pendientes</h3><p>{{ empty_message|e }}</p>';
+        } else {
+            const detail = result.propuesta || result.reporte || result.mensaje || '';
+            box.innerHTML = '<p class="admin-page-kicker">Lectura actual</p><h3>' + count + ' resultado(s)</h3><p></p>';
+            box.querySelector('p:last-child').textContent = detail || 'Hay informaci&oacute;n disponible para revisi&oacute;n humana.';
+        }
+    } catch (error) {
+        box.innerHTML = '<p class="admin-page-kicker">No se complet&oacute;</p><h3>Error de lectura</h3><p></p>';
+        box.querySelector('p:last-child').textContent = error.message;
+    } finally {
+        button.disabled = false;
+        button.textContent = {{ action_label|tojson }};
+    }
+});
+</script>
+
+<style>
+.agent-page-toolbar{align-items:center}.agent-page-toolbar p{max-width:780px}.agent-signal-card{display:grid;gap:5px}.agent-signal-card span{color:var(--color-texto-suave);font-size:.82rem}.agent-signal-card strong{font-family:var(--fuente-titulo);font-size:1.25rem}.agent-signal-card p{color:var(--color-texto-suave);font-size:.88rem;margin:0}.agent-result{margin-bottom:16px;padding:22px}.agent-result h3{font-size:1.35rem;margin:5px 0}.agent-result p:last-child{color:var(--color-texto-suave);line-height:1.5}.agent-history{padding:0}.agent-section-head{align-items:center;border-bottom:1px solid var(--color-borde);display:flex;gap:12px;justify-content:space-between;padding:18px}.agent-section-head h2{margin:2px 0 0}.agent-history-list{display:grid;gap:0}.agent-history-list article{border-bottom:1px solid var(--color-borde);padding:16px 18px}.agent-history-list article:last-child{border-bottom:0}.agent-history-title{align-items:center;display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}.agent-history-title span{color:var(--color-texto-suave);font-size:.82rem}.agent-history-list dl{display:grid;gap:8px;margin:12px 0 0}.agent-history-list dl div{background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:10px;display:grid;gap:8px;grid-template-columns:minmax(150px,.32fr) 1fr;padding:10px}.agent-history-list dt{color:var(--color-texto-suave);font-size:.8rem;font-weight:800;text-transform:uppercase}.agent-history-list dd{margin:0;overflow-wrap:anywhere}@media(max-width:720px){.agent-history-list dl div{grid-template-columns:1fr;gap:2px}.agent-section-head{align-items:flex-start;flex-direction:column}}
+</style>
+{% endblock %}

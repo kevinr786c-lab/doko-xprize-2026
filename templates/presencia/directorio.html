@@ -1,0 +1,101 @@
+{% from "components/doctor_card.html" import doctor_card %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Doko Salud | {{ directory_title }}</title>
+  <meta name="description" content="{{ directory_description }}">
+  <meta name="robots" content="{{ directory_robots or 'index,follow' }}">
+  <link rel="canonical" href="{{ directory_canonical }}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Doko Salud | {{ directory_title }}">
+  <meta property="og:description" content="{{ directory_description }}">
+  <meta property="og:url" content="{{ directory_canonical }}">
+  <meta property="og:image" content="https://{{ dominio }}/static/img/logo-pwa.svg">
+  <link rel="icon" href="/static/img/logo-pwa.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/directorio_medico.css?v=20260712-directory-v1">
+  <style>
+    :root{--navy:#163661;--ink:#101A2B;--muted:#5D6B7E;--line:#DDE6F0;--soft:#EEF3F9;--lav:#9C78C5}*{box-sizing:border-box}html{scroll-behavior:smooth}body{background:#F2F3F8;color:var(--ink);font-family:Inter,Arial,sans-serif;margin:0}a{color:inherit}.wrap{margin:0 auto;width:min(1160px,calc(100% - 36px))}.directory-top{background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}.directory-top-inner{align-items:center;display:flex;gap:18px;justify-content:space-between;min-height:64px}.brand{align-items:center;display:flex;font-family:"DM Sans";font-size:1.18rem;font-weight:800;gap:10px;text-decoration:none}.brand img{border-radius:11px;height:38px;width:54px}.top-links{align-items:center;display:flex;gap:16px}.top-links a{color:var(--muted);font-size:.86rem;font-weight:800;text-decoration:none}.top-links .home-link{color:var(--navy)}.directory-hero{background:#fff;border-bottom:1px solid #DCE3EC;padding:34px 0 24px}.eyebrow{color:var(--navy);font-size:.72rem;font-weight:900;letter-spacing:.1em;margin:0 0 8px;text-transform:uppercase}.directory-hero h1{font-family:"DM Sans";font-size:clamp(2rem,4vw,3.6rem);letter-spacing:0;line-height:1.04;margin:0;max-width:820px}.directory-lead{color:var(--muted);line-height:1.58;margin:12px 0 0;max-width:760px}.directory-search{background:#fff;border:1px solid #CBD7E5;border-radius:14px;box-shadow:0 12px 26px rgba(22,54,97,.08);display:grid;gap:10px;grid-template-columns:1.2fr 1fr 150px auto auto;margin-top:20px;padding:12px}.directory-search input{border:1px solid #D2DCE8;border-radius:9px;font:inherit;min-height:42px;padding:9px 11px}.directory-search input[readonly]{background:var(--soft);color:var(--navy);font-weight:800}.search-submit,.search-clear{align-items:center;border-radius:9px;display:flex;font:inherit;font-weight:900;justify-content:center;min-height:42px;padding:9px 13px;text-decoration:none}.search-submit{background:var(--navy);border:0;color:#fff;cursor:pointer}.search-clear{background:#fff;border:1px solid #CAD6E4;color:var(--navy)}.directory-main{padding:28px 0 50px}.directory-heading{align-items:center;display:flex;gap:16px;justify-content:space-between;margin-bottom:16px}.directory-heading h2{font-family:"DM Sans";font-size:1.55rem;margin:0}.directory-count{color:var(--muted);font-size:.82rem;font-weight:900}.directory-empty{background:#fff;border:1px dashed #B9C8D9;border-radius:14px;color:var(--muted);display:grid;gap:8px;justify-items:center;padding:26px;text-align:center}.directory-empty strong{color:var(--navy)}.directory-more-row{display:flex;justify-content:center;margin-top:16px}.directory-more{background:#fff;border:1px solid #BFCEDF;border-radius:10px;color:var(--navy);cursor:pointer;font:inherit;font-weight:900;min-height:42px;padding:10px 16px}.patient-guide{background:#fff;border-bottom:1px solid var(--line);border-top:1px solid var(--line);padding:42px 0}.patient-guide h2,.related h2{font-family:"DM Sans";font-size:1.7rem;margin:0}.guide-grid{display:grid;gap:12px;grid-template-columns:repeat(4,1fr);margin-top:18px}.guide-step{border-left:3px solid var(--lav);padding:5px 12px}.guide-step strong{color:var(--navy);display:block;font-size:.85rem}.guide-step span{color:var(--muted);display:block;font-size:.82rem;line-height:1.45;margin-top:4px}.related{background:#F8FAFD;padding:36px 0}.related-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.related-links a{background:#fff;border:1px solid #CBD7E5;border-radius:999px;color:var(--navy);font-size:.78rem;font-weight:900;padding:8px 11px;text-decoration:none}footer{background:#fff;border-top:1px solid var(--line);color:var(--muted);font-size:.82rem;padding:26px 0}.footer-inner{align-items:center;display:flex;gap:16px;justify-content:space-between}.footer-links{display:flex;flex-wrap:wrap;gap:12px}.footer-links a{color:var(--navy);font-weight:800;text-decoration:none}[hidden]{display:none!important}@media(max-width:820px){.directory-search{grid-template-columns:1fr 1fr}.directory-search input:first-child{grid-column:1/-1}.guide-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.wrap{width:min(100% - 24px,1160px)}.directory-top-inner{min-height:56px}.brand{font-size:1.02rem}.brand img{height:34px;width:48px}.top-links a:not(.home-link){display:none}.directory-hero{padding:22px 0 18px}.directory-hero h1{font-size:2rem}.directory-lead{font-size:.88rem}.directory-search{grid-template-columns:1fr;margin-top:14px;padding:10px}.directory-search input:first-child{grid-column:auto}.directory-main{padding:18px 0 36px}.directory-heading{align-items:flex-start;flex-direction:column;gap:5px;margin-bottom:10px}.directory-heading h2{font-size:1.25rem}.guide-grid{grid-template-columns:1fr}.patient-guide{padding:32px 0}.related{padding:30px 0}.footer-inner{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <header class="directory-top">
+    <div class="wrap directory-top-inner">
+      <a class="brand" href="/"><img src="/static/img/logo-pwa.svg" alt="Doko">Doko</a>
+      <nav class="top-links" aria-label="Navegación del directorio">
+        <a class="home-link" href="/">Conocer Doko</a>
+        <a href="/medicos-en-tijuana">Todos los médicos</a>
+      </nav>
+    </div>
+  </header>
+
+  <main data-directory-root data-mobile-page-size="5">
+    <section class="directory-hero">
+      <div class="wrap">
+        <p class="eyebrow">{{ directory_eyebrow }}</p>
+        <h1>{{ directory_title }}</h1>
+        <p class="directory-lead">{{ directory_subtitle }}</p>
+        <form class="directory-search" action="/medicos-en-tijuana" method="get" role="search">
+          <input name="nombre" value="{{ search_name or '' }}" placeholder="Nombre o clínica" aria-label="Buscar por nombre o clínica" data-directory-filter="name">
+          <input name="especialidad" value="{{ search_specialty or '' }}" placeholder="Servicio o especialidad" aria-label="Buscar por servicio o especialidad" data-directory-filter="specialty">
+          <input name="ciudad" value="Tijuana" readonly aria-label="Ciudad" data-directory-filter="city">
+          <button class="search-submit" type="submit">Buscar</button>
+          <a class="search-clear" href="{{ directory_path }}">Limpiar</a>
+        </form>
+      </div>
+    </section>
+
+    <section class="directory-main">
+      <div class="wrap">
+        <div class="directory-heading">
+          <h2>Perfiles médicos disponibles</h2>
+          <span class="directory-count" data-directory-count>{{ doctores|length }} perfiles</span>
+        </div>
+        {% if doctores %}
+        <div class="doctor-grid">
+          {% for doctor in doctores %}{{ doctor_card(doctor, dominio, portal_base, 'directory') }}{% endfor %}
+        </div>
+        <div class="directory-more-row"><button class="directory-more" type="button" data-directory-more hidden>Ver más médicos</button></div>
+        <div class="directory-empty" data-directory-empty hidden><strong>No encontramos médicos con esos filtros.</strong><span>Prueba con otro nombre, servicio o especialidad.</span></div>
+        {% else %}
+        <div class="directory-empty"><strong>No encontramos médicos con esa búsqueda.</strong><span>Revisa otras especialidades disponibles en Doko.</span></div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="patient-guide">
+      <div class="wrap">
+        <p class="eyebrow">Agenda desde Doko</p>
+        <h2>De la búsqueda a tu cita</h2>
+        <div class="guide-grid">
+          <div class="guide-step"><strong>1. Compara</strong><span>Revisa especialidad, servicios, ubicación y costos publicados.</span></div>
+          <div class="guide-step"><strong>2. Elige</strong><span>Entra al portal o página médica del consultorio.</span></div>
+          <div class="guide-step"><strong>3. Agenda</strong><span>Selecciona un horario disponible y completa tus datos.</span></div>
+          <div class="guide-step"><strong>4. Confirma</strong><span>Revisa tu correo y confirma tu asistencia cuando aplique.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="related">
+      <div class="wrap">
+        <p class="eyebrow">Explora Doko</p>
+        <h2>Más búsquedas en Tijuana</h2>
+        <div class="related-links">
+          <a href="/medicos-en-tijuana">Médicos en Tijuana</a>
+          <a href="/doctores-en-tijuana">Doctores en Tijuana</a>
+          <a href="/especialistas-en-tijuana">Especialistas en Tijuana</a>
+          <a href="/ginecologia-tijuana">Ginecología en Tijuana</a>
+          {% for ruta in seo_local_routes or [] %}<a href="/{{ ruta.slug }}">{{ ruta.titulo }}</a>{% endfor %}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="wrap footer-inner"><span>Doko · Directorio médico local en Tijuana</span><div class="footer-links"><a href="/">Sobre Doko</a><a href="/privacidad">Privacidad</a><a href="/terminos">Términos</a></div></div></footer>
+  <script src="/static/js/directorio_medico.js?v=20260712-directory-v1"></script>
+</body>
+</html>
