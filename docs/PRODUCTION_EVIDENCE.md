@@ -6,6 +6,9 @@ customer evidence.
 | Evidence | Location | Status | Privacy rule |
 | --- | --- | --- | --- |
 | Live product | <https://doko.lat> | Available | Public data only |
+| Preserved project milestones | `docs/PROJECT_EVOLUTION.md` | Included | No credentials or patient data |
+| Pocket notebook translations | `docs/NOTEBOOK_EVIDENCE_TRANSLATIONS.md` | Draft included | Selected pages contain no patient data |
+| Selected notebook images | `docs/evidence/notebook/` | Six included | Reviewed pages contain no patient or Workspace data |
 | OAuth verification video | YouTube unlisted | Available separately | Fictitious patient data |
 | Contest demo under 3 minutes | Devpost / YouTube | Pending final edit | English captions, test data |
 | Read-only assistant load test | `docs/evidence/load-test-2026-07-15.md` | Included | Aggregate metrics only |
@@ -25,6 +28,8 @@ customer evidence.
 - Google Calendar is an integrated scheduling component; the Doko portal, panel,
   rules, audit, confirmation, and assistance layers are Doko.
 - Future Suffy or local-directory revenue is not current revenue.
+- Pre-program experiments and the earlier standalone Calendar service are
+  disclosed inputs, not the submitted integrated product.
 
 ## Prohibited repository evidence
 

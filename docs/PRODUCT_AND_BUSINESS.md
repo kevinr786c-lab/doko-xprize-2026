@@ -1,5 +1,17 @@
 # Product and Business
 
+## Founder motivation
+
+Doko is built by one founder without formal software-engineering training. He
+combined prior hospital operations experience with AI-assisted learning after a
+period of personal and financial instability. The objective is not rapid growth
+at any cost. It is to build a durable business, a dependable service for
+clinics, and a better long-term path for his family.
+
+That context explains the product strategy: observe before automating, limit
+scope before increasing risk, and make each clinic implementation repeatable
+before onboarding many more customers.
+
 ## Problem
 
 Independent medical practices often combine messaging, calendars, reception,
@@ -51,3 +63,6 @@ to repeatability:
 
 Payment evidence, permissioned testimonials, and exact monthly USD conversion
 are maintained outside source control and supplied privately through Devpost.
+
+The preserved design and implementation history is documented in
+[PROJECT_EVOLUTION.md](PROJECT_EVOLUTION.md).
