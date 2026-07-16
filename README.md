@@ -109,6 +109,12 @@ clinic relationships, prior Google Calendar work, and the founder's operations
 experience are disclosed separately from the submitted project. See
 [HACKATHON_DISCLOSURES.md](docs/HACKATHON_DISCLOSURES.md).
 
+The preserved design history, discarded ideas, field-observation decisions,
+and founder context are documented in
+[PROJECT_EVOLUTION.md](docs/PROJECT_EVOLUTION.md). Selected pocket-notebook
+translations are indexed in
+[NOTEBOOK_EVIDENCE_TRANSLATIONS.md](docs/NOTEBOOK_EVIDENCE_TRANSLATIONS.md).
+
 ## Live product
 
 - Product and medical directory: <https://doko.lat>
