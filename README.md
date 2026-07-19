@@ -25,12 +25,14 @@ and training are validated with real clinics.
 ## What Doko includes
 
 - **Medical panel:** appointments, blocks, temporary holds, editing, manual
-  confirmation, release, search, profile management, and clinic services.
+  confirmation, release, search, cancellation history with controlled contact
+  reuse, profile management, and clinic services.
 - **Patient portal:** clinic identity, contact and location information,
   appointment access, confirmation guidance, and a constrained patient
   assistant.
 - **Appointment communication:** informational email, configurable 24/48-hour
-  confirmation flow, and auditable confirmation/cancellation links.
+  confirmation flow, an optional business-day policy per clinic, and auditable
+  confirmation/cancellation links.
 - **Doko Assistant:** operational guidance and private, read-only conversational
   appointment search for doctors and assistants.
 - **Operational implementation:** versioned clinic protocols, assistant

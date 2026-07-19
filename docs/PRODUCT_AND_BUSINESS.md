@@ -2,11 +2,9 @@
 
 ## Founder motivation
 
-Doko is built by one founder without formal software-engineering training. He
-combined prior hospital operations experience with AI-assisted learning after a
-period of personal and financial instability. The objective is not rapid growth
-at any cost. It is to build a durable business, a dependable service for
-clinics, and a better long-term path for his family.
+Doko is built by one founder who combines prior hospital operations experience
+with AI-assisted software development. The objective is to build a durable
+business and a dependable clinic service, not pursue growth at any cost.
 
 That context explains the product strategy: observe before automating, limit
 scope before increasing risk, and make each clinic implementation repeatable

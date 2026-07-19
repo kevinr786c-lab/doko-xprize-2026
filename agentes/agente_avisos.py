@@ -20,6 +20,17 @@ TZ_TIJUANA = ZoneInfo('America/Tijuana')
 MODOS = {'manual', 'confirmar_24h', 'confirmar_48h_cancelar_24h'}
 
 
+def _sumar_dias_habiles(valor, cantidad):
+    """Avanza conservando la hora y omitiendo sabados y domingos."""
+    resultado = valor
+    restantes = max(0, int(cantidad))
+    while restantes:
+        resultado += timedelta(days=1)
+        if resultado.weekday() < 5:
+            restantes -= 1
+    return resultado
+
+
 def _es_falla_autorizacion_google(exc):
     """Distingue una cuenta sin acceso de un fallo aislado de Calendar."""
     if isinstance(exc, TokenNoEncontrado):
@@ -96,7 +107,7 @@ class AgenteAvisos:
     def _doctor(self, cur, correo):
         cur.execute("""
             SELECT nombre_doctor, especialidad, telefono_consultorio, direccion_consultorio,
-                   maps_url, modo_confirmacion
+                   maps_url, modo_confirmacion, confirmacion_dias_habiles
             FROM DOCTORES WHERE correo_doctor = %s AND activo = TRUE
         """, (correo,))
         return cur.fetchone()
@@ -164,6 +175,8 @@ class AgenteAvisos:
     @staticmethod
     def _limite_confirmacion(cita, ahora):
         if cita.get('modo_confirmacion') == 'confirmar_48h_cancelar_24h':
+            if cita.get('confirmacion_dias_habiles'):
+                return _sumar_dias_habiles(ahora, 1)
             return ahora + timedelta(hours=24)
         return cita['fecha_cita']
 
@@ -176,9 +189,11 @@ class AgenteAvisos:
             return resultado
         try:
             cur = conn.cursor(cursor_factory=RealDictCursor)
+            fecha_objetivo_habil = _sumar_dias_habiles(ahora, 2).date()
             while True:
                 cita = self._tomar(cur, """
-                    SELECT r.*, d.modo_confirmacion FROM RADAR_EVENTOS_CITAS r
+                    SELECT r.*, d.modo_confirmacion, d.confirmacion_dias_habiles
+                    FROM RADAR_EVENTOS_CITAS r
                     JOIN DOCTORES d ON d.correo_doctor = r.correo_doctor AND d.activo = TRUE
                     WHERE UPPER(COALESCE(r.estatus_confirmacion, '')) = 'PENDIENTE'
                       AND COALESCE(r.tipo_evento, 'CITA_PACIENTE') = 'CITA_PACIENTE'
@@ -193,6 +208,7 @@ class AgenteAvisos:
                         (d.modo_confirmacion = 'confirmar_24h' AND r.fecha_cita <= %s + INTERVAL '24 hours')
                         OR (
                           d.modo_confirmacion = 'confirmar_48h_cancelar_24h'
+                          AND COALESCE(d.confirmacion_dias_habiles, FALSE) = FALSE
                           AND r.fecha_cita >= DATE_TRUNC('day', %s::timestamp + INTERVAL '2 days')
                           AND r.fecha_cita < DATE_TRUNC('day', %s::timestamp + INTERVAL '3 days')
                           AND (
@@ -200,9 +216,20 @@ class AgenteAvisos:
                             OR %s::time >= TIME '09:00'
                           )
                         )
+                        OR (
+                          d.modo_confirmacion = 'confirmar_48h_cancelar_24h'
+                          AND COALESCE(d.confirmacion_dias_habiles, FALSE) = TRUE
+                          AND EXTRACT(ISODOW FROM %s::timestamp) BETWEEN 1 AND 5
+                          AND r.fecha_cita::date <= %s::date
+                          AND %s::time >= TIME '08:00'
+                        )
                       )
                     ORDER BY r.fecha_cita ASC FOR UPDATE SKIP LOCKED LIMIT 1
-                """, (ahora, ahora, ahora, ahora, ahora, ahora, ahora, ahora))
+                """, (
+                    ahora, ahora, ahora,
+                    ahora, ahora, ahora, ahora, ahora,
+                    ahora, fecha_objetivo_habil, ahora,
+                ))
                 if not cita:
                     conn.rollback()
                     break
@@ -258,7 +285,8 @@ class AgenteAvisos:
             while True:
                 condicion = 'r.token_confirmacion IS NULL' if tipo == 'primer' else "r.token_confirmacion IS NOT NULL AND (r.segundo_aviso_enviado IS NULL OR r.segundo_aviso_enviado = FALSE)"
                 cita = self._tomar(cur, f"""
-                    SELECT r.* FROM RADAR_EVENTOS_CITAS r JOIN DOCTORES d ON d.correo_doctor=r.correo_doctor
+                    SELECT r.*, d.confirmacion_dias_habiles
+                    FROM RADAR_EVENTOS_CITAS r JOIN DOCTORES d ON d.correo_doctor=r.correo_doctor
                     WHERE d.modo_confirmacion='manual' AND UPPER(COALESCE(r.estatus_confirmacion, ''))='PENDIENTE'
                       AND COALESCE(r.tipo_evento, 'CITA_PACIENTE') = 'CITA_PACIENTE'
                       AND COALESCE(r.estado_operativo, 'activo') = 'activo'
@@ -321,10 +349,19 @@ class AgenteAvisos:
                       AND r.confirmacion_enviada_en <= %s - INTERVAL '24 hours'
                       AND r.token_expiracion IS NOT NULL
                       AND r.token_expiracion <= %s
+                      AND (
+                          COALESCE(d.confirmacion_dias_habiles, FALSE) = FALSE
+                          OR (
+                              EXTRACT(ISODOW FROM %s::timestamp) BETWEEN 1 AND 5
+                          )
+                      )
                       AND NOT (LOWER(TRIM(r.correo_doctor)) = ANY(%s::text[]))
                       AND NOT (r.id_radar::text = ANY(%s::text[]))
                     ORDER BY r.fecha_cita ASC FOR UPDATE SKIP LOCKED LIMIT 1
-                """, (ahora, ahora, list(doctores_google_bloqueados), list(eventos_google_bloqueados)))
+                """, (
+                    ahora, ahora, ahora,
+                    list(doctores_google_bloqueados), list(eventos_google_bloqueados),
+                ))
                 if not cita:
                     conn.rollback(); break
                 # The database only accepts the official CANCELADO state. The reason

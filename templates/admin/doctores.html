@@ -10,13 +10,22 @@
         <article>
             <div><strong>{{ item.nombre_doctor }}</strong><span>{{ item.citas_mes }} citas este mes · {{ item.tasa_confirmacion }}% confirmadas</span></div>
             <div class="doctor-performance-counts"><span>{{ item.confirmadas }} confirmadas</span><span>{{ item.pendientes }} pendientes</span><span>{{ item.canceladas }} canceladas</span></div>
-            <label>Política de confirmación
-                <select class="modo-confirmacion" data-correo="{{ item.correo_doctor }}">
+            <div class="doctor-confirmation-policy" data-correo="{{ item.correo_doctor }}">
+                <label>Política de confirmación
+                <select class="modo-confirmacion">
                     <option value="manual" {{ 'selected' if item.modo_confirmacion == 'manual' else '' }}>Manual</option>
                     <option value="confirmar_24h" {{ 'selected' if item.modo_confirmacion == 'confirmar_24h' else '' }}>Confirmación 24h</option>
                     <option value="confirmar_48h_cancelar_24h" {{ 'selected' if item.modo_confirmacion == 'confirmar_48h_cancelar_24h' else '' }}>48h + liberar a 24h</option>
                 </select>
-            </label>
+                </label>
+                <label class="business-days-toggle">
+                    <input type="checkbox" class="confirmacion-dias-habiles"
+                           {{ 'checked' if item.confirmacion_dias_habiles else '' }}
+                           {{ 'disabled' if item.modo_confirmacion != 'confirmar_48h_cancelar_24h' else '' }}>
+                    Usar solo días hábiles
+                </label>
+                <small>Evita enviar o liberar automáticamente en sábado y domingo.</small>
+            </div>
         </article>
         {% else %}<p class="muted">No hay actividad médica registrada este mes.</p>{% endfor %}
     </div>
@@ -643,30 +652,50 @@ async function toggleDoctor(correo, activo) {
     }
 }
 
-document.querySelectorAll('.modo-confirmacion').forEach((select) => {
-    select.addEventListener('change', async () => {
-        const valorAnterior = select.dataset.previous || '';
+document.querySelectorAll('.doctor-confirmation-policy').forEach((policy) => {
+    const select = policy.querySelector('.modo-confirmacion');
+    const businessDays = policy.querySelector('.confirmacion-dias-habiles');
+
+    const guardarPolitica = async () => {
+        const modoAnterior = policy.dataset.previousMode || select.value;
+        const diasAnteriores = policy.dataset.previousBusinessDays === 'true';
+        businessDays.disabled = select.value !== 'confirmar_48h_cancelar_24h';
+        if (businessDays.disabled) businessDays.checked = false;
         select.disabled = true;
+        businessDays.disabled = true;
         try {
-            const response = await fetch('/admin/confirmacion/' + encodeURIComponent(select.dataset.correo), {
+            const response = await fetch('/admin/confirmacion/' + encodeURIComponent(policy.dataset.correo), {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({modo_confirmacion: select.value})
+                body: JSON.stringify({
+                    modo_confirmacion: select.value,
+                    confirmacion_dias_habiles: businessDays.checked
+                })
             });
             const data = await response.json();
             if (!response.ok || !data.ok) throw new Error(data.error || 'No se pudo guardar la política.');
-            select.dataset.previous = select.value;
+            policy.dataset.previousMode = data.modo_confirmacion;
+            policy.dataset.previousBusinessDays = String(data.confirmacion_dias_habiles);
+            businessDays.checked = Boolean(data.confirmacion_dias_habiles);
             if (window.dokoNotificar) window.dokoNotificar('Política actualizada.', 'success');
         } catch (error) {
-            if (valorAnterior) select.value = valorAnterior;
+            select.value = modoAnterior;
+            businessDays.checked = diasAnteriores;
             if (window.dokoNotificar) window.dokoNotificar(error.message, 'error');
-        } finally { select.disabled = false; }
-    });
-    select.dataset.previous = select.value;
+        } finally {
+            select.disabled = false;
+            businessDays.disabled = select.value !== 'confirmar_48h_cancelar_24h';
+        }
+    };
+
+    policy.dataset.previousMode = select.value;
+    policy.dataset.previousBusinessDays = String(businessDays.checked);
+    select.addEventListener('change', guardarPolitica);
+    businessDays.addEventListener('change', guardarPolitica);
 });
 </script>
 
 <style>
-.doctor-performance{margin-bottom:20px;padding:22px}.doctor-performance h2{margin:4px 0}.doctor-performance-grid{display:grid;gap:10px;margin-top:15px}.doctor-performance-grid article{align-items:center;background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:8px;display:grid;gap:14px;grid-template-columns:minmax(180px,1fr) minmax(250px,1.2fr) minmax(210px,.8fr);padding:13px}.doctor-performance-grid article>div{display:grid;gap:3px}.doctor-performance-grid article span{color:var(--color-texto-suave);font-size:.84rem}.doctor-performance-counts{display:flex!important;flex-wrap:wrap;gap:8px!important}.doctor-performance-counts span{background:#fff;border:1px solid var(--color-borde);border-radius:999px;padding:5px 8px}.doctor-performance-grid label{display:grid;font-size:.78rem;font-weight:800;gap:5px}.doctor-performance-grid select{border:1px solid var(--color-borde);border-radius:7px;padding:8px}@media(max-width:900px){.doctor-performance-grid article{grid-template-columns:1fr}}
+.doctor-performance{margin-bottom:20px;padding:22px}.doctor-performance h2{margin:4px 0}.doctor-performance-grid{display:grid;gap:10px;margin-top:15px}.doctor-performance-grid article{align-items:center;background:var(--color-fondo-alt);border:1px solid var(--color-borde);border-radius:8px;display:grid;gap:14px;grid-template-columns:minmax(180px,1fr) minmax(250px,1.2fr) minmax(230px,.9fr);padding:13px}.doctor-performance-grid article>div{display:grid;gap:3px}.doctor-performance-grid article span{color:var(--color-texto-suave);font-size:.84rem}.doctor-performance-counts{display:flex!important;flex-wrap:wrap;gap:8px!important}.doctor-performance-counts span{background:#fff;border:1px solid var(--color-borde);border-radius:999px;padding:5px 8px}.doctor-performance-grid label{display:grid;font-size:.78rem;font-weight:800;gap:5px}.doctor-performance-grid select{border:1px solid var(--color-borde);border-radius:7px;padding:8px}.doctor-confirmation-policy{display:grid;gap:7px}.doctor-confirmation-policy .business-days-toggle{align-items:center;display:flex;gap:7px}.doctor-confirmation-policy .business-days-toggle input{height:17px;margin:0;width:17px}.doctor-confirmation-policy small{color:var(--color-texto-suave);font-size:.73rem;line-height:1.3}@media(max-width:900px){.doctor-performance-grid article{grid-template-columns:1fr}}
 </style>
 
 {% endblock %}

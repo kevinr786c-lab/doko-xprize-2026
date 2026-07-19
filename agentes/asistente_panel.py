@@ -48,6 +48,8 @@ CATEGORIAS = {
     "sin_confirmar",
     "confirmacion_anticipada",
     "buscar_agenda",
+    "estado_cita",
+    "recrear_cancelada",
 }
 
 MESES_ES = {
@@ -232,7 +234,10 @@ def interpretar_busqueda_agenda(pregunta: str, ahora: datetime | None = None) ->
     if not original or texto.startswith("como "):
         return None
     es_comando = bool(re.search(
-        r"\b(busca|buscar|buscame|encuentra|localiza|citas?|agenda|quien(?:es)?\s+viene(?:n)?)\b",
+        r"\b(?:busca(?:r|me)?|encuentra|localiza)\b"
+        r"|\bquien(?:es)?\s+viene(?:n)?\b"
+        r"|\bcitas?\s+(?:de(?:l)?|para)\b"
+        r"|\bagenda\s+(?:de(?:l)?|para)\b",
         texto,
     ))
     if not es_comando:
@@ -349,6 +354,27 @@ def _tokens_contextuales(texto: str) -> set[str]:
 
 def clasificar_local(pregunta: str) -> str | None:
     texto = _texto_normalizado(pregunta)
+    reutiliza_cancelada = (
+        any(frase in texto for frase in (
+            "mismos datos", "datos de contacto", "reutiliz", "reusar",
+            "recuperar los datos", "reagendar esta cita cancelada",
+        ))
+        and any(frase in texto for frase in (
+            "otra cita", "crear otra", "nueva cita", "cancelad", "reagend",
+        ))
+    )
+    if reutiliza_cancelada or any(frase in texto for frase in (
+        "crear otra cita con los mismos datos", "crear una cita con los mismos datos",
+        "nueva cita con los mismos datos", "reutilizar los datos",
+        "reusar los datos", "reagendar esta cita cancelada",
+    )):
+        return "recrear_cancelada"
+    if any(frase in texto for frase in (
+        "esta cita esta confirmada", "esta confirmada esta cita", "ya esta confirmada",
+        "sigue pendiente", "esta cita sigue pendiente", "estado de esta cita",
+        "esta cita esta cancelada", "esta cita sigue activa", "esta cita esta activa",
+    )):
+        return "estado_cita"
     if any(frase in texto for frase in (
         "de donde salio", "de donde viene", "quien creo", "origen de la cita",
         "doko o google", "reserva de google", "reservada en google",
@@ -498,6 +524,16 @@ def _fecha_local(fecha) -> datetime | None:
     return fecha.astimezone(TZ_TIJUANA)
 
 
+def _restar_dias_habiles(valor: datetime, cantidad: int) -> datetime:
+    resultado = valor
+    restantes = max(0, int(cantidad))
+    while restantes:
+        resultado -= timedelta(days=1)
+        if resultado.weekday() < 5:
+            restantes -= 1
+    return resultado
+
+
 def describir_flujo_correo(evento: dict, modo_confirmacion: str, ahora: datetime | None = None) -> dict:
     tipo = str(evento.get("tipo_evento") or "CITA_PACIENTE").upper()
     if tipo == "BLOQUEO_HORARIO":
@@ -530,7 +566,13 @@ def describir_flujo_correo(evento: dict, modo_confirmacion: str, ahora: datetime
     if ahora_local.tzinfo is None:
         ahora_local = ahora_local.replace(tzinfo=TZ_TIJUANA)
 
-    if modo_confirmacion == "confirmar_48h_cancelar_24h":
+    if modo_confirmacion == "confirmar_48h_cancelar_24h" and evento.get("confirmacion_dias_habiles"):
+        mensaje = (
+            "Doko intentará enviar la confirmación dos días hábiles antes de la cita. "
+            "Si sigue pendiente, podrá liberar el horario el siguiente día hábil. "
+            "Este consultorio no procesa este ciclo automático en sábado ni domingo."
+        )
+    elif modo_confirmacion == "confirmar_48h_cancelar_24h":
         mensaje = "Doko intentará enviar la confirmación alrededor de 48 horas antes de la cita, según la ejecución programada. No debe llegar al crear una cita lejana."
     elif modo_confirmacion == "confirmar_24h":
         mensaje = "Doko intentará enviar la confirmación cuando la cita entre en la ventana de 24 horas. No debe llegar al crear una cita lejana."
@@ -544,7 +586,8 @@ def describir_flujo_correo(evento: dict, modo_confirmacion: str, ahora: datetime
 
 def metadatos_flujo_guardado(
     *, tipo_evento: str, fecha_cita: datetime, correo: str, confirmado: bool,
-    modo_confirmacion: str, intento_inmediato: bool, enviado: bool,
+    modo_confirmacion: str, confirmacion_dias_habiles: bool = False,
+    intento_inmediato: bool, enviado: bool,
 ) -> dict:
     evento = {
         "tipo_evento": tipo_evento,
@@ -554,6 +597,7 @@ def metadatos_flujo_guardado(
         "correo_registro_enviado": bool(enviado),
         "intento_inmediato_fallido": bool(intento_inmediato and not enviado),
         "requiere_confirmacion_enlace": not intento_inmediato,
+        "confirmacion_dias_habiles": bool(confirmacion_dias_habiles),
     }
     return describir_flujo_correo(evento, modo_confirmacion)
 
@@ -577,7 +621,11 @@ def _descripcion_envio_programado(evento: dict | None, modo_confirmacion: str) -
         return ""
     if modo_confirmacion == "confirmar_48h_cancelar_24h":
         hora = 8 if fecha.hour < 14 else 9
-        momento = (fecha - timedelta(days=2)).replace(hour=hora, minute=0, second=0, microsecond=0)
+        if (evento or {}).get("confirmacion_dias_habiles"):
+            momento = _restar_dias_habiles(fecha, 2)
+        else:
+            momento = fecha - timedelta(days=2)
+        momento = momento.replace(hour=hora, minute=0, second=0, microsecond=0)
         return _descripcion_fecha_operativa(momento)
     if modo_confirmacion == "confirmar_24h":
         return _descripcion_fecha_operativa(fecha - timedelta(hours=24))
@@ -719,12 +767,14 @@ def construir_contexto_operativo(
     evento: dict | None,
     modo_confirmacion: str,
     ahora: datetime | None = None,
+    confirmacion_dias_habiles: bool = False,
 ) -> dict:
     """Resume hechos locales. Este objeto nunca se transfiere a Gemini."""
     if not evento:
         return {
             "hay_evento": False,
             "modo_confirmacion": modo_confirmacion,
+            "confirmacion_dias_habiles": bool(confirmacion_dias_habiles),
         }
     ahora_local = ahora or datetime.now(TZ_TIJUANA)
     if ahora_local.tzinfo is None:
@@ -770,6 +820,9 @@ def construir_contexto_operativo(
         "tiene_telefono": bool(evento.get("tiene_telefono")),
         "ventana": ventana,
         "modo_confirmacion": modo_confirmacion,
+        "confirmacion_dias_habiles": bool(
+            evento.get("confirmacion_dias_habiles", confirmacion_dias_habiles)
+        ),
         "flujo_correo": flujo.get("estado"),
         "requiere_confirmacion": evento.get("requiere_confirmacion_enlace") is not False,
         "confirmacion_enviada": bool(confirmacion_enviada),
@@ -782,7 +835,9 @@ def construir_contexto_operativo(
 
 def _explicacion_correo(categoria: str, contexto: dict, evento: dict | None, modo: str) -> dict:
     if not contexto.get("hay_evento"):
-        if modo == "confirmar_48h_cancelar_24h":
+        if modo == "confirmar_48h_cancelar_24h" and contexto.get("confirmacion_dias_habiles"):
+            siguiente = "La confirmación se intenta dos días hábiles antes y el ciclo no se procesa en fin de semana."
+        elif modo == "confirmar_48h_cancelar_24h":
             siguiente = "La confirmacion se intenta alrededor de 48 horas antes de cada cita pendiente."
         elif modo == "confirmar_24h":
             siguiente = "La confirmacion se intenta cuando la cita entra en la ventana de 24 horas."
@@ -817,7 +872,9 @@ def _explicacion_correo(categoria: str, contexto: dict, evento: dict | None, mod
         accion = "Revisa la conexion con Google y vuelve a consultar el estado; no dupliques el evento."
     elif estado == "programado_confirmacion":
         causa = "Todavia no corresponde enviar la confirmacion; guardar una cita lejana no la envia de inmediato."
-        if modo == "confirmar_48h_cancelar_24h":
+        if modo == "confirmar_48h_cancelar_24h" and contexto.get("confirmacion_dias_habiles"):
+            siguiente = "Doko la revisará dos días hábiles antes y no procesará el ciclo en sábado ni domingo."
+        elif modo == "confirmar_48h_cancelar_24h":
             siguiente = "Doko la revisara alrededor de 48 horas antes de la cita."
         elif modo == "confirmar_24h":
             siguiente = "Doko la revisara cuando entre en la ventana de 24 horas."
@@ -864,8 +921,53 @@ def explicacion_operativa(
     modo_confirmacion: str,
     evento: dict | None = None,
     contexto_interfaz: str = "modulo_asistente",
+    confirmacion_dias_habiles: bool = False,
 ) -> dict:
-    contexto = construir_contexto_operativo(evento, modo_confirmacion)
+    contexto = construir_contexto_operativo(
+        evento,
+        modo_confirmacion,
+        confirmacion_dias_habiles=confirmacion_dias_habiles,
+    )
+    if categoria == "estado_cita":
+        if not contexto.get("hay_evento"):
+            respuesta = "Abre una cita y usa Preguntar a Doko para revisar su estado real."
+        elif contexto.get("tipo") != "CITA_PACIENTE":
+            respuesta = (
+                "Este registro es un evento interno, no una cita de paciente. "
+                "No usa el estado de confirmacion del paciente."
+            )
+        elif contexto.get("cancelada") or contexto.get("estado_operativo") != "activo":
+            respuesta = (
+                "Esta cita esta cancelada o liberada. El registro queda disponible en el historial; "
+                "si el paciente necesita otra fecha, crea una cita nueva con sus datos de contacto."
+            )
+        elif contexto.get("confirmada"):
+            respuesta = (
+                "Si, esta cita esta confirmada. Puedes editarla, pero Doko no permite liberarla; "
+                "si debe cancelarse, sigue el flujo de cancelacion del consultorio."
+            )
+        else:
+            respuesta = (
+                "No, esta cita sigue pendiente. Puedes confirmarla manualmente o dejar que continúe "
+                "el flujo de confirmacion configurado para el consultorio."
+            )
+        return {"respuesta": respuesta, "detectado": respuesta, "causa": "", "siguiente": "", "accion": ""}
+
+    if categoria == "recrear_cancelada":
+        if not contexto.get("hay_evento"):
+            respuesta = "Abre una cita cancelada desde el historial para reutilizar sus datos de contacto."
+        elif contexto.get("cancelada") or contexto.get("estado_operativo") != "activo":
+            respuesta = (
+                "El registro cancelado no se modifica. En Historial de cancelaciones usa Crear nueva cita: "
+                "Doko copiara solamente nombre, telefono y correo; tu eliges la nueva fecha y hora."
+            )
+        else:
+            respuesta = (
+                "Esta cita sigue activa. Si solo necesita otra fecha u hora, editala; "
+                "no hace falta crear un duplicado."
+            )
+        return {"respuesta": respuesta, "detectado": respuesta, "causa": "", "siguiente": "", "accion": ""}
+
     if categoria == "correo_hora":
         if contexto.get("confirmacion_enviada"):
             respuesta = "La confirmacion de esta cita ya fue enviada; no espera otro primer correo."
@@ -880,6 +982,9 @@ def explicacion_operativa(
                 respuesta = "Doko intentara enviarla alrededor de las 8:00 a. m., dos dias antes de esta cita."
             else:
                 respuesta = "Doko intentara enviarla alrededor de las 9:00 a. m., dos dias antes de esta cita."
+            if contexto.get("confirmacion_dias_habiles"):
+                respuesta = respuesta.replace("dos dias antes", "dos días hábiles antes")
+                respuesta += " No se envía en sábado ni domingo."
             respuesta += " El job revisa cada 15 minutos, por lo que puede completarse en el siguiente ciclo."
         else:
             respuesta = "Este consultorio usa confirmacion manual, por lo que Doko no tiene una hora automatica de envio."
@@ -889,11 +994,18 @@ def explicacion_operativa(
         if contexto.get("confirmada"):
             respuesta = "Esta cita ya esta confirmada; no entrara al flujo de no confirmadas."
         elif modo_confirmacion == "confirmar_48h_cancelar_24h":
-            respuesta = (
-                "Si el paciente no confirma dentro de las 24 horas posteriores al correo, Doko intenta "
-                "cancelar la cita y liberar el horario en Google Calendar. Si Google falla, conserva la cita "
-                "activa y registra el error para volver a revisarla."
-            )
+            if contexto.get("confirmacion_dias_habiles"):
+                respuesta = (
+                    "Si el paciente no confirma, Doko espera hasta el siguiente día hábil para intentar "
+                    "cancelar la cita y liberar el horario en Google Calendar. No ejecuta esta liberación "
+                    "en sábado ni domingo. Si Google falla, conserva la cita activa y registra el error."
+                )
+            else:
+                respuesta = (
+                    "Si el paciente no confirma dentro de las 24 horas posteriores al correo, Doko intenta "
+                    "cancelar la cita y liberar el horario en Google Calendar. Si Google falla, conserva la cita "
+                    "activa y registra el error para volver a revisarla."
+                )
         elif modo_confirmacion == "confirmar_24h":
             respuesta = (
                 "Si el paciente no confirma, la cita permanece pendiente; esta politica no la libera "

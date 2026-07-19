@@ -930,17 +930,21 @@ def dashboard():
 def actualizar_modo_confirmacion(correo_doctor):
     data = _datos_formulario()
     modo = (data.get('modo_confirmacion') or 'manual').strip()
+    dias_habiles = _bool_form(data, 'confirmacion_dias_habiles', False)
     permitidos = {'manual', 'confirmar_24h', 'confirmar_48h_cancelar_24h'}
     if modo not in permitidos:
         return jsonify({'ok': False, 'error': 'Modo de confirmación no válido.'}), 400
+    if modo != 'confirmar_48h_cancelar_24h':
+        dias_habiles = False
 
     conn = get_connection()
     try:
         cur = conn.cursor()
         cur.execute("""
-            UPDATE DOCTORES SET modo_confirmacion = %s
+            UPDATE DOCTORES
+            SET modo_confirmacion = %s, confirmacion_dias_habiles = %s
             WHERE correo_doctor = %s AND activo = TRUE
-        """, (modo, correo_doctor))
+        """, (modo, dias_habiles, correo_doctor))
         if not cur.rowcount:
             conn.rollback()
             return jsonify({'ok': False, 'error': 'Doctora no encontrada o inactiva.'}), 404
@@ -948,9 +952,17 @@ def actualizar_modo_confirmacion(correo_doctor):
             INSERT INTO AUDITORIA_SEGURIDAD (tipo_evento, actor, rol_actor, detalle, ip_origen)
             VALUES (%s, %s, %s, %s, %s)
         """, ('CONFIGURACION_CONFIRMACION_DOCTORA', session.get('correo', 'admin'), 'admin',
-              json.dumps({'correo_doctor': correo_doctor, 'modo_confirmacion': modo}), request.remote_addr))
+              json.dumps({
+                  'correo_doctor': correo_doctor,
+                  'modo_confirmacion': modo,
+                  'confirmacion_dias_habiles': dias_habiles,
+              }), request.remote_addr))
         conn.commit()
-        return jsonify({'ok': True, 'modo_confirmacion': modo})
+        return jsonify({
+            'ok': True,
+            'modo_confirmacion': modo,
+            'confirmacion_dias_habiles': dias_habiles,
+        })
     except Exception as exc:
         conn.rollback()
         return jsonify({'ok': False, 'error': str(exc)}), 400
@@ -1054,6 +1066,7 @@ def doctores():
         doctores_lista = cur.fetchall()
         cur.execute("""
             SELECT d.correo_doctor, d.nombre_doctor, d.modo_confirmacion,
+                   d.confirmacion_dias_habiles,
                    COUNT(r.id_radar) AS citas_mes,
                    COUNT(r.id_radar) FILTER (
                        WHERE UPPER(COALESCE(r.estatus_confirmacion, '')) LIKE 'CONFIRM%%'
@@ -1073,7 +1086,8 @@ def doctores():
              AND r.fecha_cita < DATE_TRUNC('month', NOW()) + INTERVAL '1 month'
              AND COALESCE(r.tipo_evento, 'CITA_PACIENTE') = 'CITA_PACIENTE'
             WHERE d.activo = TRUE
-            GROUP BY d.correo_doctor, d.nombre_doctor, d.modo_confirmacion
+            GROUP BY d.correo_doctor, d.nombre_doctor, d.modo_confirmacion,
+                     d.confirmacion_dias_habiles
             ORDER BY citas_mes DESC, d.nombre_doctor
         """)
         rendimiento = []

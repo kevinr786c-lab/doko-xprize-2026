@@ -423,6 +423,7 @@ def get_agenda():
         rango = (request.args.get("rango") or "semana").strip().lower()
         fecha_exacta = (request.args.get("fecha") or "").strip()
         busqueda = (request.args.get("buscar") or "").strip().lower()
+        historial_canceladas = (request.args.get("historial_canceladas") or "").strip() == "1"
         modo_asistente = (request.args.get("modo_asistente") or "").strip() == "1"
         if modo_asistente and not _busqueda_asistente_habilitada(correo_doctor):
             return jsonify({"ok": False, "error": "La búsqueda guiada todavía no está habilitada para este consultorio."}), 403
@@ -475,7 +476,11 @@ def get_agenda():
                 },
             })
 
-        if busqueda and fecha_exacta:
+        if historial_canceladas:
+            inicio_agenda = inicio_hoy - timedelta(days=365)
+            dias_rango = 732
+            rango = "canceladas"
+        elif busqueda and fecha_exacta:
             try:
                 inicio_agenda = datetime.strptime(fecha_exacta, "%Y-%m-%d")
                 dias_rango = 1
@@ -502,7 +507,7 @@ def get_agenda():
             inicio_agenda = ahora.replace(hour=0, minute=0, second=0, microsecond=0)
         fin_agenda = inicio_agenda + timedelta(days=dias_rango)
         alerta_sincronizacion = None
-        if fecha_exacta or busqueda:
+        if (fecha_exacta or busqueda) and not historial_canceladas:
             try:
                 if busqueda:
                     _sincronizar_google_por_busqueda(cur, correo_doctor, inicio_agenda, fin_agenda, busqueda)
@@ -534,6 +539,7 @@ def get_agenda():
         filtro_busqueda = ""
         filtro_dia_mes = ""
         filtro_asistente = ""
+        filtro_estado = ""
         params_citas = [correo_doctor, inicio_agenda, fin_agenda]
         if busqueda:
             patron_busqueda = f"%{busqueda}%"
@@ -543,9 +549,11 @@ def get_agenda():
                   OR LOWER(COALESCE(r.datos_paciente->>'summary', '')) LIKE %s
                   OR LOWER(COALESCE(r.datos_paciente->>'telefono', '')) LIKE %s
                   OR LOWER(COALESCE(r.telefono_manual, '')) LIKE %s
+                  OR LOWER(COALESCE(r.datos_paciente->>'correo', '')) LIKE %s
+                  OR LOWER(COALESCE(r.correo_manual, '')) LIKE %s
               )
             """
-            params_citas.extend([patron_busqueda, patron_busqueda, patron_busqueda, patron_busqueda])
+            params_citas.extend([patron_busqueda] * 6)
         if modo_asistente and dia_mes:
             filtro_dia_mes = " AND EXTRACT(DAY FROM r.fecha_cita) = %s "
             params_citas.append(dia_mes)
@@ -557,6 +565,20 @@ def get_agenda():
                 """
             if busqueda:
                 filtro_asistente += " AND COALESCE(r.tipo_evento, 'CITA_PACIENTE') = 'CITA_PACIENTE' "
+
+        if historial_canceladas:
+            filtro_estado = """
+              AND COALESCE(r.tipo_evento, 'CITA_PACIENTE') = 'CITA_PACIENTE'
+              AND (
+                  UPPER(COALESCE(r.estatus_confirmacion, '')) LIKE 'CANCEL%%'
+                  OR COALESCE(r.estado_operativo, 'activo') = 'cancelado'
+              )
+            """
+        elif not modo_asistente:
+            filtro_estado = """
+              AND COALESCE(r.estado_operativo, 'activo') = 'activo'
+              AND UPPER(COALESCE(r.estatus_confirmacion, '')) NOT LIKE 'CANCEL%%'
+            """
 
         orden_asistente = "r.fecha_cita ASC"
         if modo_asistente and incluir_historial:
@@ -570,7 +592,9 @@ def get_agenda():
                 CASE WHEN r.fecha_cita >= CURRENT_DATE THEN r.fecha_cita END ASC,
                 r.fecha_cita DESC
             """
-        limite_asistente = " LIMIT 25 " if modo_asistente and busqueda else ""
+        elif historial_canceladas:
+            orden_asistente = "r.fecha_cita DESC"
+        limite_asistente = " LIMIT 100 " if historial_canceladas else (" LIMIT 25 " if modo_asistente and busqueda else "")
 
         cur.execute(f"""
             SELECT r.id_radar, r.fecha_cita, r.datos_paciente, r.estatus_confirmacion, r.motivo_cancelacion,
@@ -591,6 +615,7 @@ def get_agenda():
               {filtro_busqueda}
               {filtro_dia_mes}
               {filtro_asistente}
+              {filtro_estado}
             ORDER BY {orden_asistente}
             {limite_asistente}
         """, tuple(params_citas))
@@ -600,32 +625,35 @@ def get_agenda():
             if isinstance(fecha_cita, datetime):
                 cita["fecha_cita"] = fecha_cita.replace(tzinfo=None).isoformat(timespec="seconds")
 
-        params_totales = [correo_doctor, inicio_agenda, fin_agenda]
-        if busqueda:
-            params_totales.extend([patron_busqueda, patron_busqueda, patron_busqueda, patron_busqueda])
-        if modo_asistente and dia_mes:
-            params_totales.append(dia_mes)
-        cur.execute(f"""
-            SELECT r.estatus_confirmacion, COUNT(*) as total
-            FROM RADAR_EVENTOS_CITAS r
-            WHERE r.correo_doctor = %s
-              AND r.fecha_cita >= %s
-              AND r.fecha_cita < %s
-              AND COALESCE(r.tipo_evento, 'CITA_PACIENTE') = 'CITA_PACIENTE'
-              AND COALESCE(r.estado_operativo, 'activo') = 'activo'
-              {filtro_busqueda}
-              {filtro_dia_mes}
-              {filtro_asistente}
-            GROUP BY r.estatus_confirmacion
-        """, tuple(params_totales))
-        totales = cur.fetchall()
+        totales = []
+        if not historial_canceladas:
+            params_totales = [correo_doctor, inicio_agenda, fin_agenda]
+            if busqueda:
+                params_totales.extend([patron_busqueda] * 6)
+            if modo_asistente and dia_mes:
+                params_totales.append(dia_mes)
+            cur.execute(f"""
+                SELECT r.estatus_confirmacion, COUNT(*) as total
+                FROM RADAR_EVENTOS_CITAS r
+                WHERE r.correo_doctor = %s
+                  AND r.fecha_cita >= %s
+                  AND r.fecha_cita < %s
+                  AND COALESCE(r.tipo_evento, 'CITA_PACIENTE') = 'CITA_PACIENTE'
+                  AND COALESCE(r.estado_operativo, 'activo') = 'activo'
+                  {filtro_busqueda}
+                  {filtro_dia_mes}
+                  {filtro_asistente}
+                  {filtro_estado}
+                GROUP BY r.estatus_confirmacion
+            """, tuple(params_totales))
+            totales = cur.fetchall()
 
         historial_disponible = 0
         if modo_asistente and busqueda and not incluir_historial:
             inicio_historial = inicio_hoy - timedelta(days=365)
             fin_historial = inicio_hoy + timedelta(days=367)
             params_historial = [correo_doctor, inicio_historial, fin_historial]
-            params_historial.extend([patron_busqueda, patron_busqueda, patron_busqueda, patron_busqueda])
+            params_historial.extend([patron_busqueda] * 6)
             if dia_mes:
                 params_historial.append(dia_mes)
             cur.execute(f"""
@@ -701,7 +729,7 @@ def get_agenda():
                 "inicio": inicio_agenda.isoformat(timespec="seconds"),
                 "fin": fin_agenda.isoformat(timespec="seconds"),
                 "dias": dias_rango,
-                "rango": rango if rango in {"dia", "semana", "mes", "busqueda"} else "semana",
+                "rango": rango if rango in {"dia", "semana", "mes", "busqueda", "canceladas"} else "semana",
                 "fecha": fecha_exacta or None,
                 "buscar": busqueda or None,
             },
@@ -738,7 +766,7 @@ def consultar_asistente_panel():
         cur = conn.cursor(cursor_factory=RealDictCursor)
         _asegurar_doctora_asignada_si_asistente(cur, correo_doctor)
         cur.execute("""
-            SELECT modo_confirmacion
+            SELECT modo_confirmacion, confirmacion_dias_habiles
             FROM DOCTORES
             WHERE correo_doctor = %s AND activo = TRUE
         """, (correo_doctor,))
@@ -746,6 +774,7 @@ def consultar_asistente_panel():
         if not doctor:
             return jsonify({"ok": False, "error": "Doctora no disponible."}), 403
         modo_confirmacion = doctor.get("modo_confirmacion") or "manual"
+        confirmacion_dias_habiles = bool(doctor.get("confirmacion_dias_habiles"))
 
         evento = None
         if id_radar:
@@ -772,6 +801,7 @@ def consultar_asistente_panel():
             evento = cur.fetchone()
             if not evento:
                 return jsonify({"ok": False, "error": "No se encontró esa cita para la doctora activa."}), 404
+            evento["confirmacion_dias_habiles"] = confirmacion_dias_habiles
 
         actor_rol = getattr(request, "jwt_actor_rol", "doctor")
         actor = hash_actor(
@@ -780,6 +810,7 @@ def consultar_asistente_panel():
             getattr(request, "jwt_id_usuario", None),
         )
         busqueda_habilitada = _busqueda_asistente_habilitada(correo_doctor)
+        categoria = clasificar_local(pregunta)
         accion_busqueda = interpretar_busqueda_agenda(pregunta) if busqueda_habilitada else None
         if accion_busqueda:
             duracion_ms = int((time.monotonic() - inicio_consulta) * 1000)
@@ -813,7 +844,6 @@ def consultar_asistente_panel():
                 "accion_ui": accion_busqueda,
                 "uso_ia": {"gemini": False},
             })
-        categoria = clasificar_local(pregunta)
         fuente = "reglas"
         uso_ia = {"gemini": False}
 
@@ -854,6 +884,7 @@ def consultar_asistente_panel():
             modo_confirmacion,
             evento,
             contexto_interfaz=contexto_interfaz,
+            confirmacion_dias_habiles=confirmacion_dias_habiles,
         )
         respuesta = respuesta_desde_explicacion(explicacion)
         if fuente == "reglas":
@@ -1003,7 +1034,8 @@ def _crear_evento_operativo(tipo_evento):
         _asegurar_doctora_asignada_si_asistente(cur, correo_doctor)
         cur.execute("""
             SELECT nombre_doctor, especialidad, telefono_consultorio,
-                   direccion_consultorio, maps_url, modo_confirmacion
+                   direccion_consultorio, maps_url, modo_confirmacion,
+                   confirmacion_dias_habiles
             FROM DOCTORES
             WHERE correo_doctor = %s AND activo = TRUE
         """, (correo_doctor,))
@@ -1089,6 +1121,7 @@ def _crear_evento_operativo(tipo_evento):
             correo=datos.get("correo") or "",
             confirmado=confirmar,
             modo_confirmacion=doctor.get("modo_confirmacion") or "manual",
+            confirmacion_dias_habiles=bool(doctor.get("confirmacion_dias_habiles")),
             intento_inmediato=enviar_comprobante,
             enviado=correo_registro_enviado,
         )
@@ -1205,7 +1238,11 @@ def editar_evento_agenda(id_radar):
         evento = cur.fetchone()
         if not evento:
             return jsonify({"ok": False, "error": "Evento no encontrado para esta doctora"}), 404
-        cur.execute("SELECT modo_confirmacion FROM DOCTORES WHERE correo_doctor = %s", (correo_doctor,))
+        cur.execute("""
+            SELECT modo_confirmacion, confirmacion_dias_habiles
+            FROM DOCTORES
+            WHERE correo_doctor = %s
+        """, (correo_doctor,))
         configuracion_doctor = cur.fetchone() or {}
         if evento.get("estado_operativo") != "activo":
             return jsonify({"ok": False, "error": "Solo se pueden editar eventos activos"}), 400
@@ -1348,6 +1385,7 @@ def editar_evento_agenda(id_radar):
             correo=datos.get("correo") or "",
             confirmado="CONFIRM" in str(estatus or "").upper() or "VERIFIC" in str(estatus or "").upper(),
             modo_confirmacion=configuracion_doctor.get("modo_confirmacion") or "manual",
+            confirmacion_dias_habiles=bool(configuracion_doctor.get("confirmacion_dias_habiles")),
             intento_inmediato=enviar_comprobante,
             enviado=(
                 correo_registro_enviado

@@ -1,23 +1,24 @@
 # Production Evidence Index
 
-This index separates public technical evidence from confidential financial and
-customer evidence.
+This index lists the public, sanitized evidence currently included in the
+repository. Confidential financial and customer evidence is submitted only
+through Devpost's judge-facing fields.
 
 | Evidence | Location | Status | Privacy rule |
 | --- | --- | --- | --- |
 | Live product | <https://doko.lat> | Available | Public data only |
+| Current application source | Repository root | Included | No credentials or production data |
 | Preserved project milestones | `docs/PROJECT_EVOLUTION.md` | Included | No credentials or patient data |
-| Pocket notebook translations | `docs/NOTEBOOK_EVIDENCE_TRANSLATIONS.md` | Draft included | Selected pages contain no patient data |
+| Pocket notebook translations | `docs/NOTEBOOK_EVIDENCE_TRANSLATIONS.md` | Included | Selected pages contain no patient data |
 | Selected notebook images | `docs/evidence/notebook/` | Six included | Reviewed pages contain no patient or Workspace data |
-| OAuth verification video | YouTube unlisted | Available separately | Fictitious patient data |
-| Contest demo under 3 minutes | Devpost / YouTube | Pending final edit | English captions, test data |
 | Read-only assistant load test | `docs/evidence/load-test-2026-07-15.md` | Included | Aggregate metrics only |
-| Cloud Run revision and request logs | Devpost or sanitized repository image | Pending | No tokens or request payloads |
-| AI usage dashboard | Sanitized repository image | Pending | No prompts or patient data |
-| Appointment workflow volume | Sanitized aggregate image | Pending | Counts only, no patient rows |
-| Revenue and expense evidence | Devpost judge-only upload | Pending | Never commit receipts |
-| Assistant testimonial | Public permissioned post | Pending | No patient stories or data |
-| Doctor impact testimonial | Public permissioned post | Pending | Describe workflow impact accurately |
+| AI operation boundaries | `docs/AI_OPERATIONS.md` | Included | No prompts or patient data |
+| Privacy and safety controls | `docs/PRIVACY_AND_SAFETY.md` | Included | No Workspace payloads |
+| Automated repository validation | `.github/workflows/validate.yml` | Included | Compile, import, route and Jinja checks |
+
+Payment records, profit-and-loss evidence, customer contact details and
+permissioned testimonials are intentionally excluded from the source repository.
+They belong in the confidential submission channels provided by Devpost.
 
 ## Claims that require careful wording
 

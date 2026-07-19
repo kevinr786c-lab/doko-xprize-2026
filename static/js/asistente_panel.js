@@ -15,10 +15,10 @@
     ['¿Qué necesita la conexión con Google?', 'Google'],
   ];
   const contextualQuickQuestions = [
-    ['¿Cuándo se envía el correo de este evento?', 'Correo'],
-    ['¿Cómo confirmo o libero este evento?', 'Qué puedo hacer'],
+    ['¿Está confirmada esta cita?', 'Estado'],
+    ['¿Cuándo se envía el correo de esta cita?', 'Correo'],
+    ['¿Qué puedo hacer con esta cita?', 'Acciones'],
     ['¿De dónde salió esta cita?', 'Origen'],
-    ['¿Qué necesita la conexión con Google?', 'Google'],
   ];
 
   let appointmentId = null;
