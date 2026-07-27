@@ -64,6 +64,11 @@ as one preserved design artifact.
 The preserved scene can be viewed publicly in
 [Excalidraw](https://excalidraw.com/#json=VgyefdhM4jCxfErc5ah_W,bPdTnMoIvqJagbSV4OOdww).
 
+This drawing was also part of my learning method. Sometimes I could see the
+problem but still could not explain it clearly because I was learning the
+concept at the same time. Drawing the flow helped me organize my thoughts and
+gave the AI enough context to explain the idea and guide me more effectively.
+
 ## Decisions that changed the product
 
 ### Reduce unnecessary clinical-data scope
