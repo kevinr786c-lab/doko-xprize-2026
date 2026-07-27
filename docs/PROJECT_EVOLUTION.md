@@ -4,36 +4,40 @@ This document describes the preserved milestones behind Doko. It is not a
 claim that every intermediate version was saved or that version numbers form a
 complete source-control history.
 
-## Founder context
+## Mi contexto
 
-The founder entered 2026 after losing a hospital job and going through a period
-of personal and financial instability. He had practical experience in hospital
-procurement, warehouse operations, suppliers, and clinic workflows, but no
-formal software-engineering training.
+Entré a 2026 después de perder mi trabajo en un hospital y atravesar una etapa
+de inestabilidad personal y económica. Tenía experiencia práctica en compras
+hospitalarias, almacén, proveedores y flujos de consultorio, pero no formación
+formal como ingeniero de software.
 
-In February, he began using AI tools to learn how software could turn that
-experience into a working service. The goal was not to build a disposable
-hackathon demonstration or to claim expertise he did not have. The goal was to
-create a stable business, rebuild a path forward, and provide a better future
-for his family.
+En febrero empecé a usar herramientas de IA para aprender cómo convertir esa
+experiencia en un servicio funcional. Mi objetivo no era presentar una demo
+desechable ni afirmar conocimientos que no tenía. Quería construir un negocio
+estable, recuperar un camino y crear un mejor futuro para mi familia.
 
-AI tools explained unfamiliar concepts and helped implement the product. The
-founder supplied the operational problems, field observation, product
-decisions, safety boundaries, testing, customer support, and responsibility for
-the resulting service.
+Las herramientas de IA me explicaron conceptos que no conocía y me ayudaron a
+implementar el producto. Yo aporté los problemas operativos, la observación en
+consultorios, las decisiones de producto, los límites de seguridad, las
+pruebas, el soporte a clientes y la responsabilidad por el servicio final.
 
 ## Before the program period
 
 | Period | Preserved evidence | Classification | What it means |
 | --- | --- | --- | --- |
 | February-March 2026 | Earlier GitHub experiments and a March archive | Pre-existing learning | Broad agent and medical-software experiments were attempted and abandoned. They are not the submitted Doko product. |
-| April 2026 | Standalone Google Calendar service and private payment evidence | Pre-existing customer relationship | The founder configured Calendar for one doctor and gained access to observe a real clinic workflow. The pre-program payment is outside the hackathon P&L. |
+| April 2026 | Configuración independiente de la página de reserva de Google Calendar y evidencia privada de pago | Relación previa con un cliente | Configuré para una doctora la página de reserva completa: disponibilidad, horarios, duración, ventana de reserva y reglas de agenda. Ese trabajo me permitió observar un flujo real de consultorio. El pago previo queda fuera del P&L del hackathon. |
 
 The abandoned March archive contains obsolete credentials and service-account
 material. It must never be committed or used as public evidence.
 
-An unimplemented proposal involving Grupo Pangea is also excluded. It did not
-become a partnership, customer, supplier integration, or current Doko feature.
+Antes de Doko también hablé con un amigo que trabaja por su cuenta en la venta
+de insumos mediante su actividad independiente, Grupo Pangea. No era una
+empresa grande ni un equipo de Doko. Consideramos ayudarnos mutuamente en el
+futuro, pero esa conversación nunca se convirtió en una sociedad, relación con
+un cliente, integración de proveedor, equipo de trabajo ni función de Doko.
+No utilicé código, inventario, cartera de clientes, operación ni ingresos de
+Grupo Pangea en el proyecto presentado.
 
 ## Preserved hackathon milestones
 
@@ -43,7 +47,7 @@ The official program period began on May 19, 2026.
 | --- | --- | --- |
 | May 21-22 | `Untitled-2026-05-21-1050.excalidraw` | Earliest preserved integrated scene connecting login, OAuth, doctors, appointment radar, catalog, and orders. |
 | May 27 | `01_especificaciones_tecnicas.md`, `03_cursorrules.md`, and related v4 planning | A formal Flask, PostgreSQL, Cloud Run, Calendar, Gmail, role, portal, and Suffy architecture. |
-| May 29 | Devpost welcome email | The founder joined Devpost after design work had begun, still within the official period. |
+| May 29 | Devpost welcome email | Me registré en Devpost después de comenzar el diseño, todavía dentro del periodo oficial. |
 | May 31 | `KB-TECH_Arquitectura_7_0.docx` | A more structured technical architecture milestone. |
 | June 3 | `doko v8.1.zip`, `planificacion_tecnica_v9_0.md`, and `prompts_construccion_v9.md` | Transition from broad planning toward a controlled integrated build. |
 | June 4 | `planificacion_tecnica_v9_1.md` and `prompts_construccion_v9_1.md` | Human approval, deterministic risk rules, safer persistence, and clearer service boundaries. |
@@ -73,16 +77,50 @@ override those rules.
 
 ### Use Google as an integrated scheduling layer
 
-Google Calendar remains the reliable scheduling component. Doko adds the
-clinic-specific panel, patient portal, appointment search, confirmation cycle,
-audit trail, operational guidance, and failure visibility around it.
+Google Calendar sigue siendo el componente de agenda confiable. Doko agrega el
+panel adaptado al consultorio, el portal del paciente, la búsqueda de citas,
+el ciclo de confirmación, la auditoría, la orientación operativa y la
+visibilidad de fallas alrededor de esa agenda.
 
 ### Learn from the assistant's actual work
 
 Direct observation showed that software alone was not enough. Doko added
 temporary holds, blocks, manual confirmation, released-slot handling,
-conversational read-only search, and versioned implementation protocols based
-on real front-desk work.
+conversational read-only search, cancellation from the medical panel, and
+versioned implementation protocols based on real front-desk work.
+
+### Construir una plataforma adaptable, no una plantilla fija por especialidad
+
+La dirección del producto cambió después de observar que cada especialidad y
+cada consultorio trabajan de manera distinta. Doko conserva un núcleo
+operativo común, pero activa capacidades específicas solo cuando un
+consultorio real las necesita y las valida. Así Doko puede aprender y mejorar
+con los consultorios, en lugar de copiar un flujo fijo para todos los médicos.
+
+## Mi siguiente etapa
+
+Quiero que Doko deje de ser visto solamente como una agenda. Mi objetivo es
+que ayude a cada consultorio a tener más control del día a día: citas,
+confirmaciones, cancelaciones, comunicación, presencia digital, capacitación y
+procesos que puedan repetirse sin depender de la memoria de una sola persona.
+
+Voy a buscar médicos de distintas especialidades para conocer sus flujos
+reales. La idea es contar con médicos fundadores por especialidad y aprender
+qué partes deben ser comunes y cuáles deben permanecer opcionales. Una
+capacidad útil para ginecología no tiene por qué imponerse a cardiología, y
+una herramienta que no sea necesaria debe poder permanecer desactivada.
+
+También quiero que Doko ayude a convertir los aprendizajes aprobados por cada
+consultorio en protocolos y capacitación. Doko no sustituye la responsabilidad
+médica ni garantiza por sí solo el cumplimiento de normas; organiza el trabajo
+y orienta el proceso para que el consultorio pueda operar con mayor claridad.
+
+Doko Suffy continuará como una línea independiente para insumos médicos,
+proveedores, inventario y entrega. Doko.lat puede apoyar la presencia digital,
+pero no prometo que una página genere pacientes automáticamente. La visión es
+construir una relación de confianza: que un médico asocie Doko con control,
+tiempo y mejora continua, y que un paciente lo relacione con consultorios que
+se esfuerzan por atender y organizar mejor su servicio.
 
 ### Narrow Suffy to a credible B2B operation
 
@@ -105,8 +143,10 @@ presented as current traction.
 
 - That every version between v1 and v9 was preserved.
 - That Doko generated every appointment managed by the platform.
+- That the current dashboard counts represent new patients generated by Doko.
 - That abandoned pre-program experiments are part of the submitted code.
-- That Grupo Pangea is a current partner or supplier integration.
+- That Grupo Pangea is a current partner, team member, customer, supplier
+  integration, or source of Doko revenue.
 - That future Suffy, directory, or procurement revenue has already been earned.
 - That AI replaces medical or operational accountability.
 
@@ -132,15 +172,17 @@ presented as current traction.
 
 - Credentials, tokens, service-account files, and patient information.
 - The obsolete February-March source archive.
-- The unimplemented Grupo Pangea proposal.
+- The unimplemented Grupo Pangea proposal and any of its independent business
+  resources.
 - Undated notebook pages that do not add clear evidence.
 - Unverified future revenue, partnerships, or product capabilities.
 
 ## Core narrative
 
-> Doko was built during the hackathon by one founder using AI-assisted learning
-> and development. It grew from disclosed operational experience, an earlier
-> standalone Calendar service, and direct clinic observation. Preserved designs
-> became a production platform that helps doctors and assistants operate
-> appointments, confirmations, public presence, supplies, and repeatable clinic
-> workflows with deterministic safeguards and bounded AI.
+> Construí Doko durante el hackathon con aprendizaje y desarrollo apoyados por
+> IA. El proyecto nació de mi experiencia operativa, de una configuración
+> independiente de la página de reserva de Google Calendar y de la observación
+> directa en consultorios. Esos aprendizajes se convirtieron en una plataforma
+> de producción que ayuda a médicos y asistentes a controlar citas,
+> confirmaciones, presencia digital, suministros y procesos repetibles, con
+> límites deterministas y una IA de autoridad controlada.

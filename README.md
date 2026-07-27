@@ -1,8 +1,12 @@
 # Doko
 
-Doko is an operational platform for independent medical practices in Tijuana.
-It combines appointment operations, patient communication, public presence,
-controlled AI assistance, and an emerging B2B supply workflow in one system.
+Doko is an adaptive operational platform for independent medical practices in
+Tijuana. It helps each consultorio organize its real day-to-day workflow rather
+than forcing every specialty into the same fixed process.
+
+Its common foundation includes appointment control, patient communication,
+public presence, bounded AI assistance, and an emerging B2B supply workflow.
+Specialty-specific capabilities can be enabled only when a clinic needs them.
 
 Doko is not presented as a replacement for medical judgment. Its purpose is to
 help a clinic operate consistently: fewer missed handoffs, clearer appointment
@@ -10,23 +14,25 @@ follow-up, safer use of Google Workspace, and repeatable front-desk processes.
 
 ## Production status
 
-As of July 16, 2026, Doko is used by:
+As of the July 27, 2026 dashboard snapshot, Doko is used by:
 
 - 2 paying doctors.
 - 3 clinic assistants across the participating practices.
 - Real patient traffic through Doko patient portals.
-- A clinic workflow that contained 127 appointment records between July 1 and
-  July 15. This is operational volume managed with Doko, not a claim that Doko
-  generated 127 new patients.
+- A dashboard snapshot showing approximately 330 appointment records for one
+  doctor and 87 for another. The visible total is approximately 417 records;
+  counts continue changing as clinics operate. This is operational volume
+  managed with Doko, not a claim that Doko generated every patient or booking.
 
 The business is intentionally onboarding slowly while workflows, reliability,
 and training are validated with real clinics.
 
 ## What Doko includes
 
-- **Medical panel:** appointments, blocks, temporary holds, editing, manual
-  confirmation, release, search, cancellation history with controlled contact
-  reuse, profile management, and clinic services.
+- **Medical panel:** appointment control, blocks, temporary holds, editing,
+  manual confirmation, release, read-only search, cancellation, cancellation
+  history with controlled contact reuse, profile management, and clinic
+  services.
 - **Patient portal:** clinic identity, contact and location information,
   appointment access, confirmation guidance, and a constrained patient
   assistant.
@@ -38,7 +44,8 @@ and training are validated with real clinics.
 - **Operational implementation:** versioned clinic protocols, assistant
   training, follow-up, and human-approved workflow adaptations.
 - **Doko.lat:** local medical directory and reusable physician pages with local
-  SEO controls.
+  SEO controls. Visibility may help a clinic receive inquiries, but Doko does
+  not guarantee patient acquisition.
 - **Doko Suffy:** B2B catalog, orders, warehouse preparation, inventory,
   delivery, suppliers, and controlled operational agents.
 - **Mi Centro:** owner dashboard for doctors, digital presence, Suffy,
@@ -107,12 +114,13 @@ indexed in [PRODUCTION_EVIDENCE.md](docs/PRODUCTION_EVIDENCE.md).
 ## Hackathon disclosure
 
 Doko was started during the Build with Gemini XPRIZE period. Pre-existing
-clinic relationships, prior Google Calendar work, and the founder's operations
-experience are disclosed separately from the submitted project. See
+Mis relaciones previas con clínicas, el trabajo anterior de configuración de
+Google Calendar y mi experiencia operativa están separados del proyecto
+presentado. Consulta
 [HACKATHON_DISCLOSURES.md](docs/HACKATHON_DISCLOSURES.md).
 
-The preserved design history, discarded ideas, field-observation decisions,
-and founder context are documented in
+Mi historia de diseño, las ideas descartadas, las decisiones tomadas al
+observar consultorios y mi contexto están documentados en
 [PROJECT_EVOLUTION.md](docs/PROJECT_EVOLUTION.md). Selected pocket-notebook
 translations are indexed in
 [NOTEBOOK_EVIDENCE_TRANSLATIONS.md](docs/NOTEBOOK_EVIDENCE_TRANSLATIONS.md).

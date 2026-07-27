@@ -1,8 +1,8 @@
 # Pocket Notebook Evidence
 
-This document indexes selected pages from the founder's undated pocket
-notebook. The founder recalls using it during late-May architecture planning
-and early clinic observation in June 2026.
+Este documento reúne páginas seleccionadas de mi libreta de bolsillo sin fecha.
+Recuerdo haberla usado durante la planeación de arquitectura de finales de
+mayo y la observación inicial en consultorios durante junio de 2026.
 
 The pages contain product questions, workflow logic, architecture sketches,
 and early hypotheses. They contain no patient records, credentials, OAuth
@@ -10,26 +10,26 @@ tokens, or Google Workspace data. Exact chronology is supported by dated
 digital planning files; the notebook itself should not be presented as dated
 evidence.
 
-The notebook also records AI-assisted learning. The founder did not enter the
-project with formal software-engineering training. Gemini, ChatGPT, Cursor, and
-later OpenAI Codex were used to explain unfamiliar concepts, compare possible
-approaches, and support implementation. The founder rewrote those explanations
-as questions and sketches he could reason about, then decided what to apply,
-test, constrain, or reject based on direct clinic observation. These pages
-therefore document both product reasoning and the practical learning process
-enabled by AI.
+La libreta también registra mi aprendizaje apoyado por IA. No inicié el
+proyecto con formación formal en ingeniería de software. Usé Gemini, ChatGPT,
+Cursor y después OpenAI Codex para entender conceptos, comparar alternativas y
+apoyar la implementación. Reescribí esas explicaciones como preguntas y
+dibujos que pudiera razonar; después decidí qué aplicar, probar, limitar o
+descartar con base en la observación directa del consultorio. Estas páginas
+documentan tanto el razonamiento del producto como el aprendizaje práctico que
+la IA hizo posible.
 
 ## How to read this evidence
 
 The handwriting and crossed-out ideas are intentionally preserved. They show
 the product-development method used for Doko:
 
-1. Ask an operational question.
-2. Use AI to clarify unfamiliar technical concepts when needed.
-3. Rewrite the explanation as a workflow or sketch the founder could evaluate.
-4. Observe the clinic.
-5. Test the idea.
-6. Keep, constrain, or discard it.
+1. Me hago una pregunta operativa.
+2. Uso IA para aclarar conceptos técnicos que todavía no conozco.
+3. Convierto la explicación en un flujo o dibujo que pueda evaluar.
+4. Observo el consultorio.
+5. Pruebo la idea.
+6. La conservo, la limito o la descarto.
 
 The English text below is a faithful explanatory translation, not a literal
 claim that every early idea became part of the production product.
@@ -130,8 +130,8 @@ duplicating the same information in separate systems.
 > updating the description.
 
 **What it demonstrates:** These notes became the appointment, block, temporary
-hold, edit, search, confirm, and release workflows in the production medical
-panel.
+hold, edit, search, confirm, release, and cancellation workflows in the
+production medical panel.
 
 ### 6. Doko Suffy structured catalog
 
@@ -172,13 +172,13 @@ with the six primary images on the public project page:
 
 ## Caption for the public project
 
-> This pocket notebook was used to turn operational questions into testable
-> workflows. Some ideas became production features, some were constrained by
-> privacy and safety rules, and others were discarded after direct clinic
-> observation. The dated digital specifications in this repository establish
-> the project timeline. The notebook documents how the founder used AI to learn
-> unfamiliar technical concepts, translated them into understandable sketches,
-> and tested the resulting decisions against real clinic operations.
+> Usé esta libreta para convertir preguntas operativas en flujos que pudiera
+> probar. Algunas ideas se volvieron funciones de producción, otras quedaron
+> limitadas por privacidad y seguridad, y otras las descarté después de
+> observar el consultorio. Las especificaciones digitales con fecha establecen
+> la línea de tiempo del proyecto. La libreta muestra cómo usé IA para aprender
+> conceptos técnicos, convertirlos en dibujos comprensibles y probar las
+> decisiones contra operaciones reales.
 
 ## Publication checklist
 

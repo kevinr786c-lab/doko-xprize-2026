@@ -7,6 +7,7 @@ through Devpost's judge-facing fields.
 | Evidence | Location | Status | Privacy rule |
 | --- | --- | --- | --- |
 | Live product | <https://doko.lat> | Available | Public data only |
+| Appointment volume snapshot | Medical-panel aggregate snapshot, July 27, 2026 | Current snapshot | Counts only; no patient-level data |
 | Current application source | Repository root | Included | No credentials or production data |
 | Preserved project milestones | `docs/PROJECT_EVOLUTION.md` | Included | No credentials or patient data |
 | Pocket notebook translations | `docs/NOTEBOOK_EVIDENCE_TRANSLATIONS.md` | Included | Selected pages contain no patient data |
@@ -24,6 +25,9 @@ They belong in the confidential submission channels provided by Devpost.
 
 - Doko helped manage an existing appointment workflow; it did not generate every
   appointment shown in the system.
+- The current dashboard snapshot shows approximately 330 records for one
+  doctor and 87 for another; this number changes as the clinics continue to
+  operate and should always be cited with its capture date.
 - Appointment confirmation and released-slot management improve operational
   control, but causal revenue or attendance claims require measured evidence.
 - Google Calendar is an integrated scheduling component; the Doko portal, panel,
