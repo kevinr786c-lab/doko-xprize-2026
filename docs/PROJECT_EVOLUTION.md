@@ -61,6 +61,9 @@ the design. When I reviewed them, I confirmed that they are byte-identical
 copies of the same scene, not three separate versions. I therefore treat them
 as one preserved design artifact.
 
+The preserved scene can be viewed publicly in
+[Excalidraw](https://excalidraw.com/#json=VgyefdhM4jCxfErc5ah_W,bPdTnMoIvqJagbSV4OOdww).
+
 ## Decisions that changed the product
 
 ### Reduce unnecessary clinical-data scope
