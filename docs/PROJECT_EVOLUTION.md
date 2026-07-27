@@ -55,9 +55,11 @@ The official program period began on May 19, 2026.
 | June 19 onward | Founder field notes, clinic feedback, current repository, and production behavior | Direct clinic observation converted abstract modules into appointment, confirmation, search, portal, training, and operating workflows used by real doctors and assistants. |
 | July 15 | `docs/evidence/load-test-2026-07-15.md` | Read-only concurrency validation of the panel assistant with deterministic fallbacks. |
 
-Three June Excalidraw files named `dibujo +`, `dibujo v1`, and `dibujo` are
-byte-identical copies of one scene, not three separate versions. They are
-treated as one preserved design artifact.
+I saved three June Excalidraw files named `dibujo +`, `dibujo v1`, and `dibujo`
+separately because I initially thought each one preserved a different part of
+the design. When I reviewed them, I confirmed that they are byte-identical
+copies of the same scene, not three separate versions. I therefore treat them
+as one preserved design artifact.
 
 ## Decisions that changed the product
 
