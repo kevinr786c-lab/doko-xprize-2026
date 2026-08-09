@@ -2,7 +2,7 @@
 
 **An adaptable operating ecosystem for small medical practices in Tijuana.**
 
-Doko combines clinic operations, patient-facing digital presence, implementation support, bounded AI assistance, and a progressively developed medical-supply capability in one product. It is built from direct observation of real clinic work, then improved in small, testable steps.
+Doko combines clinic operations, patient-facing digital presence, implementation support, bounded AI assistance, and a progressively developed medical-supply capability in one operating ecosystem and business. It is built from direct observation of real clinic work, then improved in small, testable steps.
 
 > Build only where Doko adds meaningful value; integrate what is already solved well.
 
@@ -22,20 +22,22 @@ This repository uses five explicit labels:
 
 Small practices often depend on a doctor, an assistant, several disconnected tools, and knowledge that lives only in people's routines. A generic platform can impose a fixed workflow that does not match the specialty or the clinic. Doko starts with the opposite question: how does this clinic actually work, and where can software remove friction without replacing medical judgment?
 
-The first production use is with gynecology practices. The goal is not to make every clinic identical. It is to establish a reliable operating core, document specialty-specific workflows, and add optional tools only after they prove useful.
+The first production use is with two gynecologists and their clinic assistants. The goal is not to make every clinic identical. It is to establish a reliable operating core, document specialty-specific workflows, and add optional tools only after they prove useful.
+
+In Doko, *adaptable* means that capabilities can be configured, enabled, limited, or developed around workflows validated with each clinic. It does not mean that the software changes itself autonomously.
 
 ## Current product
 
 | Capability | Status | What it does |
 |---|---|---|
 | Medical panel and appointment operations | **PRODUCTION** | Gives doctors and assistants a daily operational view for appointments, confirmation state, editing, cancellation, and clinic follow-up. |
-| Google Calendar integration | **PRODUCTION** | Uses a mature calendar engine as the scheduling foundation instead of rebuilding one. Doko adds clinic-specific controls and operational visibility around it. |
+| Google Calendar integration | **PRODUCTION** | Doko does not attempt to replace a mature calendar engine. It uses Google Calendar as the scheduling foundation and builds clinic-specific operational workflows around it. |
 | Gmail confirmation workflows | **PRODUCTION** | Sends and tracks bounded appointment communications while keeping deterministic appointment state authoritative. |
 | Patient portal and `doko.lat` directory | **PRODUCTION** | Publishes approved clinic information, services, location, and booking access without exposing private operational records. |
 | Doko assistants | **PRODUCTION, BOUNDED** | Answer clinic-scoped questions and classify limited intent. They do not make medical decisions or override operational records. |
 | Mi Centro | **PRODUCTION / OPERATOR USE** | Supports physician setup, digital presence, clinic implementation, protocol documentation, AI usage visibility, and operational administration. |
 | Implementation protocols | **VALIDATED** | Turn observed clinic routines into reviewable reference workflows, clinic adaptations, training plans, and follow-up. |
-| Doko Suffy | **IMPLEMENTED / NOT YET COMMERCIALLY VALIDATED** | Provides the foundation for integrated medical-supply sourcing, catalog, warehouse, purchasing, and delivery operations. |
+| Doko Suffy | **IMPLEMENTED / NOT YET COMMERCIALLY VALIDATED** | Provides software and operational foundations for integrated medical-supply sourcing and fulfillment; commercial validation and expansion of physical logistics remain ahead. |
 
 ## How the system works
 
@@ -58,13 +60,13 @@ See [AI operations](docs/AI_OPERATIONS.md) and [privacy and safety](docs/PRIVACY
 
 ## Doko Suffy
 
-Doko Suffy is Doko's integrated medical-supply sourcing and fulfillment capability, designed to grow progressively as the software operation builds recurring revenue, clinic relationships, operational knowledge, and trust.
+Doko Suffy is an integrated medical-supply sourcing and fulfillment capability under progressive development. Software and operational foundations exist, while commercial validation and expansion of the physical logistics operation remain ahead.
 
 It is not a separate startup and it does not represent inventory stored inside each clinic. Its intended progression is:
 
 1. a controlled base catalog;
 2. specialized sourcing when a clinic needs alternatives;
-3. trusted supplier relationships and quality review;
+3. comparison of supplier information, product characteristics, documentation, availability, and price;
 4. internal purchasing, warehouse, lot, and delivery operations;
 5. organic expansion based on demonstrated demand.
 
@@ -72,23 +74,23 @@ Current subscription revenue is not presented as Suffy revenue, and future suppl
 
 ## Real-world validation
 
-Doko is operated with two paying gynecology practices. A dated snapshot on July 27, 2026 showed:
+Doko is operated by two paying gynecologists using it with their clinic assistants. A dated snapshot on July 27, 2026 showed:
 
-- 330 appointments visible for one practice during the month;
-- 87 appointments visible for the second practice;
-- 417 appointments visible across both practices in that snapshot.
+- 330 appointment records visible for one gynecologist during the month;
+- 87 appointment records visible for the second gynecologist;
+- 417 appointment records visible across both clinic workflows in that snapshot.
 
-These figures describe operational volume handled by the system. They do **not** mean Doko generated those patients. The practices' real use validates reliability, workflow fit, and the pressure the product must support.
+These figures describe operational volume handled by the system. They do **not** mean Doko generated those patients. Their real use validates reliability, workflow fit, and the pressure the product must support.
 
-Founding physicians are real users and early operational validation collaborators. They are not legal cofounders of Doko.
+The two founding physicians are real users and the first operational validation collaborators. Future founding physicians from additional specialties will help distinguish common workflows, specialty-specific workflows, optional capabilities, and problems that are genuinely worth solving in software. The term describes their validation role; they are not legal cofounders of Doko.
 
 ## Business model
 
 Doko is bootstrapped and has received no outside investment.
 
-- **Current revenue:** recurring clinic subscriptions.
-- **Separate service revenue:** implementation or digital-presence work when clearly contracted outside the subscription.
-- **Future revenue:** margin from Doko Suffy sourcing and fulfillment after that capability is commercially validated.
+- **Current Doko revenue:** recurring clinic subscriptions.
+- **Excluded from Doko hackathon revenue:** standalone implementation, operational support, or digital-presence services contracted outside the subscription.
+- **Future Doko revenue:** margin from Doko Suffy sourcing and fulfillment after that capability is commercially validated.
 
 The operating strategy is to keep infrastructure efficient, reinvest subscription revenue into validated improvements, grow through trusted clinic relationships, and expand Suffy only as real demand supports it. This is a strategy, not a guaranteed forecast.
 

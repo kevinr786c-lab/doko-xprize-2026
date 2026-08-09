@@ -1,11 +1,12 @@
 # WhatsApp Cloud API validation
 
-> **Status: experimental and pre-production.** This work is not presented as a
-> live clinic capability in the hackathon submission.
+> **Status: CONTROLLED TESTING / EXPERIMENTAL / PRE-PRODUCTION.** This work is
+> not presented as a live clinic capability in the hackathon submission.
 
 This initial integration validates the connection between Meta's WhatsApp
-Cloud API and Doko. The current endpoint can verify Meta's callback and receive
-test events. It does not yet operate a clinic's WhatsApp account, replace email
+Cloud API and Doko. The current endpoint can verify Meta's callback, receive
+controlled test events, and run a bounded local responder for allowlisted test
+recipients. It does not yet operate a clinic's WhatsApp account, replace email
 confirmations, answer real patients, modify appointments, or store message
 content.
 

@@ -25,14 +25,18 @@ submitted product:
   control, supplier interaction, replenishment, invoice handling,
   medical-supply sourcing, logistics, and clinic workflows.
 - A pre-existing relationship with one clinic and its physician.
-- Before the program period, I had an existing relationship with one clinic
-  and independently helped configure its Google Calendar booking flow,
-  including availability, appointment duration, scheduling windows, and
-  booking rules. This was standalone operational support for the clinic, not
-  the submitted Doko platform. It gave me direct exposure to a real scheduling
-  workflow that later informed product decisions during the program.
-- Payment for that standalone Calendar configuration, received before the
-  program and excluded from the hackathon P&L.
+
+Before the program period, I already had a relationship with one clinic and
+occasionally provided limited independent operational support based on my
+previous logistics and medical-supply experience. This included assistance
+with existing tools such as Google Calendar and other specific operational or
+sourcing needs when requested. This was informal, standalone support. It was
+not Doko, a previous version of Doko, or a software product. The relationship
+nevertheless gave me direct exposure to real clinic operations that later
+informed product decisions during the program.
+
+- Payment for that standalone support, received before the program and
+  excluded from the hackathon P&L.
 - A separate, unsuccessful scheduling and software experiment that provided
   general learning but is not submitted as Doko. Its February-March code and
   archives are excluded from this repository.
@@ -53,9 +57,9 @@ physician pages, bounded Doko assistants, AI usage controls, deterministic
 supervision, role-separated administration, versioned clinic implementation
 protocols, and current Doko Suffy operational foundations.
 
-Doko uses Google Calendar as an integrated scheduling foundation rather than
-claiming to replace it. It adds clinic-specific control, visibility, and
-workflows around that mature engine.
+Doko does not attempt to replace a mature calendar engine. It uses Google
+Calendar as the scheduling foundation and builds clinic-specific operational
+workflows around it.
 
 The scope is intentionally narrower than a complete medical record system.
 Doko controls and supports daily operations while I validate and enable
@@ -65,16 +69,16 @@ acquisition.
 
 ## Revenue classification
 
-- Payment for the pre-program Google Calendar booking-flow configuration is
-  excluded from hackathon revenue.
+- Payment for pre-program independent operational support is excluded from
+  hackathon revenue.
 - Subscription revenue received during the program from the physician
   relationship that existed before May 19 is disclosed separately as
   pre-existing-customer revenue.
 - Subscription revenue from a physician acquired during the program is
   classified as an independent sale when supported by the final evidence.
-- Separate implementation or operational-support services are not described as
-  Doko subscription revenue unless the supporting evidence and P&L classify
-  them that way.
+- Separate implementation or operational-support services are excluded from
+  Doko hackathon revenue. Only documented subscription payments are classified
+  as Doko hackathon revenue.
 - Future Suffy sourcing or fulfillment margin is not reported as current
   revenue.
 - The final P&L uses cash-basis receipt dates and documented currency

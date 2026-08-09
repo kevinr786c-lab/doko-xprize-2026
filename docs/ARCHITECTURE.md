@@ -34,9 +34,9 @@ The diagram shows one operating ecosystem, not a collection of independent
 products. The portal, medical panel, Mi Centro, and Doko Suffy use the same
 application and access boundaries while serving different operational roles.
 
-Google Calendar remains the scheduling foundation. Doko does not attempt to
-replace a mature calendar engine. It builds clinic-specific control,
-confirmation, audit, and assistance workflows around that integration.
+Doko does not attempt to replace a mature calendar engine. It uses Google
+Calendar as the scheduling foundation and builds clinic-specific operational
+workflows around it.
 
 ## Application layers
 
@@ -58,6 +58,9 @@ confirmation, audit, and assistance workflows around that integration.
   auditable outcomes.
 - `routes/confirmacion.py` handles signed patient confirmation and cancellation
   actions.
+- `routes/recetas.py` provides the doctor-only printable prescription workflow.
+  Prescription content stays in browser memory; the server returns only the
+  authorized professional configuration.
 
 ### Public presence
 
@@ -87,6 +90,10 @@ inventory. It is not an attempt to manage every supply drawer inside a clinic.
   before an optional Gemini review.
 - `agentes/nivel4/agente_supervisor.py` keeps severity deterministic and treats
   Gemini output as optional presentation support.
+
+The WhatsApp Cloud API prototype is a separate controlled integration. Its
+allowlisted responder uses local deterministic rules and does not query Gemini,
+Google Calendar, or Gmail. It is not a live clinic capability.
 
 The operating sequence is deliberate:
 

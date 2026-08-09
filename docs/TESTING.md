@@ -52,6 +52,33 @@ create, edit, confirm, cancel, release, or email an appointment.
 - Role rejection for protected routes.
 - Mobile layouts at 360, 390, and 430 px; desktop at 1024 and 1440 px.
 
+### Printable prescription workflow
+
+These checks are manual and use fictitious patient information:
+
+- Confirm that only an authorized doctor with the module enabled can open it.
+- Confirm clinic-scoped professional data and role rejection for assistants,
+  disabled doctors, and users from another clinic.
+- Exercise the permitted create, edit, clear, and delete interactions in the
+  browser without sending prescription content to the server.
+- Check rendering, page overflow protection, print preview, and browser
+  print-or-PDF output.
+- Confirm that reloading the page removes the draft and that no clinical text
+  appears in local storage, network requests, application logs, or telemetry.
+
+### WhatsApp Cloud API prototype
+
+These checks are manual and remain limited to Meta test resources and
+allowlisted recipients:
+
+- Verify the callback with the correct token and reject an invalid token.
+- Validate `X-Hub-Signature-256` when an app secret is configured.
+- Confirm that the responder is disabled by default and rejects recipients
+  outside the explicit test allowlist.
+- Confirm that the bounded test response uses local deterministic rules only.
+- Confirm that the prototype does not query Gemini, Google Calendar, or Gmail;
+  modify appointments; or persist message bodies.
+
 Experimental integrations and features still being validated are not counted
 as completed production test coverage in this document.
 

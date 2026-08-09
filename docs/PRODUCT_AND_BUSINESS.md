@@ -14,7 +14,7 @@ This matters because a gynecology practice, a cardiology practice, and a dermato
 
 ## Founder context
 
-My experience did not begin in technology. It came from hands-on hospital supply operations, warehouse and inventory control, supplier interaction, replenishment, invoice handling, and medical-supply sourcing. I also worked with supplies, instruments, and equipment; supported cycle counts and logistics; handled receiving, shipping, and invoices; and helped prepare surgical kits.
+My experience did not begin in technology. It came from hands-on hospital supply operations, warehouse and inventory control, supplier interaction, replenishment, invoice handling, medical-supply sourcing, and medication-related hospital operations. I also worked with supplies, instruments, and equipment; supported cycle counts and logistics; handled receiving, shipping, and invoices; and helped prepare surgical kits.
 
 That experience taught me to think in operational dependencies: what must be available, who is responsible, what happens when a step fails, and how a process affects the next person. I later applied that way of thinking to software through AI-assisted learning, documentation, experimentation, and direct observation inside clinics.
 
@@ -62,13 +62,13 @@ Doko can publish approved information through `doko.lat`, clinic pages, location
 5. The workflow is tested in real use.
 6. Only a repeated, safe, maintainable need becomes an optional system capability.
 
-The first production specialty is gynecology. The future goal is to work with one or more founding physicians in additional specialties, not to claim those specialties are already supported.
+Initial production validation has taken place with two gynecologists and their clinic assistants. The future goal is to work with founding physicians in additional specialties, not to claim those specialties are already supported. Those collaborations will help distinguish common workflows, specialty-specific workflows, optional capabilities, and needs that genuinely deserve new software.
 
 Founding physicians are real users and early operational validation collaborators, not legal cofounders.
 
 ## Validation and traction
 
-Doko has two paying gynecology practices using the system in real operations. A July 27, 2026 snapshot showed 330 appointments visible for one practice and 87 for the other, or 417 across both.
+Doko has two paying gynecologists using the system with their clinic assistants in real operations. A July 27, 2026 snapshot showed 330 appointment records visible in one clinic workflow and 87 in the other, or 417 across both.
 
 This volume validates that Doko can participate in a busy daily workflow. It does not prove that Doko generated the patients, nor does it establish performance for every medical specialty.
 
@@ -94,9 +94,9 @@ Some clinics may request setup, training, operational documentation, or digital-
 
 ### 3. Doko Suffy margin — future
 
-Doko Suffy is Doko's integrated medical-supply sourcing and fulfillment capability, designed to grow progressively as the software operation builds recurring revenue, clinic relationships, operational knowledge, and trust.
+Doko Suffy is an integrated medical-supply sourcing and fulfillment capability under progressive development. Software and operational foundations exist, while commercial validation and expansion of the physical logistics operation remain ahead.
 
-My hospital and logistics experience is directly relevant here. Many physicians already work with sales representatives, but a representative is normally limited to the brands and catalog of one company. Doko Suffy is intended to search across appropriate suppliers, compare available options, review quality and suitability, and coordinate fulfillment without being dependent on one manufacturer.
+My hospital and logistics experience is directly relevant here. Many physicians already work with sales representatives, but a representative is normally limited to the brands and catalog of one company. Doko Suffy is intended to search across appropriate suppliers; compare supplier information, product characteristics, documentation, availability, and price; and coordinate fulfillment without being dependent on one manufacturer. It does not perform clinical evaluation or sell medications.
 
 Its proposed progression is:
 
@@ -143,7 +143,7 @@ These are future opportunities, not current headcount claims.
 
 **FUTURE DIRECTION:** build a trusted operating ecosystem for small practices in Tijuana and then expand carefully to similar markets. Doko should be associated with reliable clinic operations, practical implementation, approved digital presence, and useful supply support.
 
-The target is not growth at any cost. The target is a maintainable product, recurring revenue, documented specialty knowledge, and an operation that can train future staff to deliver the same quality without depending entirely on the founder.
+The target is not growth at any cost. The target is a maintainable product, recurring revenue, documented specialty knowledge, and an operation that can train future staff to deliver the same quality without depending entirely on me.
 
 ## Defensibility
 
@@ -161,7 +161,7 @@ Doko's defensibility is not a single feature. It is the accumulated combination 
 
 - Two clinics are meaningful validation but remain a small customer base.
 - Current production experience is concentrated in gynecology.
-- The founder still performs most implementation and support.
+- I still perform most implementation and support.
 - Suffy is not yet commercially validated.
 - AI must remain bounded and must never replace medical judgment.
 - Digital presence can improve discoverability but cannot guarantee new patients.

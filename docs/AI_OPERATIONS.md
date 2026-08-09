@@ -75,16 +75,26 @@ AI may classify, summarize, suggest, and improve readability. It may not:
 - Grant access.
 - Set incident severity.
 - Create, edit, confirm, cancel, release, or reschedule an appointment.
+- Make medical decisions.
 - Send an email outside a programmed and authorized workflow.
 - Approve a clinic protocol or evaluate an employee by itself.
-- Purchase inventory, allocate money, or complete a delivery.
+- Purchase stock, move money, complete a delivery, or perform any other protected write.
 
 This boundary is intentional: language models assist with language; explicit
 rules, verified records, and people retain operational authority.
 
+For an AI-assisted workflow, the operating sequence is deterministic rules,
+bounded AI interpretation, deterministic validation, and human authorization
+when the consequence requires it.
+
+## WhatsApp controlled test
+
+The WhatsApp Cloud API prototype is in controlled testing, not clinic
+production. It verifies webhook connectivity, receives controlled events, and
+uses a local deterministic responder limited by an allowlist. The current
+responder does not query Gemini, Google Calendar, or Gmail and cannot change an
+appointment. It is not used with live patients.
+
 ## Future direction
 
-Additional assistants may be evaluated for clinic communication and new
-specialty workflows. They are not presented as current production capability
-until the workflow, permissions, privacy boundaries, and human fallback have
-been tested with an authorized clinic.
+Future research will evaluate whether Doko AI can take a more operational role inside explicitly authorized capabilities. Deterministic rules will continue to protect core invariants, permissions, and protected writes. New AI-enabled actions must be introduced through controlled experiments, narrow permissions, auditable behavior, and human authorization where the consequence requires it. This is a research direction, not a claim of current autonomous operation.

@@ -15,6 +15,8 @@ Devpost's judge-facing channels.
 | Read-only assistant load test | `docs/evidence/load-test-2026-07-15.md` | Included | Aggregate metrics only |
 | AI operating boundaries | `docs/AI_OPERATIONS.md` | Included | No prompts or patient data |
 | Privacy and safety controls | `docs/PRIVACY_AND_SAFETY.md` | Included | No Workspace payloads |
+| Printable prescription workflow | Application source and physician-reviewed demo | VALIDATED WITH AN AUTHORIZED PHYSICIAN — supporting evidence kept in the judge-facing submission | No prescription or patient content in the repository |
+| WhatsApp Cloud API prototype | `docs/WHATSAPP_CLOUD_API.md` and application source | CONTROLLED TESTING / EXPERIMENTAL / PRE-PRODUCTION | Test allowlist; no persisted message bodies |
 | Automated repository validation | `.github/workflows/validate.yml` | Included | Compile, import, route, and Jinja checks |
 
 Payment records, profit-and-loss evidence, customer contact details, and
@@ -32,14 +34,23 @@ Devpost.
 - Appointment confirmation and released-slot management improve operational
   control. Revenue, attendance, or patient-growth effects require separate
   measured evidence.
-- Google Calendar is the integrated scheduling foundation. The Doko portal,
-  panel, deterministic rules, audit, confirmation, implementation, and
-  assistance layers are Doko's clinic-specific operating system around it.
-- Doko Suffy is an integrated sourcing and fulfillment capability under
-  progressive development. Future Suffy margin must not be presented as
-  current subscription revenue.
-- Pre-program experiments and the earlier standalone Google Calendar booking
-  configuration are disclosed inputs, not the submitted integrated product.
+- Doko does not attempt to replace a mature calendar engine. It uses Google
+  Calendar as the scheduling foundation and builds clinic-specific operational
+  workflows around it.
+- Doko Suffy is an integrated medical-supply sourcing and fulfillment
+  capability under progressive development. Software and operational
+  foundations exist, while commercial validation and expansion of the
+  physical logistics operation remain ahead. Future Suffy margin must not be
+  presented as current subscription revenue.
+- Pre-program experiments and independent clinic operational support are
+  disclosed inputs, not the submitted integrated product. See
+  `docs/HACKATHON_DISCLOSURES.md` for the canonical disclosure.
+- The printable prescription workflow is physician reviewed but is not an EHR,
+  certified e-prescribing service, autonomous prescriber, or authorization for
+  controlled medication.
+- The WhatsApp prototype proves controlled webhook connectivity and local
+  bounded response behavior. It is not a live clinic or patient communication
+  claim.
 
 ## Evidence hierarchy
 

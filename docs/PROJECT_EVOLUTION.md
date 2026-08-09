@@ -29,7 +29,7 @@ service.
 | Period | Preserved evidence | Classification | What it means |
 | --- | --- | --- | --- |
 | February-March 2026 | Earlier GitHub experiments and a March archive | Pre-existing learning | I attempted and abandoned broad agent and medical-software experiments. They are not the submitted Doko product. |
-| April 2026 | Independent Google Calendar booking-flow configuration and private payment evidence | Pre-existing customer relationship and standalone operational support | Before the program period, I had an existing relationship with one clinic and independently helped configure its Google Calendar booking flow, including availability, appointment duration, scheduling windows, and booking rules. This was standalone operational support for the clinic, not the submitted Doko platform. It gave me direct exposure to a real scheduling workflow that later informed product decisions during the program. |
+| April 2026 | Pre-program independent clinic operational support and private payment evidence | Pre-existing relationship and standalone support | My pre-program independent clinic operational experience and support later informed product decisions during the program. The canonical disclosure and its boundaries are documented in [Hackathon disclosures](HACKATHON_DISCLOSURES.md). |
 
 The payment for that prior Calendar work is excluded from hackathon revenue.
 The abandoned March archive contains obsolete credentials and service-account
@@ -113,28 +113,35 @@ ecosystem intended to help small medical practices gain daily control over
 appointments, confirmations, cancellations, communication, digital presence,
 staff implementation, and repeatable processes.
 
-The next validation step is to learn from physicians in additional
-specialties. In this context, a "founding physician" means a real early user
-who helps validate a specialty workflow. It does not mean a legal cofounder or
+Initial production validation came from two gynecologists using Doko with
+their clinic assistants. The next validation step is to learn from physicians
+in additional specialties. A "founding physician" is an early operational
+validation collaborator who helps distinguish common workflows,
+specialty-specific workflows, optional capabilities, and problems that are
+genuinely worth solving in software. It does not mean a legal cofounder or
 member of the Doko team.
 
-Approved clinic practices can become versioned protocols and training
+Approved clinic workflows can become versioned protocols and training
 references. Doko does not replace medical responsibility or guarantee
 regulatory compliance. It helps organize work and orient the process so that
 the clinic can operate with greater clarity.
 
 ### Doko Suffy within the same ecosystem
 
-Doko Suffy is Doko's integrated medical-supply sourcing and fulfillment
-capability, designed to grow progressively as the software operation builds
-recurring revenue, clinic relationships, operational knowledge, and trust.
+Doko Suffy is an integrated medical-supply sourcing and fulfillment capability
+under progressive development. Software and operational foundations exist,
+while commercial validation and expansion of the physical logistics operation
+remain ahead.
 
-Its intended progression is a base catalog, specialized sourcing, trusted
-supplier relationships, internal logistics, and organic expansion based on
-validated demand. References to Suffy inventory mean Doko's future sourcing,
-warehouse, and fulfillment inventory, not inventory inside a clinic's drawers.
-Potential procurement margin, supplier relationships, and employment are
-future direction, not current traction or earned revenue.
+Its intended progression is a base catalog, specialized sourcing, comparison
+of supplier information, product characteristics, documentation, availability,
+and price, followed by internal logistics and organic expansion based on
+validated demand. References to Suffy inventory mean Doko's sourcing,
+warehouse, lot, and fulfillment inventory, not inventory inside a clinic's
+drawers. Doko does not perform clinical evaluation of products and is not a
+pharmacy or medication seller. Potential procurement margin, supplier
+relationships, and employment are future direction, not current traction or
+earned revenue.
 
 Doko.lat supports digital presence and discoverability, but Doko does not
 claim that a page automatically generates patients. The broader goal is to
@@ -204,7 +211,7 @@ safety, cost, and maintainability are validated.
 
 > I developed, deployed, and validated Doko during the program with AI-assisted
 > learning and implementation. It grew from my operational experience,
-> standalone pre-program Calendar support, and direct clinic observation into
+> pre-program independent clinic operational experience and support, and direct clinic observation into
 > a production platform that helps doctors and assistants manage appointments,
 > confirmations, digital presence, implementation, and repeatable processes.
 > Deterministic controls remain authoritative, AI operates within bounded

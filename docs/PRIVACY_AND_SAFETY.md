@@ -28,6 +28,10 @@ The patient assistant uses only the public or clinic-approved context of the
 selected physician. Clinic context is isolated and may not be reused to answer
 for another clinic.
 
+## WhatsApp controlled testing
+
+The current WhatsApp Cloud API integration is restricted to controlled testing. The test responder uses local deterministic rules and does not query Gemini, Google Calendar, or Gmail. Message bodies are not persisted by the prototype. Production clinic use will require a separate review of authorization, consent, provider requirements, templates, privacy, retention, and operational safeguards.
+
 ## Repository safety
 
 The repository excludes:
