@@ -15,12 +15,18 @@ used to train or improve generalized AI models.
 
 ## AI isolation
 
-Raw, aggregated, anonymized, or derived Gmail and Google Calendar API data is
-not sent to Gemini. The panel assistant strips identifiers before an optional
-intent classification, and conversational appointment search is fully local.
+Doko does not send Gmail message bodies, Google Calendar event payloads, or
+appointment records to Gemini. For the medical-panel assistant, Gemini receives
+only a locally extracted concept package when bounded classification is
+invoked; deterministic operational records remain authoritative.
 
-The implementation assistant removes names, emails, phone numbers, dates,
-UUIDs, patient information, and Workspace content before a manual review call.
+Conversational appointment search is fully local. The implementation assistant
+removes names, email addresses, phone numbers, dates, UUIDs, patient
+information, and Workspace content before a manual review call.
+
+The patient assistant uses only the public or clinic-approved context of the
+selected physician. Clinic context is isolated and may not be reused to answer
+for another clinic.
 
 ## Repository safety
 
@@ -39,8 +45,11 @@ must be revoked or rotated.
 
 ## Evidence safety
 
-Screenshots and videos must use a test doctor and fictitious patient data, or be
-redacted before publication. Aggregate appointment counts are preferred over
+Screenshots and videos must use a test physician and fictitious patient data or
+be redacted before publication. Aggregate appointment counts are preferred over
 row-level records. Testimonials require the participant's explicit permission.
+
+Appointment volume demonstrates that Doko operates under real clinic load. It
+does not mean that Doko generated those patients or appointments.
 
 The public privacy policy is hosted at <https://doko.lat/privacidad>.

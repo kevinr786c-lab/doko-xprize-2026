@@ -4,7 +4,7 @@ import threading
 import unicodedata
 import uuid
 from datetime import datetime
-from flask import Blueprint, render_template, request, jsonify, session
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for
 from psycopg2.extras import RealDictCursor
 
 from helpers.db import get_connection
@@ -1049,19 +1049,23 @@ def doctores():
                 SELECT d.correo_doctor, d.nombre_doctor, d.especialidad, d.telefono_consultorio,
                        d.id_publico, d.calendar_booking_url, d.direccion_consultorio, d.maps_url,
                        d.foto_perfil_url, d.aseguradoras_aceptadas, d.activo, d.fecha_registro,
-                       COALESCE((s.visual_config->>'medico_fundador')::boolean, FALSE) AS medico_fundador
+                       COALESCE((s.visual_config->>'medico_fundador')::boolean, FALSE) AS medico_fundador,
+                       COALESCE(rc.habilitada, FALSE) AS receta_habilitada
                 FROM DOCTORES d
                 LEFT JOIN SITIOS_MEDICOS s ON s.correo_doctor = d.correo_doctor
+                LEFT JOIN RECETA_CONFIGURACION rc ON rc.correo_doctor = d.correo_doctor
                 ORDER BY d.fecha_registro DESC
             """)
         else:
             cur.execute("""
-                SELECT correo_doctor, nombre_doctor, especialidad, telefono_consultorio,
-                       id_publico, calendar_booking_url, direccion_consultorio, maps_url,
-                       foto_perfil_url, aseguradoras_aceptadas, activo, fecha_registro,
-                       FALSE AS medico_fundador
-                FROM DOCTORES
-                ORDER BY fecha_registro DESC
+                SELECT d.correo_doctor, d.nombre_doctor, d.especialidad, d.telefono_consultorio,
+                       d.id_publico, d.calendar_booking_url, d.direccion_consultorio, d.maps_url,
+                       d.foto_perfil_url, d.aseguradoras_aceptadas, d.activo, d.fecha_registro,
+                       FALSE AS medico_fundador,
+                       COALESCE(rc.habilitada, FALSE) AS receta_habilitada
+                FROM DOCTORES d
+                LEFT JOIN RECETA_CONFIGURACION rc ON rc.correo_doctor = d.correo_doctor
+                ORDER BY d.fecha_registro DESC
             """)
         doctores_lista = cur.fetchall()
         cur.execute("""
@@ -1710,7 +1714,10 @@ def guardar_sitio_medico():
         """, ('CONFIGURACION_SITIO_MEDICO', session.get('correo', 'admin'), 'admin',
               json.dumps({'id_sitio': str(sitio['id_sitio']), 'correo_doctor': correo_doctor, 'estado': estado}), request.remote_addr))
         conn.commit()
-        return jsonify({'ok': True, 'id_sitio': str(sitio['id_sitio'])})
+        sitio_guardado = str(sitio['id_sitio'])
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'ok': True, 'id_sitio': sitio_guardado})
+        return redirect(url_for('admin_bp.presencia_digital', sitio=sitio_guardado))
     except Exception as exc:
         conn.rollback()
         return jsonify({'ok': False, 'error': str(exc)}), 400

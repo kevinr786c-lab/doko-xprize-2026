@@ -97,6 +97,18 @@ OAUTH_SCOPES = [
 ]
 # Operación de Negocio
 WHATSAPP_NUMBER = os.environ.get('WHATSAPP_NUMBER', '')
+WHATSAPP_ACCESS_TOKEN = os.environ.get('WHATSAPP_ACCESS_TOKEN', '')
+WHATSAPP_VERIFY_TOKEN = os.environ.get('WHATSAPP_VERIFY_TOKEN', '')
+WHATSAPP_APP_SECRET = os.environ.get('WHATSAPP_APP_SECRET', '')
+WHATSAPP_PHONE_NUMBER_ID = os.environ.get('WHATSAPP_PHONE_NUMBER_ID', '')
+WHATSAPP_BUSINESS_ACCOUNT_ID = os.environ.get('WHATSAPP_BUSINESS_ACCOUNT_ID', '')
+WHATSAPP_GRAPH_API_VERSION = os.environ.get('WHATSAPP_GRAPH_API_VERSION', 'v25.0')
+WHATSAPP_RESPONDER_ACTIVO = os.environ.get('WHATSAPP_RESPONDER_ACTIVO', '').lower() in {'1', 'true', 'si', 'yes'}
+WHATSAPP_TEST_RECIPIENTS = {
+    ''.join(ch for ch in valor if ch.isdigit())
+    for valor in os.environ.get('WHATSAPP_TEST_RECIPIENTS', '').split(',')
+    if ''.join(ch for ch in valor if ch.isdigit())
+}
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8080')
 OAUTH_REDIRECT_PATH = os.environ.get('OAUTH_REDIRECT_PATH', '/oauth2callback')
 PRESENCIA_BASE_DOMAIN = os.environ.get('PRESENCIA_BASE_DOMAIN', 'doko.lat').strip().lower()

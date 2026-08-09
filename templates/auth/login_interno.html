@@ -12,6 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="Doko">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/recetas_panel.css?v=20260728-carta-vertical">
     {% if session.tipo == 'interno' %}
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {% endif %}
@@ -628,6 +629,14 @@
         }
         .agenda-release-btn.release-danger:hover {
             background: #FFEDD5;
+        }
+        .agenda-release-btn.cancel-btn {
+            background: #FEF2F2;
+            border-color: #FECACA;
+            color: #B91C1C;
+        }
+        .agenda-release-btn.cancel-btn:hover {
+            background: #FEE2E2;
         }
         .agenda-toolbar {
             align-items: center;
@@ -2673,6 +2682,7 @@
                         <button class="doctor-nav active" type="button" data-panel-target="agenda-section">Citas</button>
                         <button class="doctor-nav" type="button" data-panel-target="perfil-section">Perfil</button>
                         <button class="doctor-nav" type="button" data-panel-target="tienda-section">Tienda</button>
+                        <button class="doctor-nav" id="doctor-recipes-nav" type="button" data-panel-target="recetas-section" hidden>Recetas</button>
                         <button class="doctor-nav" type="button" data-panel-target="asistente-section">Asistente</button>
                     </aside>
                     <div class="panel-assistant-launcher">
@@ -3032,6 +3042,79 @@
                         </form>
                     </div>
                     <div id="profile-status" style="margin-top:10px;color:var(--color-texto-suave);font-size:0.86rem;"></div>
+                    <section class="profile-block" id="recipe-professional-profile" hidden style="margin-top:24px;border-top:1px solid var(--color-borde);padding-top:22px;">
+                        <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;">
+                            <div>
+                                <p class="section-title">Recetas</p>
+                                <h3 class="shop-title">Datos profesionales para recetas</h3>
+                                <p class="profile-note" style="max-width:680px;">Estos datos solo se imprimen en recetas y no se publican en Doko. Son una copia privada e independiente de tu perfil público.</p>
+                            </div>
+                            <button class="service-action" id="recipe-use-public-suggestions" type="button">Usar datos actuales como base</button>
+                        </div>
+                        <form id="recipe-professional-form" class="profile-form" style="margin-top:18px;" autocomplete="off">
+                            <label>Nombre profesional
+                                <input name="nombre_profesional" maxlength="180" required>
+                            </label>
+                            <label>Especialidad o título
+                                <input name="especialidad_profesional" maxlength="180">
+                            </label>
+                            <label class="wide">Universidad o institución
+                                <input name="institucion_titulo" maxlength="220">
+                            </label>
+                            <label>Cédula profesional
+                                <input name="cedula_profesional" maxlength="80" required>
+                            </label>
+                            <label>Cédula de especialidad
+                                <input name="cedula_especialidad" maxlength="80">
+                            </label>
+                            <label>RFC opcional
+                                <input name="rfc" maxlength="20" autocomplete="off">
+                            </label>
+                            <label>Nombre del consultorio
+                                <input name="nombre_consultorio" maxlength="180">
+                            </label>
+                            <label>Teléfono del consultorio
+                                <input name="telefono_consultorio" maxlength="80">
+                            </label>
+                            <label>Teléfono de emergencias
+                                <input name="telefono_emergencias" maxlength="80">
+                            </label>
+                            <label>Correo de contacto para la receta
+                                <input name="correo_contacto" type="email" maxlength="180">
+                            </label>
+                            <label class="wide">Dirección impresa
+                                <textarea name="direccion_impresa" maxlength="500"></textarea>
+                            </label>
+                            <label class="wide">Información adicional breve
+                                <textarea name="informacion_adicional" maxlength="700"></textarea>
+                            </label>
+                            {% for numero in (0, 1, 2) %}
+                            {% set es_logo = numero == 0 %}
+                            {% set campo = 'logo_url' if es_logo else 'emblema_' ~ numero ~ '_url' %}
+                            <div class="wide recipe-profile-asset" data-recipe-profile-asset="{{ campo }}">
+                                <strong>{{ 'Logo profesional' if es_logo else 'Emblema institucional ' ~ numero }}</strong>
+                                <div class="recipe-profile-asset-row">
+                                    <img id="recipe-profile-{{ campo }}-preview" alt="Vista previa" hidden>
+                                    <input type="hidden" name="{{ campo }}">
+                                    <label class="upload-btn"><input type="file" data-recipe-profile-file="{{ campo }}" accept="image/png,image/jpeg,image/webp" style="display:none;">Elegir imagen</label>
+                                    <button class="service-action" type="button" data-recipe-profile-upload="{{ campo }}">Subir</button>
+                                    <button class="service-action" type="button" data-recipe-profile-clear="{{ campo }}">Quitar</button>
+                                </div>
+                                {% if not es_logo %}
+                                <label style="margin-top:10px;">Nombre del emblema
+                                    <input name="emblema_{{ numero }}_nombre" maxlength="180">
+                                </label>
+                                <label class="insurance-choice" style="margin-top:8px;">
+                                    <input type="checkbox" name="emblema_{{ numero }}_autorizado">
+                                    <strong>Confirmo que cuento con autorización para usarlo</strong>
+                                </label>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                            <button class="service-btn wide" type="submit">Guardar datos privados de receta</button>
+                        </form>
+                        <div id="recipe-professional-status" style="margin-top:10px;color:var(--color-texto-suave);font-size:0.86rem;"></div>
+                    </section>
                     <div class="profile-services">
                         <p class="section-title">Servicios del consultorio</p>
                         <div class="services-layout">
@@ -3133,6 +3216,99 @@
                     </div>
                 </div>
             </section>
+                <section class="recipe-module panel-view" id="recetas-section" aria-label="Recetas imprimibles">
+                    <div class="recipe-workspace" id="recipe-module">
+                        <section class="recipe-editor" aria-labelledby="recipe-editor-title">
+                            <div class="recipe-heading">
+                                <div>
+                                    <p class="section-title">Uso exclusivo de la doctora</p>
+                                    <h3 id="recipe-editor-title">Nueva receta imprimible</h3>
+                                    <p id="recipe-editor-doctor" style="margin:5px 0 0;color:var(--color-texto-suave);font-size:.84rem"></p>
+                                </div>
+                                <span class="recipe-mode-badge" id="recipe-mode-badge">Prototipo</span>
+                            </div>
+                            <div class="recipe-profile-required" id="recipe-profile-required" hidden>
+                                <strong>Falta confirmar tu perfil profesional privado.</strong>
+                                <span>Ábrelo en Perfil, revísalo y guárdalo antes de imprimir.</span>
+                                <button type="button" id="recipe-open-professional-profile">Ir a Perfil</button>
+                            </div>
+                            <form class="recipe-editor-form" id="recipe-editor-form" novalidate autocomplete="off" onsubmit="return false">
+                                <label class="recipe-wide">Nombre del paciente
+                                    <input id="recipe-patient" type="text" maxlength="140" autocomplete="off" placeholder="Nombre completo">
+                                </label>
+                                <label>Edad
+                                    <input id="recipe-age" type="number" min="0" max="130" inputmode="numeric" autocomplete="off" placeholder="Edad">
+                                </label>
+                                <label>Fecha
+                                    <input id="recipe-date" type="date">
+                                </label>
+                                <label class="recipe-wide">Próxima cita (opcional)
+                                    <input id="recipe-next-date" type="date">
+                                </label>
+                                <label class="recipe-wide">Prescripción e indicaciones
+                                    <textarea id="recipe-prescription" maxlength="4200" autocomplete="off" spellcheck="false" placeholder="La doctora redacta y revisa aquí sus indicaciones."></textarea>
+                                </label>
+                                <label class="recipe-wide recipe-review-check">
+                                    <input id="recipe-review" type="checkbox">
+                                    <span>Revisé y autorizo esta receta. Confirmo que las indicaciones corresponden a mi criterio profesional.</span>
+                                </label>
+                                <p class="recipe-scope-warning">Esta fase no está diseñada para recetas especiales de medicamentos controlados. La doctora debe revisar su aplicabilidad y firmar manualmente el documento.</p>
+                                <p class="recipe-demo-note">Modo demo para validación: descarga o guarda el PDF y muéstralo a la farmacia. Doko todavía no lo firma ni lo envía automáticamente por WhatsApp.</p>
+                                <p class="recipe-privacy-note">Paciente e indicaciones permanecen solo en esta pantalla. Doko no los envía al servidor, no los guarda y los perderá al actualizar o cerrar la página.</p>
+                                <div class="recipe-actions recipe-wide">
+                                    <button class="recipe-action-primary" id="recipe-print-button" type="button">Imprimir / Guardar PDF</button>
+                                    <button class="recipe-action-secondary" id="recipe-reset-button" type="button">Limpiar</button>
+                                </div>
+                                <p class="recipe-status" id="recipe-status" role="status" aria-live="polite"></p>
+                            </form>
+                        </section>
+
+                        <section class="recipe-preview-panel" aria-labelledby="recipe-preview-title">
+                            <div class="recipe-preview-head">
+                                <div>
+                                    <p class="section-title">Vista previa</p>
+                                    <h3 id="recipe-preview-title">Hoja Carta vertical</h3>
+                                </div>
+                                <span class="recipe-page-state" id="recipe-page-state">Carta vertical · una página</span>
+                            </div>
+                            <div class="recipe-paper-shell">
+                                <article class="recipe-paper" id="recipe-paper">
+                                    <div class="recipe-watermark" id="recipe-watermark">PRUEBA - NO VÁLIDA PARA SURTIR</div>
+                                    <header class="recipe-paper-header">
+                                        <img class="recipe-paper-logo" id="recipe-logo" alt="Logo del consultorio" hidden>
+                                        <div class="recipe-paper-identity">
+                                            <p class="recipe-clinic-name" id="recipe-clinic-name">Consultorio</p>
+                                            <h2 id="recipe-doctor-name">Doctora</h2>
+                                            <p id="recipe-professional-data"></p>
+                                        </div>
+                                        <div class="recipe-paper-emblems" id="recipe-emblems" hidden></div>
+                                        <div class="recipe-paper-title">RECETA MÉDICA</div>
+                                    </header>
+                                    <div class="recipe-patient-grid">
+                                        <div class="recipe-print-field"><span>Paciente</span><strong id="recipe-print-patient"></strong></div>
+                                        <div class="recipe-print-field"><span>Edad</span><strong id="recipe-print-age"></strong></div>
+                                        <div class="recipe-print-field"><span>Fecha</span><strong id="recipe-print-date"></strong></div>
+                                        <div class="recipe-print-field"><span>Próxima cita</span><strong id="recipe-print-next-date">No indicada</strong></div>
+                                    </div>
+                                    <div class="recipe-prescription-wrap">
+                                        <div class="recipe-prescription-title">PRESCRIPCIÓN E INDICACIONES</div>
+                                        <div class="recipe-prescription-content">
+                                            <span class="recipe-rx-symbol" aria-hidden="true">Rx</span>
+                                            <div class="recipe-prescription-area" id="recipe-print-prescription"></div>
+                                        </div>
+                                    </div>
+                                    <footer class="recipe-paper-footer">
+                                        <div id="recipe-public-data"></div>
+                                        <div class="recipe-signature-block">
+                                            <div class="recipe-signature-line">Firma manual de la doctora</div>
+                                            <small class="recipe-doko-mark">Preparada con Doko</small>
+                                        </div>
+                                    </footer>
+                                </article>
+                            </div>
+                        </section>
+                    </div>
+                </section>
                 <section class="panel-assistant-drawer panel-view" id="asistente-section" aria-hidden="true" aria-label="Asistente operativo Doko">
                     <div class="panel-assistant-head">
                         {{ doko_mascot('avatar') }}
@@ -3412,6 +3588,7 @@
             document.querySelectorAll('.doctor-nav[data-panel-target]').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.panelTarget === targetId);
             });
+            if (targetId === 'recetas-section') window.DokoRecetasPanel?.open();
         }
 
         document.querySelectorAll('.doctor-nav[data-panel-target]').forEach(btn => {
@@ -3541,6 +3718,7 @@
             agendaCanceladaSeleccionadaId = null;
             window.__agendaCanceladasActuales = [];
             window.DokoPanelAssistant?.reset();
+            window.DokoRecetasPanel?.reset();
             try {
                 sessionStorage.removeItem(DOCTOR_SESSION_KEY);
                 sessionStorage.removeItem(DOCTOR_ONBOARDING_KEY);
@@ -3586,6 +3764,10 @@
 
             mostrarVistaDoctor('agenda-section');
             await cargarDashboardDoctor(requiereOnboarding);
+            await window.DokoRecetasPanel?.sync({
+                token: doctorJwt,
+                esAsistente: esModoAsistente()
+            });
         }
 
         window.addEventListener('message', async (event) => {
@@ -4582,6 +4764,7 @@
             const tipoEventoSeguro = String(tipoEvento || 'CITA_PACIENTE').toUpperCase();
             const tipo = tipoEstadoCita(estado);
             const editar = `<button class="agenda-release-btn" type="button" onclick="abrirModalEditarAgenda('${idRadar}')">Editar</button>`;
+            const cancelar = `<button class="agenda-release-btn cancel-btn" type="button" onclick="cancelarCitaAgenda('${idRadar}')">Cancelar cita</button>`;
             if (tipoEventoSeguro === 'APARTADO_TEMPORAL') {
                 return `${editar}<button class="agenda-confirm-btn" type="button" onclick="abrirModalEditarAgenda('${idRadar}', 'CITA_PACIENTE')">Hacer cita</button><button class="agenda-release-btn release-danger" type="button" onclick="liberarEventoAgenda('${idRadar}')">Liberar</button>`;
             }
@@ -4592,9 +4775,9 @@
                 return `${editar}<button class="agenda-release-btn release-danger" type="button" onclick="liberarEventoAgenda('${idRadar}')">Liberar</button>`;
             }
             if (tipo === 'pendiente') {
-                return `${editar}<button class="agenda-confirm-btn" type="button" onclick="confirmarCitaManual('${idRadar}')">✓ Confirmar</button>`;
+                return `${editar}<button class="agenda-confirm-btn" type="button" onclick="confirmarCitaManual('${idRadar}')">✓ Confirmar</button>${cancelar}`;
             }
-            if (tipo === 'confirmada') return `${editar}<span class="agenda-action-text">Confirmada</span>`;
+            if (tipo === 'confirmada') return `${editar}${cancelar}<span class="agenda-action-text">Confirmada</span>`;
             return '<span class="agenda-action-text">Cancelada</span>';
         }
 
@@ -4618,6 +4801,7 @@
             const editarPrincipal = `<button class="agenda-card-primary" type="button" onclick="cerrarMenusAgenda(); abrirModalEditarAgenda('${idRadar}')">Editar</button>`;
             const editarMenu = `<button type="button" onclick="cerrarMenusAgenda(); abrirModalEditarAgenda('${idRadar}')">Editar</button>`;
             const liberarMenu = `<button class="danger" type="button" onclick="cerrarMenusAgenda(); liberarEventoAgenda('${idRadar}')">Liberar</button>`;
+            const cancelarMenu = `<button class="danger" type="button" onclick="cerrarMenusAgenda(); cancelarCitaAgenda('${idRadar}')">Cancelar cita</button>`;
 
             if (tipoEventoSeguro === 'APARTADO_TEMPORAL' || tipoEventoSeguro === 'EVENTO_INTERNO') {
                 const hacerCita = `<button class="agenda-card-primary confirm" type="button" onclick="cerrarMenusAgenda(); abrirModalEditarAgenda('${idRadar}', 'CITA_PACIENTE')">Hacer cita</button>`;
@@ -4628,9 +4812,9 @@
             }
             if (tipo === 'pendiente') {
                 const confirmar = `<button class="agenda-card-primary confirm" type="button" onclick="cerrarMenusAgenda(); confirmarCitaManual('${idRadar}')">Confirmar</button>`;
-                return `${confirmar}${renderMenuMasAgenda(editarMenu)}`;
+                return `${confirmar}${renderMenuMasAgenda(editarMenu + cancelarMenu)}`;
             }
-            if (tipo === 'confirmada') return editarPrincipal;
+            if (tipo === 'confirmada') return `${editarPrincipal}${renderMenuMasAgenda(cancelarMenu)}`;
             return '';
         }
 
@@ -5171,6 +5355,25 @@
             }
         }
 
+        async function cancelarCitaAgenda(idRadar) {
+            if (!doctorJwt || !idRadar) return;
+            if (!await dokoConfirmar('¿Cancelar esta cita? Se eliminará de Doko y Google Calendar.', {
+                titulo: 'Cancelar cita',
+                textoConfirmar: 'Cancelar cita'
+            })) return;
+            try {
+                await apiPanelPost(`/panel/agenda/${idRadar}/cancelar`, {
+                    motivo_cancelacion: 'Cancelada manualmente desde Doko'
+                });
+                const agenda = await apiPanel(agendaEndpoint());
+                actualizarKpisAgenda(agenda);
+                renderAgenda(agenda.citas || [], doctorOnboardingPendiente, agenda.alertas || []);
+                notificarDoko('Cita cancelada y retirada de Google Calendar.', 'success');
+            } catch (err) {
+                notificarDoko(err.message || 'No se pudo cancelar la cita.', 'error');
+            }
+        }
+
         async function liberarEventoAgenda(idRadar) {
             if (!doctorJwt || !idRadar) return;
             if (!await dokoConfirmar('¿Liberar este horario? Se eliminará el evento en Google Calendar.', {
@@ -5404,6 +5607,7 @@
 
     </script>
     <script src="/static/js/asistente_panel.js?v=20260714-panel-assistant-search-v1"></script>
+    <script src="/static/js/recetas_panel.js?v=20260728-carta-vertical"></script>
     <script src="/static/js/pwa_experience.js"></script>
 </body>
 </html>

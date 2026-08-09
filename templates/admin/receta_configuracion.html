@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Doko | Configurar receta{% endblock %}
+{% block page_title %}Configuración de receta{% endblock %}
+{% block contenido %}
+<style>
+.recipe-admin-layout{display:grid;grid-template-columns:minmax(340px,570px) minmax(420px,1fr);gap:24px;align-items:start}
+.recipe-admin-form,.recipe-admin-preview{background:#fff;border:1px solid var(--color-borde);border-radius:8px;padding:22px}
+.recipe-admin-form h2,.recipe-admin-preview h2{margin:0 0 6px;font-family:var(--fuente-titulo)}
+.recipe-admin-form p,.recipe-admin-preview p{color:var(--color-texto-suave)}
+.recipe-private-note{padding:12px;border-left:3px solid var(--color-primario);background:var(--color-fondo-alt);font-size:.86rem}
+.recipe-config-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.recipe-config-grid label{display:grid;gap:6px;color:var(--color-texto-medio);font-weight:600;font-size:.88rem}
+.recipe-config-grid .wide{grid-column:1/-1}
+.recipe-config-grid input,.recipe-config-grid textarea{width:100%;box-sizing:border-box;border:1px solid var(--color-borde);border-radius:6px;padding:10px;font:inherit}
+.recipe-config-grid textarea{min-height:76px;resize:vertical}
+.recipe-switch{display:flex!important;grid-template-columns:none!important;align-items:flex-start;gap:10px!important;padding:12px;background:var(--color-fondo-alt);border-radius:6px}
+.recipe-switch input{width:auto;margin-top:2px}
+.recipe-asset{border:1px solid var(--color-borde);padding:12px;border-radius:6px}
+.recipe-asset-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.recipe-asset img{width:64px;height:64px;object-fit:contain;border:1px solid var(--color-borde);background:#fff}
+.recipe-save{width:100%;border:0;border-radius:6px;padding:12px;background:var(--color-primario);color:#fff;font-weight:800;cursor:pointer}
+.recipe-admin-status{min-height:22px;margin-top:10px;font-size:.88rem}
+.recipe-sheet-mini{aspect-ratio:11/8.5;border:1px solid #cfd8e3;background:white;padding:4%;display:grid;grid-template-rows:auto auto 1fr auto;box-sizing:border-box;color:#1b2638;box-shadow:0 10px 28px rgba(15,23,42,.08)}
+.recipe-sheet-mini header{display:flex;justify-content:space-between;gap:16px;border-bottom:3px solid var(--color-primario);padding-bottom:10px}.recipe-sheet-mini h3{margin:0;font-size:1.2rem}.recipe-sheet-mini small{display:block;margin-top:3px}.recipe-sheet-mini main{padding:18px 0;color:#718096}.recipe-sheet-mini footer{border-top:2px solid var(--color-primario);padding-top:10px;font-size:.76rem}
+@media(max-width:980px){.recipe-admin-layout{grid-template-columns:1fr}.recipe-admin-preview{order:-1}}@media(max-width:560px){.recipe-config-grid{grid-template-columns:1fr}.recipe-config-grid .wide{grid-column:auto}.recipe-admin-form,.recipe-admin-preview{padding:16px}}
+</style>
+
+<div style="display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
+    <div>
+        <p class="eyebrow" style="margin:0">Médicos</p>
+        <h1 style="margin:4px 0">Receta imprimible</h1>
+        <p style="margin:0;color:var(--color-texto-suave)">{{ receta.nombre_doctor }} · {{ receta.especialidad or 'Especialidad pendiente' }}</p>
+    </div>
+    <a href="{{ url_for('admin_bp.doctores') }}" style="text-decoration:none;color:var(--color-primario);font-weight:700">Volver a doctores</a>
+</div>
+
+<div class="recipe-admin-layout">
+    <form class="recipe-admin-form" id="recipe-config-form" action="{{ request.path }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <h2>Perfil profesional privado</h2>
+        <p class="recipe-private-note">Estos datos solo se imprimen en recetas. No modifican ni se publican en el portal, doko.lat, chatbot o SEO.</p>
+        <div class="recipe-config-grid">
+            <label class="wide recipe-switch"><input type="checkbox" name="habilitada" {{ 'checked' if receta.habilitada else '' }}><span><strong>Habilitar Recetas</strong><br><small>Solo será visible para la doctora.</small></span></label>
+            <label class="wide recipe-switch"><input type="checkbox" name="modo_prueba" {{ 'checked' if receta.modo_prueba is not false else '' }}><span><strong>Mostrar marca de prototipo</strong><br><small>Incluye “Prueba - no válida para surtir”.</small></span></label>
+            <label>Nombre profesional<input name="nombre_profesional" value="{{ receta.nombre_profesional or '' }}" maxlength="180"></label>
+            <label>Especialidad o título<input name="especialidad_profesional" value="{{ receta.especialidad_profesional or '' }}" maxlength="180"></label>
+            <label class="wide">Universidad o institución<input name="institucion_titulo" value="{{ receta.institucion_titulo_privada or '' }}" maxlength="220"></label>
+            <label>Cédula profesional<input name="cedula_profesional" value="{{ receta.cedula_profesional_privada or '' }}" maxlength="80"></label>
+            <label>Cédula de especialidad<input name="cedula_especialidad" value="{{ receta.cedula_especialidad_privada or '' }}" maxlength="80"></label>
+            <label>RFC opcional<input name="rfc" value="{{ receta.rfc_privado or '' }}" maxlength="20" autocomplete="off"></label>
+            <label>Nombre del consultorio<input name="nombre_consultorio" value="{{ receta.nombre_consultorio or '' }}" maxlength="180"></label>
+            <label>Teléfono del consultorio<input name="telefono_consultorio" value="{{ receta.receta_telefono_consultorio or '' }}" maxlength="80"></label>
+            <label>Teléfono de emergencias<input name="telefono_emergencias" value="{{ receta.telefono_emergencias or '' }}" maxlength="80"></label>
+            <label>Correo de contacto<input name="correo_contacto" type="email" value="{{ receta.correo_publico or '' }}" maxlength="180"></label>
+            <label class="wide">Dirección impresa<textarea name="direccion_impresa" maxlength="500">{{ receta.direccion_publica or '' }}</textarea></label>
+            <label class="wide">Información adicional breve<textarea name="informacion_adicional" maxlength="700">{{ receta.datos_publicos or '' }}</textarea></label>
+
+            {% for numero in (0, 1, 2) %}
+            {% set es_logo = numero == 0 %}{% set campo = 'logo_url' if es_logo else 'emblema_' ~ numero ~ '_url' %}{% set valor = receta.receta_logo_url if es_logo else receta[campo] %}
+            <div class="wide recipe-asset" data-asset="{{ campo }}">
+                <strong>{{ 'Logo profesional' if es_logo else 'Emblema institucional ' ~ numero }}</strong>
+                <div class="recipe-asset-row" style="margin-top:8px">
+                    <img id="{{ campo }}-preview" src="{{ valor or '' }}" alt="Vista previa" {{ 'hidden' if not valor else '' }}>
+                    <input type="hidden" name="{{ campo }}" id="{{ campo }}" value="{{ valor or '' }}">
+                    <input type="file" id="{{ campo }}-file" accept="image/png,image/jpeg,image/webp"><button type="button" data-upload="{{ campo }}">Subir</button><button type="button" data-clear="{{ campo }}">Quitar</button>
+                </div>
+                {% if not es_logo %}<label style="margin-top:10px">Nombre del emblema<input name="emblema_{{ numero }}_nombre" value="{{ receta['emblema_' ~ numero ~ '_nombre'] or '' }}" maxlength="180"></label><label class="recipe-switch" style="margin-top:8px"><input type="checkbox" name="emblema_{{ numero }}_autorizado" {{ 'checked' if receta['emblema_' ~ numero ~ '_autorizado'] else '' }}><span>Confirmo que existe autorización para usar este emblema.</span></label>{% endif %}
+            </div>
+            {% endfor %}
+            <button class="recipe-save wide" type="submit">Guardar configuración privada</button>
+        </div>
+        <div class="recipe-admin-status" id="recipe-admin-status" role="status"></div>
+    </form>
+
+    <section class="recipe-admin-preview"><h2>Vista general</h2><p>Hoja Carta horizontal completa. La doctora debe revisar y guardar su copia privada antes de imprimir.</p><div class="recipe-sheet-mini"><header><div><h3>{{ receta.nombre_profesional or 'Nombre profesional pendiente' }}</h3><small>{{ receta.especialidad_profesional or '' }}</small><small>Céd. Prof. {{ receta.cedula_profesional_privada or 'pendiente' }}</small></div></header><div style="padding:10px 0;border-bottom:1px solid #cbd5e1">Paciente · Edad · Fecha · Próxima cita</div><main>Área de prescripción e indicaciones</main><footer>{{ receta.direccion_publica or 'Dirección privada pendiente' }} <span style="float:right;color:#94a3b8">Doko</span></footer></div></section>
+</div>
+
+<script>
+(() => {
+    const form=document.getElementById('recipe-config-form'),status=document.getElementById('recipe-admin-status'),csrf=form.querySelector('[name="csrf_token"]').value;
+    document.querySelectorAll('[data-upload]').forEach(button=>button.addEventListener('click',async()=>{const campo=button.dataset.upload,file=document.getElementById(`${campo}-file`).files[0];if(!file){status.textContent='Selecciona una imagen primero.';return}status.textContent='Subiendo imagen...';const body=new FormData();body.append('file',file);const response=await fetch('/admin/doctores/recetas/upload',{method:'POST',headers:{'X-CSRF-Token':csrf},body});const data=await response.json();if(!response.ok||!data.ok){status.textContent=data.error||'No se pudo subir.';return}document.getElementById(campo).value=data.url;const preview=document.getElementById(`${campo}-preview`);preview.src=data.url;preview.hidden=false;status.textContent='Imagen cargada. Guarda para aplicarla.';}));
+    document.querySelectorAll('[data-clear]').forEach(button=>button.addEventListener('click',()=>{const campo=button.dataset.clear;document.getElementById(campo).value='';document.getElementById(`${campo}-preview`).hidden=true;}));
+    form.addEventListener('submit',async event=>{event.preventDefault();status.textContent='Guardando...';const response=await fetch(form.action,{method:'POST',headers:{'X-CSRF-Token':csrf,'X-Requested-With':'XMLHttpRequest'},body:new FormData(form)});const data=await response.json();status.textContent=response.ok&&data.ok?'Configuración privada guardada.':(data.error||'No se pudo guardar.');status.style.color=response.ok&&data.ok?'var(--color-confirmado)':'var(--color-cancelado)';});
+})();
+</script>
+{% endblock %}

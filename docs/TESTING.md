@@ -25,7 +25,7 @@ python -c "from app_elite import app; print('\n'.join(sorted(str(r) for r in app
 
 ## Read-only assistant load test
 
-The load test requires an explicitly authorized test doctor:
+The load test requires an explicitly authorized test physician:
 
 ```powershell
 $env:DOKO_LOAD_TEST_DOCTOR='test-doctor@example.invalid'
@@ -33,21 +33,30 @@ python load_test_panel_assistant.py --help
 ```
 
 Do not enable production-read flags without reviewing the script and confirming
-that the selected account is a permitted test clinic. The test must not create,
-edit, confirm, cancel, release, or email an appointment.
+that the selected account is an authorized test clinic. The test must not
+create, edit, confirm, cancel, release, or email an appointment.
 
 ## Required manual smoke tests
 
 - Internal login and role navigation.
-- Doctor/assistant panel read, create, block, hold, edit, confirm, and release
-  using fictitious test events.
-- Google reconnection and OAuth callback with a test doctor.
-- Patient portal and public physician page.
-- Doko Assistant rules, safe intent classification, and local appointment search.
-- Mi Centro, supervisor, AI usage, and operational implementation.
-- Catalog, order cancellation rules, warehouse preparation, and delivery roles.
+- Doctor and assistant panel read, create, block, hold, edit, confirm, cancel,
+  and release flows using fictitious test events.
+- Google reconnection and OAuth callback with a test physician.
+- Patient portal, public physician page, and doko.lat directory.
+- Doko Assistant deterministic rules, bounded intent classification, and local
+  appointment search.
+- Mi Centro, supervisor, aggregate AI usage, and operational implementation.
+- Doko Suffy catalog, order-cancellation rules, warehouse preparation, and
+  delivery-role isolation.
+- Failure behavior when Gemini or a Google integration is unavailable.
+- Role rejection for protected routes.
 - Mobile layouts at 360, 390, and 430 px; desktop at 1024 and 1440 px.
+
+Experimental integrations and features still being validated are not counted
+as completed production test coverage in this document.
 
 ## Current performance evidence
 
-See [the sanitized July 15 load test](evidence/load-test-2026-07-15.md).
+See [the sanitized July 15 load test](evidence/load-test-2026-07-15.md). Its
+published measurements are a dated result and must not be rewritten as a newer
+or broader test.

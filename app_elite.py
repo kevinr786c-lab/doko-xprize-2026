@@ -26,6 +26,8 @@ from routes.confirmacion import confirmacion_bp
 from routes.jobs import jobs_bp
 from routes.presencia import presencia_bp, render_home_doko, render_sitio_por_host
 from routes.implementacion import implementacion_bp
+from routes.recetas import recetas_bp
+from routes.whatsapp import whatsapp_bp
 
 # Inicialización de la aplicación
 validar_configuracion_produccion()
@@ -121,6 +123,8 @@ app.register_blueprint(confirmacion_bp)
 app.register_blueprint(jobs_bp)
 app.register_blueprint(presencia_bp)
 app.register_blueprint(implementacion_bp)
+app.register_blueprint(recetas_bp)
+app.register_blueprint(whatsapp_bp)
 
 # ==============================================================================
 # ENRUTAMIENTO BASE
@@ -153,4 +157,3 @@ if __name__ == '__main__':
     puerto = int(os.environ.get('PORT', 8080))
     # Host 0.0.0.0 es necesario para que Docker exponga el puerto correctamente
     app.run(debug=True, host='0.0.0.0', port=puerto)
-

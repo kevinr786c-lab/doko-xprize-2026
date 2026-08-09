@@ -1,134 +1,129 @@
 # Doko
 
-Doko is an adaptive operational platform for independent medical practices in
-Tijuana. It helps each consultorio organize its real day-to-day workflow rather
-than forcing every specialty into the same fixed process.
+**An adaptable operating ecosystem for small medical practices in Tijuana.**
 
-Its common foundation includes appointment control, patient communication,
-public presence, bounded AI assistance, and an emerging B2B supply workflow.
-Specialty-specific capabilities can be enabled only when a clinic needs them.
+Doko combines clinic operations, patient-facing digital presence, implementation support, bounded AI assistance, and a progressively developed medical-supply capability in one product. It is built from direct observation of real clinic work, then improved in small, testable steps.
 
-Doko is not presented as a replacement for medical judgment. Its purpose is to
-help a clinic operate consistently: fewer missed handoffs, clearer appointment
-follow-up, safer use of Google Workspace, and repeatable front-desk processes.
+> Build only where Doko adds meaningful value; integrate what is already solved well.
 
-## Production status
+> Observe first. Build small. Validate with real users. Expand only when the workflow proves useful.
 
-As of the July 27, 2026 dashboard snapshot, Doko is used by:
+## Status language
 
-- 2 paying doctors.
-- 3 clinic assistants across the participating practices.
-- Real patient traffic through Doko patient portals.
-- A dashboard snapshot showing approximately 330 appointment records for one
-  doctor and 87 for another. The visible total is approximately 417 records;
-  counts continue changing as clinics operate. This is operational volume
-  managed with Doko, not a claim that Doko generated every patient or booking.
+This repository uses five explicit labels:
 
-The business is intentionally onboarding slowly while workflows, reliability,
-and training are validated with real clinics.
+- **PRODUCTION**: running in real clinic operations.
+- **VALIDATED**: tested with real users or workflows, but not necessarily offered broadly.
+- **CONTROLLED TESTING**: restricted to test accounts or a controlled environment.
+- **IMPLEMENTED / NOT YET COMMERCIALLY VALIDATED**: present in the product or repository, but not yet proven as a commercial workflow.
+- **FUTURE DIRECTION**: planned direction, not a current capability.
 
-## What Doko includes
+## Why Doko exists
 
-- **Medical panel:** appointment control, blocks, temporary holds, editing,
-  manual confirmation, release, read-only search, cancellation, cancellation
-  history with controlled contact reuse, profile management, and clinic
-  services.
-- **Patient portal:** clinic identity, contact and location information,
-  appointment access, confirmation guidance, and a constrained patient
-  assistant.
-- **Appointment communication:** informational email, configurable 24/48-hour
-  confirmation flow, an optional business-day policy per clinic, and auditable
-  confirmation/cancellation links.
-- **Doko Assistant:** operational guidance and private, read-only conversational
-  appointment search for doctors and assistants.
-- **Operational implementation:** versioned clinic protocols, assistant
-  training, follow-up, and human-approved workflow adaptations.
-- **Doko.lat:** local medical directory and reusable physician pages with local
-  SEO controls. Visibility may help a clinic receive inquiries, but Doko does
-  not guarantee patient acquisition.
-- **Doko Suffy:** B2B catalog, orders, warehouse preparation, inventory,
-  delivery, suppliers, and controlled operational agents.
-- **Mi Centro:** owner dashboard for doctors, digital presence, Suffy,
-  inventory, administration, system health, and AI usage.
+Small practices often depend on a doctor, an assistant, several disconnected tools, and knowledge that lives only in people's routines. A generic platform can impose a fixed workflow that does not match the specialty or the clinic. Doko starts with the opposite question: how does this clinic actually work, and where can software remove friction without replacing medical judgment?
 
-## AI-native operations
+The first production use is with gynecology practices. The goal is not to make every clinic identical. It is to establish a reliable operating core, document specialty-specific workflows, and add optional tools only after they prove useful.
 
-Doko uses Gemini 2.5 Flash in production with deliberately bounded authority.
-Deterministic application rules remain responsible for permissions, incident
-severity, appointment state, email timing, and every operational write.
+## Current product
 
-Gemini is used for constrained tasks such as:
+| Capability | Status | What it does |
+|---|---|---|
+| Medical panel and appointment operations | **PRODUCTION** | Gives doctors and assistants a daily operational view for appointments, confirmation state, editing, cancellation, and clinic follow-up. |
+| Google Calendar integration | **PRODUCTION** | Uses a mature calendar engine as the scheduling foundation instead of rebuilding one. Doko adds clinic-specific controls and operational visibility around it. |
+| Gmail confirmation workflows | **PRODUCTION** | Sends and tracks bounded appointment communications while keeping deterministic appointment state authoritative. |
+| Patient portal and `doko.lat` directory | **PRODUCTION** | Publishes approved clinic information, services, location, and booking access without exposing private operational records. |
+| Doko assistants | **PRODUCTION, BOUNDED** | Answer clinic-scoped questions and classify limited intent. They do not make medical decisions or override operational records. |
+| Mi Centro | **PRODUCTION / OPERATOR USE** | Supports physician setup, digital presence, clinic implementation, protocol documentation, AI usage visibility, and operational administration. |
+| Implementation protocols | **VALIDATED** | Turn observed clinic routines into reviewable reference workflows, clinic adaptations, training plans, and follow-up. |
+| Doko Suffy | **IMPLEMENTED / NOT YET COMMERCIALLY VALIDATED** | Provides the foundation for integrated medical-supply sourcing, catalog, warehouse, purchasing, and delivery operations. |
 
-- Answering administrative patient questions from clinic-configured content.
-- Classifying an allowed operational intent after local redaction.
-- Summarizing non-Workspace operational information.
-- Reviewing sanitized implementation notes for missing definitions.
-- Producing human-readable drafts for controlled business agents.
+## How the system works
 
-Gemini cannot diagnose, prescribe, change appointments, approve protocols,
-purchase products, move money, or override application rules. Raw or derived
-Google Workspace API data is not sent to Gemini.
+1. A clinic's approved identity, services, availability, and operating rules are configured.
+2. Google Calendar remains the scheduling foundation and Doko synchronizes the operational view.
+3. Deterministic rules establish appointment state, permissions, confirmation behavior, and write actions.
+4. Bounded AI may classify an allowed intent, summarize sanitized implementation material, or improve readability.
+5. A doctor, assistant, or operator remains responsible for protected actions and final decisions.
+6. Observed friction is documented as a protocol or experiment before it becomes a reusable product capability.
 
-See [AI operations](docs/AI_OPERATIONS.md) and
-[privacy and safety](docs/PRIVACY_AND_SAFETY.md).
+## AI in Doko
 
-## Architecture
+Doko is AI-assisted, not AI-authoritative.
 
-- Python 3 / Flask / Gunicorn.
-- PostgreSQL on Cloud SQL.
-- Cloud Run production service.
-- Google Cloud Storage for managed media.
-- Google Calendar API and Gmail API through per-doctor OAuth authorization.
-- Gemini API / Vertex AI adapter with measured usage and deterministic fallback.
-- Server-rendered Jinja, CSS, and JavaScript with responsive PWA support.
+Gemini 2.5 Flash is used in bounded production and administrative paths. It can classify restricted question categories, help present approved clinic information, and review sanitized implementation sections. Deterministic application logic remains the source of truth for identity, permissions, appointment state, severity, financial actions, inventory actions, and protected writes.
 
-See [architecture](docs/ARCHITECTURE.md).
+Doko does not send Gmail message bodies, Google Calendar event payloads, or appointment records to Gemini. In the panel assistant, Gemini receives only a locally extracted concept package when bounded classification is needed. In implementation review, input is sanitized before analysis. Human approval remains the last control layer.
 
-## Local setup
+See [AI operations](docs/AI_OPERATIONS.md) and [privacy and safety](docs/PRIVACY_AND_SAFETY.md).
 
-1. Create a Python virtual environment.
-2. Install dependencies:
+## Doko Suffy
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+Doko Suffy is Doko's integrated medical-supply sourcing and fulfillment capability, designed to grow progressively as the software operation builds recurring revenue, clinic relationships, operational knowledge, and trust.
 
-3. Copy `.env.example` to a local `.env` and provide local credentials.
-4. Start PostgreSQL or the Cloud SQL Auth Proxy for an authorized test database.
-5. Apply the SQL migrations in chronological order.
-6. Run the application:
+It is not a separate startup and it does not represent inventory stored inside each clinic. Its intended progression is:
 
-   ```bash
-   python app_elite.py
-   ```
+1. a controlled base catalog;
+2. specialized sourcing when a clinic needs alternatives;
+3. trusted supplier relationships and quality review;
+4. internal purchasing, warehouse, lot, and delivery operations;
+5. organic expansion based on demonstrated demand.
 
-Never commit `.env`, OAuth credentials, service-account keys, payment evidence,
-patient screenshots, or production database exports.
+Current subscription revenue is not presented as Suffy revenue, and future supply margins are not counted as current traction.
 
-## Verification
+## Real-world validation
 
-The repository includes syntax, import, template, and read-only load-test
-instructions in [TESTING.md](docs/TESTING.md). Sanitized production evidence is
-indexed in [PRODUCTION_EVIDENCE.md](docs/PRODUCTION_EVIDENCE.md).
+Doko is operated with two paying gynecology practices. A dated snapshot on July 27, 2026 showed:
 
-## Hackathon disclosure
+- 330 appointments visible for one practice during the month;
+- 87 appointments visible for the second practice;
+- 417 appointments visible across both practices in that snapshot.
 
-Doko was started during the Build with Gemini XPRIZE period. Pre-existing
-Mis relaciones previas con clínicas, el trabajo anterior de configuración de
-Google Calendar y mi experiencia operativa están separados del proyecto
-presentado. Consulta
-[HACKATHON_DISCLOSURES.md](docs/HACKATHON_DISCLOSURES.md).
+These figures describe operational volume handled by the system. They do **not** mean Doko generated those patients. The practices' real use validates reliability, workflow fit, and the pressure the product must support.
 
-Mi historia de diseño, las ideas descartadas, las decisiones tomadas al
-observar consultorios y mi contexto están documentados en
-[PROJECT_EVOLUTION.md](docs/PROJECT_EVOLUTION.md). Selected pocket-notebook
-translations are indexed in
-[NOTEBOOK_EVIDENCE_TRANSLATIONS.md](docs/NOTEBOOK_EVIDENCE_TRANSLATIONS.md).
+Founding physicians are real users and early operational validation collaborators. They are not legal cofounders of Doko.
 
-## Live product
+## Business model
 
-- Product and medical directory: <https://doko.lat>
-- Privacy policy: <https://doko.lat/privacidad>
+Doko is bootstrapped and has received no outside investment.
 
-This private repository is provided for hackathon testing and judging. No
-license is granted for redistribution or commercial reuse.
+- **Current revenue:** recurring clinic subscriptions.
+- **Separate service revenue:** implementation or digital-presence work when clearly contracted outside the subscription.
+- **Future revenue:** margin from Doko Suffy sourcing and fulfillment after that capability is commercially validated.
+
+The operating strategy is to keep infrastructure efficient, reinvest subscription revenue into validated improvements, grow through trusted clinic relationships, and expand Suffy only as real demand supports it. This is a strategy, not a guaranteed forecast.
+
+See [product and business](docs/PRODUCT_AND_BUSINESS.md) and [hackathon disclosures](docs/HACKATHON_DISCLOSURES.md).
+
+## Evidence
+
+The repository preserves dated design artifacts, handwritten notes, architecture decisions, production screenshots, load-test results, and disclosure boundaries.
+
+- [Production evidence](docs/PRODUCTION_EVIDENCE.md)
+- [Project evolution](docs/PROJECT_EVOLUTION.md)
+- [Notebook evidence and translations](docs/NOTEBOOK_EVIDENCE_TRANSLATIONS.md)
+- [Testing](docs/TESTING.md)
+- [Load test report](docs/evidence/load-test-2026-07-15.md)
+
+Private customer contact details, bank evidence, signed receipts, and confidential operational records are supplied through the official judging channel rather than committed to source control.
+
+## What Doko is not
+
+Doko is:
+
+- not an electronic health record;
+- not a replacement for medical judgment;
+- not a clinic drawer-inventory system;
+- not a pharmacy and not currently selling medication;
+- not dependent on a single supplier;
+- not only an appointment scheduler;
+- not a collection of unrelated projects;
+- not a one-prompt application;
+- not designed to use AI merely because AI is available.
+
+Doko is an intentionally engineered and iteratively validated product. AI tools have supported learning and implementation, but product decisions, scope, validation, and operational boundaries are established through direct observation, deterministic controls, testing, and human judgment.
+
+## Repository and judging access
+
+This repository is temporarily public for hackathon review. It is intended to return to private access after the review period. It contains the reviewable application snapshot and supporting documentation, but no production credentials or confidential customer evidence.
+
+For a technical entry point, see [architecture](docs/ARCHITECTURE.md). For the distinction between pre-program resources and work completed during the program period, see [hackathon disclosures](docs/HACKATHON_DISCLOSURES.md).

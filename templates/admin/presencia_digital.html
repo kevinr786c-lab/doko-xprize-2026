@@ -81,7 +81,8 @@
                 {% endif %}
             </div>
         </div>
-        <form id="sitio-form">
+        <form id="sitio-form" action="{{ url_for('admin_bp.guardar_sitio_medico') }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             {% if sitio_actual %}<input type="hidden" name="id_sitio" value="{{ sitio_actual.id_sitio }}">{% endif %}
             <label class="pd-doctor-field" data-pd-panel="publicacion">Doctora
                 <select name="correo_doctor" id="correo_doctor" required {% if sitio_actual %}disabled{% endif %}>
@@ -733,7 +734,11 @@ function wire(id, url, file) {
         const status = document.getElementById('sitio-status');
         try {
             if (id === 'sitio-form') await asegurarAssetsAntesDeGuardar();
-            const response = await fetch(url, {method: 'POST', body: file ? new FormData(form) : new URLSearchParams(new FormData(form))});
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+                body: file ? new FormData(form) : new URLSearchParams(new FormData(form)),
+            });
             const contentType = response.headers.get('content-type') || '';
             if (!contentType.includes('application/json')) {
                 throw new Error(response.redirected ? 'Tu sesión expiró. Vuelve a iniciar sesión.' : 'El servidor no devolvió una respuesta válida.');
@@ -802,7 +807,7 @@ document.getElementById('pd-section-select')?.addEventListener('change', (event)
     cambiarSeccionPresencia(event.target.value);
 });
 
-const seccionInicialPresencia = {{ "'publicacion'" if editando_sitio else "'sitios'" }};
+const seccionInicialPresencia = {{ ('publicacion' if editando_sitio else 'sitios')|tojson }};
 cambiarSeccionPresencia(seccionInicialPresencia);
 actualizarDatosDoko();
 </script>

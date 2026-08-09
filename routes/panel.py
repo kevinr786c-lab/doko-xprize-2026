@@ -1205,6 +1205,112 @@ def liberar_evento_agenda(id_radar):
         conn.close()
 
 
+@panel_bp.route("/panel/agenda/<id_radar>/cancelar", methods=["POST"])
+@requiere_jwt
+def cancelar_cita_agenda(id_radar):
+    """Cancela una cita de paciente y retira su evento sincronizado."""
+    correo_doctor = request.correo_doctor
+    data = request.get_json(silent=True) or {}
+    motivo = (
+        data.get("motivo_cancelacion")
+        or data.get("motivo")
+        or "Cancelada manualmente desde Doko"
+    ).strip()[:240]
+    conn = get_connection()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        _asegurar_doctora_asignada_si_asistente(cur, correo_doctor)
+        cur.execute("""
+            SELECT id_radar, google_event_id, tipo_evento, origen_evento,
+                   estado_operativo, estatus_confirmacion
+            FROM RADAR_EVENTOS_CITAS
+            WHERE id_radar = %s AND correo_doctor = %s
+            FOR UPDATE
+        """, (id_radar, correo_doctor))
+        evento = cur.fetchone()
+        if not evento:
+            conn.rollback()
+            return jsonify({"ok": False, "error": "Cita no encontrada para esta doctora"}), 404
+
+        tipo_evento = str(evento.get("tipo_evento") or "CITA_PACIENTE").upper()
+        origen_evento = str(evento.get("origen_evento") or "").lower()
+        if tipo_evento != "CITA_PACIENTE":
+            conn.rollback()
+            return jsonify({
+                "ok": False,
+                "error": "Solo las citas de paciente se cancelan aquí. Para un bloqueo o apartado usa Liberar.",
+            }), 409
+        if origen_evento == "google_externo":
+            conn.rollback()
+            return jsonify({
+                "ok": False,
+                "error": "Este evento externo solo puede gestionarse desde Google Calendar.",
+            }), 409
+
+        estado_operativo = str(evento.get("estado_operativo") or "activo").lower()
+        estatus = str(evento.get("estatus_confirmacion") or "").upper()
+        if estado_operativo == "cancelado" or "CANCEL" in estatus:
+            conn.rollback()
+            return jsonify({
+                "ok": True,
+                "ya_cancelada": True,
+                "estado_operativo": "cancelado",
+                "estatus_confirmacion": "CANCELADO",
+            })
+        if estado_operativo != "activo":
+            conn.rollback()
+            return jsonify({"ok": False, "error": "Esta cita ya no está activa."}), 409
+
+        google_event_id = evento.get("google_event_id")
+        if google_event_id:
+            borrar_evento_doko(correo_doctor, google_event_id)
+        cur.execute("""
+            UPDATE RADAR_EVENTOS_CITAS
+            SET estado_operativo = 'cancelado',
+                estatus_confirmacion = 'CANCELADO',
+                motivo_cancelacion = %s,
+                token_confirmacion = NULL,
+                token_expiracion = NULL
+            WHERE id_radar = %s
+              AND correo_doctor = %s
+              AND COALESCE(estado_operativo, 'activo') = 'activo'
+        """, (motivo, id_radar, correo_doctor))
+        if cur.rowcount != 1:
+            conn.rollback()
+            return jsonify({"ok": False, "error": "La cita cambió mientras se cancelaba. Vuelve a cargar la agenda."}), 409
+
+        cur.execute("""
+            INSERT INTO AUDITORIA_SEGURIDAD (tipo_evento, actor, rol_actor, detalle, ip_origen)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (
+            "AGENDA_CITA_CANCELADA",
+            correo_doctor,
+            _rol_actor_actual(),
+            json.dumps({
+                "id_radar": str(id_radar),
+                "tipo_evento": evento.get("tipo_evento"),
+                "origen_evento": evento.get("origen_evento"),
+                "estatus_anterior": evento.get("estatus_confirmacion"),
+                "motivo": motivo,
+            }),
+            request.remote_addr,
+        ))
+        conn.commit()
+        return jsonify({
+            "ok": True,
+            "estado_operativo": "cancelado",
+            "estatus_confirmacion": "CANCELADO",
+        })
+    except PermissionError as exc:
+        conn.rollback()
+        return jsonify({"ok": False, "error": str(exc)}), 403
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({"ok": False, "error": _mensaje_error_operativo(exc)}), 400
+    finally:
+        conn.close()
+
+
 def _titulo_evento_agenda(tipo_evento, datos, estatus=None):
     nombre = datos.get("nombre") or "Paciente"
     if tipo_evento == "BLOQUEO_HORARIO":

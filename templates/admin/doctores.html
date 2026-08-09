@@ -104,6 +104,9 @@
                     color:{{ 'var(--color-confirmado)' if d.activo else 'var(--color-cancelado)' }};">
                     {{ 'Activo' if d.activo else 'Inactivo' }}
                 </span>
+                <span style="display:block;margin-top:5px;color:{{ 'var(--color-confirmado)' if d.receta_habilitada else 'var(--color-texto-suave)' }};font-size:0.76em;font-weight:700;">
+                    Recetas {{ 'activas' if d.receta_habilitada else 'desactivadas' }}
+                </span>
             </td>
             <td style="padding:14px 16px;">
                 <button onclick='abrirEditarDoctor({{
@@ -135,6 +138,10 @@
                            cursor:pointer;font-size:0.85em;font-weight:600;">
                     {{ 'Desactivar' if d.activo else 'Activar' }}
                 </button>
+                <a href="{{ url_for('recetas_bp.configurar_receta', correo_doctor=d.correo_doctor) }}"
+                   style="display:inline-block;margin-top:8px;background:var(--color-fondo-alt);color:var(--color-texto-base);border:1px solid var(--color-borde);padding:6px 14px;border-radius:var(--radio-btn);text-decoration:none;font-size:0.85em;font-weight:600;">
+                    Configurar receta
+                </a>
             </td>
         </tr>
         {% else %}

@@ -1,38 +1,36 @@
 # Pocket Notebook Evidence
 
-Este documento reúne páginas seleccionadas de mi libreta de bolsillo sin fecha.
-Recuerdo haberla usado durante la planeación de arquitectura de finales de
-mayo y la observación inicial en consultorios durante junio de 2026.
+This document presents selected pages from my undated pocket notebook. I
+remember using it while planning the architecture in late May and observing
+early clinic operations during June 2026. The notebook itself does not prove
+those dates; dated digital planning files establish the project timeline.
 
 The pages contain product questions, workflow logic, architecture sketches,
-and early hypotheses. They contain no patient records, credentials, OAuth
-tokens, or Google Workspace data. Exact chronology is supported by dated
-digital planning files; the notebook itself should not be presented as dated
-evidence.
+and early hypotheses. The selected pages contain no patient records,
+credentials, OAuth tokens, or Google Workspace data.
 
-La libreta también registra mi aprendizaje apoyado por IA. No inicié el
-proyecto con formación formal en ingeniería de software. Usé Gemini, ChatGPT,
-Cursor y después OpenAI Codex para entender conceptos, comparar alternativas y
-apoyar la implementación. Reescribí esas explicaciones como preguntas y
-dibujos que pudiera razonar; después decidí qué aplicar, probar, limitar o
-descartar con base en la observación directa del consultorio. Estas páginas
-documentan tanto el razonamiento del producto como el aprendizaje práctico que
-la IA hizo posible.
+The notebook also records how AI supported my learning. I did not begin Doko
+with formal software-engineering training. I used Gemini, ChatGPT, Cursor, and
+later OpenAI Codex to understand concepts, compare alternatives, and support
+implementation. When I could not yet explain a technical idea clearly, I drew
+it. The drawing helped the AI understand my question, and the explanation
+helped me decide what to apply, test, limit, or discard after observing the
+clinic.
 
 ## How to read this evidence
 
 The handwriting and crossed-out ideas are intentionally preserved. They show
-the product-development method used for Doko:
+the method I used to develop Doko:
 
-1. Me hago una pregunta operativa.
-2. Uso IA para aclarar conceptos técnicos que todavía no conozco.
-3. Convierto la explicación en un flujo o dibujo que pueda evaluar.
-4. Observo el consultorio.
-5. Pruebo la idea.
-6. La conservo, la limito o la descarto.
+1. Ask an operational question.
+2. Use AI and documentation to clarify unfamiliar technical concepts.
+3. Convert the explanation into a flow or drawing I can evaluate.
+4. Observe the clinic.
+5. Test the idea.
+6. Keep it, limit it, or discard it.
 
-The English text below is a faithful explanatory translation, not a literal
-claim that every early idea became part of the production product.
+The English text below explains the original Spanish notes. It does not claim
+that every early idea became a production feature.
 
 ## Selected public pages
 
@@ -40,153 +38,153 @@ claim that every early idea became part of the production product.
 
 **Source image:** [01-hybrid-architecture.jpeg](evidence/notebook/01-hybrid-architecture.jpeg)
 
-**Spanish transcription:**
+**Original Spanish transcription:**
 
 > Base de datos. SQL. Agentes. Calendario y Gmail. Llenado manual. Index.
 > App-Elite. Se llenan con información de doctora. Llenado automático.
 
-**English translation:**
+**English translation and explanation:**
 
-> Early architecture sketch connecting a SQL database, agents, Calendar and
-> Gmail, the application, and both manual and automated data flows. Clinic
-> information would populate the system while deterministic application flows
-> coordinated the operational layers.
+> Database. SQL. Agents. Calendar and Gmail. Manual entry. Index. App-Elite.
+> They are populated with physician information. Automatic entry.
 
-**What it demonstrates:** The hybrid architecture was considered before the
-final implementation: structured data and application rules remain the source
-of truth, while AI assists only in bounded tasks.
+This is an early architecture sketch connecting structured data, agents,
+Google integrations, the application, and manual and automated flows. The
+final product keeps structured records and deterministic rules authoritative,
+while AI assists only in bounded tasks.
 
 ### 2. Removing laboratory-result uploads
 
 **Source image:** [02-remove-lab-results.jpeg](evidence/notebook/02-remove-lab-results.jpeg)
 
-**Spanish transcription:**
+**Original Spanish transcription:**
 
 > Quitar la función de subir los resultados del laboratorio. Mejor mandar
 > correo de notificación, etc.
 
-**English translation:**
+**English translation and explanation:**
 
-> Remove the feature for uploading laboratory results. Prefer a notification
-> workflow instead.
+> Remove the feature for uploading laboratory results. It is better to send a
+> notification email instead, and so on.
 
-**What it demonstrates:** Doko deliberately reduced its clinical-data scope.
-The product focused on clinic operations rather than collecting medical files
-that were not necessary for the service.
+This decision deliberately reduced Doko's clinical-data scope. The product
+focused on clinic operations instead of collecting medical files that were not
+necessary for its service.
 
-### 3. From an autonomous scheduler to controlled assistance
+### 3. From an autonomous scheduler idea to controlled assistance
 
 **Source image:** [03-controlled-scheduling.jpeg](evidence/notebook/03-controlled-scheduling.jpeg)
 
-**Spanish transcription:**
+**Original Spanish transcription:**
 
 > Agente agendador que se pueda cancelar y confirmar de ahí mismo, también
 > reagendar. Tomar información del paciente junto a resultados y mandar correo
 > con resultados.
 
-**English translation:**
+**English translation and explanation:**
 
-> Early scheduler-agent idea: cancel, confirm, and reschedule from one place.
-> The same note also considered collecting patient information and emailing
+> Scheduling agent that can cancel and confirm from the same place, and also
+> reschedule. Collect patient information together with results and email the
 > results.
 
-**What it demonstrates:** Only the operational appointment actions survived.
-Clinical-result handling was discarded, and production actions were placed
-behind deterministic validation and human confirmation.
+The appointment-control ideas survived in a more constrained form. The
+clinical-results idea was discarded, and protected appointment actions were
+placed behind deterministic validation and human authorization.
 
 ### 4. Clinic profile as a shared source
 
 **Source image:** [04-shared-clinic-profile.jpeg](evidence/notebook/04-shared-clinic-profile.jpeg)
 
-**Spanish transcription:**
+**Original Spanish transcription:**
 
 > Doko Elite. Agregar para que el doctor pueda poner su nombre, teléfono,
 > instrucciones, servicios, precios, horarios por defecto, dar instrucciones de
 > correo, mapa, ubicación y responder.
 
-**English translation:**
+**English translation and explanation:**
 
-> Allow the doctor to configure a public name, phone number, instructions,
-> services, prices, default hours, email guidance, map, and location.
+> Doko Elite. Allow the physician to enter a name, phone number, instructions,
+> services, prices, default hours, email guidance, map, and location, and to
+> answer questions.
 
-**What it demonstrates:** This became the shared clinic profile that now feeds
-the patient portal, public medical page, and bounded patient assistant without
-duplicating the same information in separate systems.
+This became a shared clinic profile that can feed the patient portal, public
+physician page, and bounded patient assistant without duplicating the same
+approved information in separate systems.
 
 ### 5. Calendar operations before the final panel
 
 **Source image:** [05-calendar-operations.jpeg](evidence/notebook/05-calendar-operations.jpeg)
 
-**Spanish transcription:**
+**Original Spanish transcription:**
 
 > Calendario proporciona horarios de citas, información de contacto, nombre,
 > apellido, dirección de correo y número de teléfono. Se pueden editar horas,
 > bloquear horas, cambiar duración y descripción.
 
-**English translation:**
+**English translation and explanation:**
 
-> Calendar provides appointment times and contact information. The operational
-> interface should support editing time, blocking time, changing duration, and
-> updating the description.
+> Calendar provides appointment times, contact information, first name, last
+> name, email address, and phone number. Times can be edited or blocked, and the
+> duration and description can be changed.
 
-**What it demonstrates:** These notes became the appointment, block, temporary
-hold, edit, search, confirm, release, and cancellation workflows in the
-production medical panel.
+These notes informed the appointment, block, temporary-hold, edit, search,
+confirm, release, and cancellation workflows in the medical panel. Google
+Calendar remains the integrated scheduling foundation.
 
 ### 6. Doko Suffy structured catalog
 
 **Source image:** [06-suffy-catalog.jpeg](evidence/notebook/06-suffy-catalog.jpeg)
 
-**Spanish transcription:**
+**Original Spanish transcription:**
 
 > Tienda. Catálogo de producto maestro: nombre comercial, marca, registro
 > sanitario, unidad de venta, clase de riesgo, requiere estéril, especialidad,
 > galería o foto y precio de venta. Descripción y características.
 
-**English translation:**
+**English translation and explanation:**
 
-> Doko Suffy master-product catalog: commercial name, brand, sanitary
-> registration, sales unit, risk class, sterile status, specialty, image
-> gallery, sale price, description, and product characteristics.
+> Store. Master product catalog: commercial name, brand, sanitary registration,
+> sales unit, risk class, whether sterility is required, specialty, gallery or
+> photo, and sale price. Description and characteristics.
 
-**What it demonstrates:** Suffy was designed as a structured B2B supply
-operation rather than a generic public online store.
+This shows that Doko Suffy was conceived as a structured medical-supply
+sourcing and fulfillment capability, not as an unrelated public online store.
 
 ## Reserve pages
 
-The following pages are useful as supporting evidence but should not compete
-with the six primary images on the public project page:
+The following pages may support the project history but should not compete with
+the six primary images on the public project page:
 
-- A real Suffy persistence problem where a sterile/non-sterile change appeared
-  in the interface but was not saved correctly.
+- A real Suffy persistence problem in which a sterile or non-sterile change
+  appeared in the interface but was not stored correctly.
 - Early order, subtotal, tax, payment, status, tracking, and GPS concepts.
-- Early table lists for doctors, OAuth tokens, appointment radar, inventory,
-  lots, suppliers, and orders.
-- A login note describing Google OAuth as difficult to use. This records a
-  learning and usability question, not prior OAuth expertise. It later led to
-  separating Doko's internal sign-in from the explicit `Connect Google` flow.
-- Patient portal concepts for services, prices, iframe scheduling, frequently
+- Early table lists for physicians, OAuth tokens, appointment radar, Doko Suffy
+  inventory and lots, suppliers, and orders.
+- A login note describing Google OAuth as difficult to use. It records a
+  learning and usability question, not prior OAuth expertise. It later informed
+  the separation between Doko's internal sign-in and the explicit `Connect
+  Google` flow.
+- Patient-portal concepts for services, prices, embedded scheduling, frequently
   asked questions, and first-visit guidance.
 - A broader services list that was intentionally narrowed to avoid medication
   recommendations and other unsafe or premature functions.
 
-## Caption for the public project
+## Suggested public caption
 
-> Usé esta libreta para convertir preguntas operativas en flujos que pudiera
-> probar. Algunas ideas se volvieron funciones de producción, otras quedaron
-> limitadas por privacidad y seguridad, y otras las descarté después de
-> observar el consultorio. Las especificaciones digitales con fecha establecen
-> la línea de tiempo del proyecto. La libreta muestra cómo usé IA para aprender
-> conceptos técnicos, convertirlos en dibujos comprensibles y probar las
-> decisiones contra operaciones reales.
+> I used this pocket notebook to turn operational questions into flows I could
+> test. Some ideas became production features, some were limited for privacy or
+> safety, and others were discarded after observing the clinic. Dated digital
+> specifications establish the project timeline; the notebook shows how I used
+> AI to learn technical concepts, convert them into understandable drawings,
+> and test decisions against real operations.
 
 ## Publication checklist
 
 - Use no more than six notebook images in the public gallery.
 - Rotate and crop each image for readability without removing crossed-out text.
 - Do not add invented dates to individual pages.
-- Fully exclude the original third-party branding on the notebook cover.
-- Keep Spanish handwriting visible and place the English translation in the
+- Exclude the third-party branding on the original notebook cover.
+- Keep the Spanish handwriting visible and place the English translation in the
   caption or adjacent evidence document.
 - Recheck every selected image for patient names, contact details, credentials,
   tokens, and Google Workspace data before publishing.
