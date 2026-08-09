@@ -33,6 +33,8 @@ flowchart LR
 The diagram shows one operating ecosystem, not a collection of independent
 products. The portal, medical panel, Mi Centro, and Doko Suffy use the same
 application and access boundaries while serving different operational roles.
+Sharing the medical panel does not mean sharing identical capabilities:
+doctors and assistants receive different role-scoped tools and permissions.
 
 Doko does not attempt to replace a mature calendar engine. It uses Google
 Calendar as the scheduling foundation and builds clinic-specific operational

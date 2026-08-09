@@ -22,7 +22,7 @@ This repository uses five explicit labels:
 
 Small practices often depend on a doctor, an assistant, several disconnected tools, and knowledge that lives only in people's routines. A generic platform can impose a fixed workflow that does not match the specialty or the clinic. Doko starts with the opposite question: how does this clinic actually work, and where can software remove friction without replacing medical judgment?
 
-The first production use is with two gynecologists and their clinic assistants. The goal is not to make every clinic identical. It is to establish a reliable operating core, document specialty-specific workflows, and add optional tools only after they prove useful.
+The first production use includes five active operational users: two paying gynecologists and three clinic assistants assigned to their practices. The gynecologists are the customers; the assistants are operational users. Doctors and assistants do not share an identical toolset: each role receives only the interfaces, permissions, and workflows needed for its responsibilities. The goal is not to make every clinic identical. It is to establish a reliable operating core, document specialty-specific workflows, and add optional tools only after they prove useful.
 
 In Doko, *adaptable* means that capabilities can be configured, enabled, limited, or developed around workflows validated with each clinic. It does not mean that the software changes itself autonomously.
 
@@ -74,7 +74,7 @@ Current subscription revenue is not presented as Suffy revenue, and future suppl
 
 ## Real-world validation
 
-Doko is operated by two paying gynecologists using it with their clinic assistants. A dated snapshot on July 27, 2026 showed:
+Doko is used in production by five active operational users: two paying gynecologists and three clinic assistants. A dated snapshot on July 27, 2026 showed:
 
 - 330 appointment records visible for one gynecologist during the month;
 - 87 appointment records visible for the second gynecologist;

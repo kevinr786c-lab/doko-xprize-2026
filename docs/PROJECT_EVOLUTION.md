@@ -113,8 +113,10 @@ ecosystem intended to help small medical practices gain daily control over
 appointments, confirmations, cancellations, communication, digital presence,
 staff implementation, and repeatable processes.
 
-Initial production validation came from two gynecologists using Doko with
-their clinic assistants. The next validation step is to learn from physicians
+Initial production validation came from five active operational users: two
+paying gynecologists and three clinic assistants assigned to their practices.
+The physicians are the customers, while the assistants use role-specific
+operational tools and permissions. The next validation step is to learn from physicians
 in additional specialties. A "founding physician" is an early operational
 validation collaborator who helps distinguish common workflows,
 specialty-specific workflows, optional capabilities, and problems that are

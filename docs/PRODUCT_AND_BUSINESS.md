@@ -62,13 +62,13 @@ Doko can publish approved information through `doko.lat`, clinic pages, location
 5. The workflow is tested in real use.
 6. Only a repeated, safe, maintainable need becomes an optional system capability.
 
-Initial production validation has taken place with two gynecologists and their clinic assistants. The future goal is to work with founding physicians in additional specialties, not to claim those specialties are already supported. Those collaborations will help distinguish common workflows, specialty-specific workflows, optional capabilities, and needs that genuinely deserve new software.
+Initial production validation has taken place with five active operational users: two paying gynecologists and three clinic assistants assigned to their practices. The physicians are the customers, while the assistants are operational users. Their interfaces, permissions, and workflows differ by role. The future goal is to work with founding physicians in additional specialties, not to claim those specialties are already supported. Those collaborations will help distinguish common workflows, specialty-specific workflows, optional capabilities, and needs that genuinely deserve new software.
 
 Founding physicians are real users and early operational validation collaborators, not legal cofounders.
 
 ## Validation and traction
 
-Doko has two paying gynecologists using the system with their clinic assistants in real operations. A July 27, 2026 snapshot showed 330 appointment records visible in one clinic workflow and 87 in the other, or 417 across both.
+Doko has two paying gynecologists and three clinic assistants using the system in real operations, for five active operational users in total. A July 27, 2026 snapshot showed 330 appointment records visible in one clinic workflow and 87 in the other, or 417 across both.
 
 This volume validates that Doko can participate in a busy daily workflow. It does not prove that Doko generated the patients, nor does it establish performance for every medical specialty.
 

@@ -87,9 +87,10 @@ acquisition.
 ## Team and collaborators
 
 I build and operate Doko as its sole founder using AI-assisted development
-tools. Physicians and assistants are customers, users, and operational
-validation collaborators. They are not undisclosed team members or legal
-cofounders. With permission, their feedback informs product decisions.
+tools. The two physicians are paying customers. Three clinic assistants are
+operational users and validation collaborators. They are not undisclosed team
+members or legal cofounders. With permission, their feedback informs product
+decisions.
 
 Gemini, ChatGPT, Cursor, and OpenAI Codex supported learning, explanation,
 design, implementation, and verification. They are tools, not human team
