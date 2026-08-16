@@ -28,6 +28,22 @@ The patient assistant uses only the public or clinic-approved context of the
 selected physician. Clinic context is isolated and may not be reused to answer
 for another clinic.
 
+### Ephemeral contextual continuity
+
+The controlled contextual-continuity phase does not persist questions or
+answers. Its structured context exists only in the user session, expires after
+10 minutes, and allows at most two follow-ups; using a follow-up does not
+extend the original TTL. Actor, doctor, and appointment identifiers are
+represented by non-reversible HMAC fingerprints. The context does not retain a
+patient name, phone number, email, note, appointment content, or Google
+Workspace payload.
+
+It fails closed when the actor, doctor, appointment, or appointment validity
+does not match, and the application re-reads the real operational state rather
+than trusting remembered facts. The feature is currently restricted to Dr.
+Demo through explicit configuration and is not enabled for real doctors by
+default.
+
 ## WhatsApp controlled testing
 
 The current WhatsApp Cloud API integration is restricted to controlled testing. The test responder uses local deterministic rules and does not query Gemini, Google Calendar, or Gmail. Message bodies are not persisted by the prototype. Production clinic use will require a separate review of authorization, consent, provider requirements, templates, privacy, retention, and operational safeguards.

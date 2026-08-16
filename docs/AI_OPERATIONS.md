@@ -36,6 +36,26 @@ When local rules cannot classify an allowed operational question:
 
 Gemini never receives appointment records and never writes to the agenda.
 
+### Contextual continuity - CONTROLLED TESTING
+
+Doko has a first, structured contextual-continuity phase enabled only for Dr.
+Demo through `PANEL_ASSISTANT_CONTEXT_DEMO_EMAIL`. The context is ephemeral,
+session-scoped, and expires after 10 minutes, with a maximum of two follow-ups.
+It does not store the question or answer as free text, operational facts,
+patient data, appointment content, or Google Workspace payloads. It keeps only
+minimal continuity metadata such as category, referent, origin, and
+non-reversible HMAC fingerprints used to isolate the actor, doctor, and
+appointment.
+
+The context is invalidated when the actor, doctor, or appointment changes, or
+when the appointment is no longer current. A self-contained question replaces
+or discards the previous context. Agenda searches do not reuse this context.
+It only helps resolve short references such as "why?" or "what could be the
+causes?"; Doko re-reads the real facts from its deterministic state before
+producing an explanation. This context grants no new action or authority to
+the model. It remains CONTROLLED TESTING and is not a general capability for
+all clinics.
+
 ### Operational implementation review
 
 An administrator can manually request a review after completing an
