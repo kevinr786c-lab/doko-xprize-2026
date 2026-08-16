@@ -126,6 +126,6 @@ Doko is an intentionally engineered and iteratively validated product. AI tools 
 
 ## Repository and judging access
 
-This repository is temporarily public for hackathon review. It is intended to return to private access after the review period. It contains the reviewable application snapshot and supporting documentation, but no production credentials or confidential customer evidence.
+This repository is temporarily accessible for XPRIZE hackathon review and judging. After the judging and review period concludes, the repository will be private. It contains the reviewable application snapshot and supporting documentation, but no production credentials or confidential customer evidence.
 
 For a technical entry point, see [architecture](docs/ARCHITECTURE.md). For the distinction between pre-program resources and work completed during the program period, see [hackathon disclosures](docs/HACKATHON_DISCLOSURES.md).

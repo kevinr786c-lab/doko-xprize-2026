@@ -352,8 +352,20 @@ def _tokens_contextuales(texto: str) -> set[str]:
     return tokens
 
 
-def clasificar_local(pregunta: str) -> str | None:
+def clasificar_local(
+    pregunta: str,
+    *,
+    continuidad_edicion: bool = False,
+) -> str | None:
     texto = _texto_normalizado(pregunta)
+    if continuidad_edicion:
+        menciona_edicion = any(raiz in texto for raiz in ("edit", "modific", "cambi"))
+        menciona_cita = any(
+            termino in texto
+            for termino in ("cita", "evento", "fecha", "hora", "correo", "confirmacion")
+        )
+        if menciona_edicion and menciona_cita:
+            return "editar_flujo"
     reutiliza_cancelada = (
         any(frase in texto for frase in (
             "mismos datos", "datos de contacto", "reutiliz", "reusar",
@@ -922,6 +934,7 @@ def explicacion_operativa(
     evento: dict | None = None,
     contexto_interfaz: str = "modulo_asistente",
     confirmacion_dias_habiles: bool = False,
+    continuidad_edicion: bool = False,
 ) -> dict:
     contexto = construir_contexto_operativo(
         evento,
@@ -1153,6 +1166,16 @@ def explicacion_operativa(
         }
 
     if categoria == "editar_flujo":
+        if continuidad_edicion and evento:
+            return {
+                "detectado": "La pregunta se refiere a la cita que tienes abierta; Doko no la trata como una cita nueva.",
+                "causa": (
+                    "Todavia no hay informacion suficiente para afirmar la causa. "
+                    "Se puede revisar fecha, hora, estado de confirmacion, correo u origen del evento."
+                ),
+                "siguiente": "Indica cual de esos datos se ve diferente para contrastarlo con el estado actual de esta cita.",
+                "accion": "No crees otra cita ni repitas el cambio hasta identificar el dato diferente.",
+            }
         return {
             "detectado": "Estas consultando el efecto de editar una cita.",
             "causa": "Cambiar fecha, hora o correo actualiza el evento, pero Doko conserva los envios ya registrados.",
