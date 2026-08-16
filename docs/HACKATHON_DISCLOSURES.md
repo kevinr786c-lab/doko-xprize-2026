@@ -103,9 +103,3 @@ Public evidence is sanitized. Receipts, direct customer contact information,
 and private testimonials are provided only through the submission channels
 intended for judges or organizers. Credentials, tokens, service-account files,
 patient information, and obsolete archives are excluded.
-
-## Review before submission
-
-These statements must be checked against receipts, deployment history, the
-cash-basis P&L, and the final Devpost form before the deadline. If evidence and
-memory differ, the evidence controls.

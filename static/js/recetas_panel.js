@@ -104,8 +104,11 @@
 
         const nav = byId('doctor-recipes-nav');
         if (nav) nav.hidden = false;
-        const profileSection = byId('recipe-professional-profile');
-        if (profileSection) profileSection.hidden = false;
+        if (window.setRecipeProfileAvailable) window.setRecipeProfileAvailable(true);
+        else {
+            const profileSection = byId('recipe-professional-profile');
+            if (profileSection) profileSection.hidden = false;
+        }
         byId('recipe-module')?.style.setProperty('--recipe-accent', 'var(--color-primario)');
         setText('recipe-editor-doctor', config.nombre_doctor, 'Perfil profesional pendiente');
         setText('recipe-clinic-name', config.nombre_consultorio, config.nombre_doctor || 'Consultorio');
@@ -145,8 +148,11 @@
         state.selectedFiles.clear();
         const nav = byId('doctor-recipes-nav');
         if (nav) nav.hidden = true;
-        const profileSection = byId('recipe-professional-profile');
-        if (profileSection) profileSection.hidden = true;
+        if (window.setRecipeProfileAvailable) window.setRecipeProfileAvailable(false);
+        else {
+            const profileSection = byId('recipe-professional-profile');
+            if (profileSection) profileSection.hidden = true;
+        }
         if (byId('recetas-section')?.classList.contains('active')) {
             window.mostrarVistaDoctor?.('agenda-section');
         }
@@ -202,6 +208,10 @@
 
     function openProfessionalProfile() {
         window.mostrarVistaDoctor?.('perfil-section');
+        if (window.mostrarSeccionPerfil) {
+            window.mostrarSeccionPerfil('recipes', { focus: true });
+            return;
+        }
         window.setTimeout(() => {
             byId('recipe-professional-profile')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 80);

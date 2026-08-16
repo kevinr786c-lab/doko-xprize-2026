@@ -85,5 +85,5 @@ as completed production test coverage in this document.
 ## Current performance evidence
 
 See [the sanitized July 15 load test](evidence/load-test-2026-07-15.md). Its
-published measurements are a dated result and must not be rewritten as a newer
-or broader test.
+published measurements represent the dated July 15 test and should be
+interpreted only within that original scope.

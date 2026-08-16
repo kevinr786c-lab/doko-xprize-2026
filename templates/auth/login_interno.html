@@ -1479,6 +1479,97 @@
             gap: 12px;
         }
         .profile-form .wide { grid-column: 1 / -1; }
+        .profile-editor-mobile {
+            display: none;
+        }
+        .profile-editor-shell {
+            display: grid;
+            grid-template-columns: minmax(190px, 220px) minmax(0, 1fr);
+            gap: 20px;
+            align-items: start;
+            margin-top: 16px;
+        }
+        .profile-editor-nav {
+            position: sticky;
+            top: 16px;
+            display: grid;
+            gap: 6px;
+            padding: 8px;
+            border: 1px solid var(--color-borde);
+            border-radius: 8px;
+            background: #fff;
+        }
+        .profile-editor-nav button {
+            width: 100%;
+            min-height: 42px;
+            padding: 9px 10px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--color-texto-medio);
+            cursor: pointer;
+            font: 700 0.86rem 'DM Sans', sans-serif;
+            text-align: left;
+        }
+        .profile-editor-nav button:hover {
+            background: var(--color-primario-suave);
+            color: var(--color-primario);
+        }
+        .profile-editor-nav button.active {
+            border-color: var(--color-borde);
+            background: var(--color-primario-suave);
+            color: var(--color-primario);
+        }
+        .profile-editor-nav button:focus-visible,
+        .profile-editor-mobile select:focus-visible {
+            outline: 3px solid var(--color-primario);
+            outline: 3px solid color-mix(in srgb, var(--color-primario) 30%, transparent);
+            outline-offset: 2px;
+        }
+        .profile-editor-workspace,
+        .profile-editor-panel {
+            min-width: 0;
+        }
+        .profile-editor-panel[hidden],
+        .profile-public-form[hidden] {
+            display: none !important;
+        }
+        .profile-public-form {
+            display: block;
+        }
+        .profile-section-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .profile-section-grid .wide {
+            grid-column: 1 / -1;
+        }
+        .profile-section-heading {
+            margin: 0;
+            color: var(--color-texto-principal);
+            font: 700 1rem 'DM Sans', sans-serif;
+        }
+        .profile-save-bar {
+            position: sticky;
+            bottom: 0;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 18px;
+            padding: 12px 0 2px;
+            border-top: 1px solid var(--color-borde);
+            background: #fff;
+        }
+        .profile-save-bar .service-btn {
+            flex: 0 0 auto;
+        }
+        .profile-save-bar #profile-status {
+            margin: 0 !important;
+        }
         .insurance-choice {
             display: flex;
             align-items: center;
@@ -2370,6 +2461,45 @@
             .stats-grid, .panel-grid, .shop-grid, .shop-layout, .services-layout, .profile-layout, .profile-form, .shop-tools {
                 grid-template-columns: 1fr;
             }
+            .profile-editor-shell {
+                display: block;
+                margin-top: 12px;
+            }
+            .profile-editor-nav { display: none; }
+            .profile-editor-mobile {
+                position: sticky;
+                top: 0;
+                z-index: 5;
+                display: grid;
+                gap: 6px;
+                margin-top: 12px;
+                padding: 10px;
+                border: 1px solid var(--color-borde);
+                border-radius: 8px;
+                background: #fff;
+            }
+            .profile-editor-mobile span {
+                color: var(--color-texto-suave);
+                font: 700 0.76rem 'DM Sans', sans-serif;
+                text-transform: uppercase;
+            }
+            .profile-editor-mobile select {
+                width: 100%;
+                min-height: 42px;
+                padding: 8px 10px;
+                border: 1px solid var(--color-borde);
+                border-radius: 6px;
+                background: #fff;
+                color: var(--color-texto-principal);
+                font: 700 0.9rem 'DM Sans', sans-serif;
+            }
+            .profile-section-grid { grid-template-columns: 1fr; }
+            .profile-section-grid .wide { grid-column: auto; }
+            .profile-save-bar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+            .profile-save-bar .service-btn { width: 100%; }
             .agenda-summary-toggle { display: block; }
             .stats-grid.summary-collapsed { display: none !important; }
             .monthly-report-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2953,100 +3083,142 @@
             <div class="panel-grid">
                 <div class="panel-card panel-view" id="perfil-section">
                     <p class="section-title">Perfil médico</p>
-                    <div class="profile-block">
-                        <h3 class="shop-title">Identidad del consultorio</h3>
-                        <div class="profile-upload">
-                            <img id="doctor-foto-preview" alt="Foto del doctor">
-                            <div>
-                                <label class="upload-btn">
-                                    <input id="foto-perfil-input" type="file" accept="image/*" style="display:none;">
-                                    Subir foto o logo
-                                </label>
-                                <div id="foto-perfil-status" style="margin-top:6px;color:var(--color-texto-suave);font-size:0.8rem;"></div>
-                            </div>
-                        </div>
-                        <form id="profile-form" class="profile-form" style="margin-top:18px;">
-                            <label>Nombre
-                                <input name="nombre_doctor" id="profile-nombre" placeholder="Nombre del doctor">
-                            </label>
-                            <label>Especialidad
-                                <input name="especialidad" id="profile-especialidad" placeholder="Especialidad">
-                            </label>
-                            <label>Teléfono
-                                <input name="telefono_consultorio" id="profile-telefono" placeholder="Teléfono consultorio">
-                            </label>
-                            <label style="display:none;">ID publico
-                                <div class="field-readonly" id="profile-id-publico">-</div>
-                            </label>
-                            <label class="wide profile-block">Ubicación pública
-                                <div class="field-readonly" id="profile-direccion">-</div>
-                                <p class="profile-note">La ubicación pública es configurada por Doko para evitar errores.</p>
-                            </label>
-                            <label class="wide" style="display:none;">Maps
-                                <div class="field-readonly" id="profile-maps">-</div>
-                            </label>
-                            <label class="wide profile-block">Aseguradoras
-                                <textarea name="aseguradoras_aceptadas" id="profile-aseguradoras" placeholder="Aseguradoras aceptadas"></textarea>
-                            </label>
-                            <label class="wide insurance-choice">
-                                <input type="checkbox" id="profile-sin-aseguradoras">
-                                <strong>No acepto aseguradoras</strong>
-                                <span>Se mostrará así en tu página pública.</span>
-                            </label>
-                            <fieldset class="wide payment-methods">
-                                <legend>Formas de pago</legend>
-                                <div class="payment-options" id="profile-metodos-pago">
-                                    <label class="payment-option"><input type="checkbox" value="Efectivo"> Efectivo</label>
-                                    <label class="payment-option"><input type="checkbox" value="Tarjeta de débito/crédito"> Tarjeta</label>
-                                    <label class="payment-option"><input type="checkbox" value="Transferencia bancaria"> Transferencia</label>
+                    <label class="profile-editor-mobile" for="profile-section-select">
+                        <span>Sección del perfil</span>
+                        <select id="profile-section-select">
+                            <option value="identity">Identidad pública</option>
+                            <option value="operations">Atención y pagos</option>
+                            <option value="appearance">Apariencia y avisos</option>
+                            <option value="recipes" hidden>Datos para recetas</option>
+                            <option value="services">Servicios</option>
+                        </select>
+                    </label>
+                    <div class="profile-editor-shell">
+                        <nav class="profile-editor-nav" aria-label="Secciones del perfil médico">
+                            <button class="active" type="button" data-profile-target="identity" aria-controls="profile-panel-identity" aria-current="page">Identidad pública</button>
+                            <button type="button" data-profile-target="operations" aria-controls="profile-panel-operations">Atención y pagos</button>
+                            <button type="button" data-profile-target="appearance" aria-controls="profile-panel-appearance">Apariencia y avisos</button>
+                            <button type="button" data-profile-target="recipes" aria-controls="recipe-professional-profile" hidden>Datos para recetas</button>
+                            <button type="button" data-profile-target="services" aria-controls="profile-panel-services">Servicios</button>
+                        </nav>
+                        <div class="profile-editor-workspace">
+                            <form id="profile-form" class="profile-form profile-public-form">
+                                <section class="profile-block profile-editor-panel" id="profile-panel-identity" data-profile-panel="identity" aria-labelledby="profile-heading-identity">
+                                    <div class="profile-section-heading">
+                                        <p class="section-title">Información pública</p>
+                                        <h3 class="shop-title" id="profile-heading-identity">Identidad pública</h3>
+                                    </div>
+                                    <div class="profile-upload">
+                                        <img id="doctor-foto-preview" alt="Foto del doctor">
+                                        <div>
+                                            <label class="upload-btn">
+                                                <input id="foto-perfil-input" type="file" accept="image/*" style="display:none;">
+                                                Subir foto o logo
+                                            </label>
+                                            <div id="foto-perfil-status" style="margin-top:6px;color:var(--color-texto-suave);font-size:0.8rem;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="profile-section-grid">
+                                        <label>Nombre
+                                            <input name="nombre_doctor" id="profile-nombre" placeholder="Nombre del doctor">
+                                        </label>
+                                        <label>Especialidad
+                                            <input name="especialidad" id="profile-especialidad" placeholder="Especialidad">
+                                        </label>
+                                        <label style="display:none;">ID publico
+                                            <div class="field-readonly" id="profile-id-publico">-</div>
+                                        </label>
+                                        <label class="wide profile-block">Ubicación pública
+                                            <div class="field-readonly" id="profile-direccion">-</div>
+                                            <p class="profile-note">La ubicación pública es configurada por Doko para evitar errores.</p>
+                                        </label>
+                                        <label class="wide" style="display:none;">Maps
+                                            <div class="field-readonly" id="profile-maps">-</div>
+                                        </label>
+                                    </div>
+                                </section>
+                                <section class="profile-block profile-editor-panel" id="profile-panel-operations" data-profile-panel="operations" aria-labelledby="profile-heading-operations" hidden>
+                                    <div class="profile-section-heading">
+                                        <p class="section-title">Operación del consultorio</p>
+                                        <h3 class="shop-title" id="profile-heading-operations">Atención y pagos</h3>
+                                    </div>
+                                    <div class="profile-section-grid">
+                                        <label>Teléfono
+                                            <input name="telefono_consultorio" id="profile-telefono" placeholder="Teléfono consultorio">
+                                        </label>
+                                        <label class="wide profile-block">Aseguradoras
+                                            <textarea name="aseguradoras_aceptadas" id="profile-aseguradoras" placeholder="Aseguradoras aceptadas"></textarea>
+                                        </label>
+                                        <label class="wide insurance-choice">
+                                            <input type="checkbox" id="profile-sin-aseguradoras">
+                                            <strong>No acepto aseguradoras</strong>
+                                            <span>Se mostrará así en tu página pública.</span>
+                                        </label>
+                                        <fieldset class="wide payment-methods">
+                                            <legend>Formas de pago</legend>
+                                            <div class="payment-options" id="profile-metodos-pago">
+                                                <label class="payment-option"><input type="checkbox" value="Efectivo"> Efectivo</label>
+                                                <label class="payment-option"><input type="checkbox" value="Tarjeta de débito/crédito"> Tarjeta</label>
+                                                <label class="payment-option"><input type="checkbox" value="Transferencia bancaria"> Transferencia</label>
+                                            </div>
+                                        </fieldset>
+                                        <label class="wide profile-block">Horario de atenci&oacute;n
+                                            <textarea name="horarios_atencion" id="profile-horarios-atencion" placeholder="Ej. Lunes a viernes, 9:00 a. m. a 6:00 p. m."></textarea>
+                                            <p class="profile-note">Este horario es informativo y no modifica tu disponibilidad en Google Calendar.</p>
+                                        </label>
+                                    </div>
+                                </section>
+                                <section class="profile-block profile-editor-panel" id="profile-panel-appearance" data-profile-panel="appearance" aria-labelledby="profile-heading-appearance" hidden>
+                                    <div class="profile-section-heading">
+                                        <p class="section-title">Presentación y comunicación</p>
+                                        <h3 class="shop-title" id="profile-heading-appearance">Apariencia y avisos</h3>
+                                    </div>
+                                    <div class="profile-section-grid">
+                                        <fieldset class="wide theme-options">
+                                            <legend>Color del panel</legend>
+                                            <div class="payment-options" id="profile-color-tema">
+                                                <label class="theme-option"><input type="radio" name="color_tema" value="marino" checked>Azul marino</label>
+                                                <label class="theme-option"><input type="radio" name="color_tema" value="verde">Verde médico</label>
+                                                <label class="theme-option"><input type="radio" name="color_tema" value="turquesa">Turquesa</label>
+                                                <label class="theme-option"><input type="radio" name="color_tema" value="lila">Lila</label>
+                                                <label class="theme-option"><input type="radio" name="color_tema" value="sakura">Rosa sakura</label>
+                                                <label class="theme-option"><input type="radio" name="color_tema" value="vino">Vino</label>
+                                            </div>
+                                            <p class="profile-note">Aplica a tu panel, tienda, página pública y chatbot.</p>
+                                        </fieldset>
+                                        <label class="wide profile-block">Aviso del consultorio
+                                            <textarea name="aviso_consultorio" id="profile-aviso-consultorio" placeholder="Ej. La doctora estar&aacute; de vacaciones del 16 de agosto al 16 de septiembre."></textarea>
+                                            <p class="profile-note">Puedes mostrarlo temporalmente en el portal, chatbot o p&aacute;gina web.</p>
+                                        </label>
+                                        <label>Quitar aviso autom&aacute;ticamente
+                                            <input type="datetime-local" name="aviso_expira_en" id="profile-aviso-expira">
+                                        </label>
+                                        <label class="checkbox-row">
+                                            <input type="checkbox" id="profile-aviso-activo">
+                                            Aviso activo
+                                        </label>
+                                        <label class="wide profile-block">Mostrar aviso en
+                                            <div class="payment-options" id="profile-aviso-canales">
+                                                <label><input type="checkbox" value="portal"> Portal paciente</label>
+                                                <label><input type="checkbox" value="chatbot"> Chatbot</label>
+                                                <label><input type="checkbox" value="web"> P&aacute;gina web</label>
+                                            </div>
+                                        </label>
+                                        <label class="wide" style="display:none;">Calendar booking URL
+                                            <div class="field-readonly" id="profile-calendar">-</div>
+                                        </label>
+                                    </div>
+                                </section>
+                                <div class="profile-save-bar">
+                                    <div id="profile-status" style="color:var(--color-texto-suave);font-size:0.86rem;"></div>
+                                    <button class="service-btn" type="submit">Guardar perfil</button>
                                 </div>
-                            </fieldset>
-                            <fieldset class="wide theme-options">
-                                <legend>Color del panel</legend>
-                                <div class="payment-options" id="profile-color-tema">
-                                    <label class="theme-option"><input type="radio" name="color_tema" value="marino" checked>Azul marino</label>
-                                    <label class="theme-option"><input type="radio" name="color_tema" value="verde">Verde médico</label>
-                                    <label class="theme-option"><input type="radio" name="color_tema" value="turquesa">Turquesa</label>
-                                    <label class="theme-option"><input type="radio" name="color_tema" value="lila">Lila</label>
-                                    <label class="theme-option"><input type="radio" name="color_tema" value="sakura">Rosa sakura</label>
-                                    <label class="theme-option"><input type="radio" name="color_tema" value="vino">Vino</label>
-                                </div>
-                                <p class="profile-note">Aplica a tu panel, tienda, página pública y chatbot.</p>
-                            </fieldset>
-                            <label class="wide profile-block">Horario de atenci&oacute;n
-                                <textarea name="horarios_atencion" id="profile-horarios-atencion" placeholder="Ej. Lunes a viernes, 9:00 a. m. a 6:00 p. m."></textarea>
-                                <p class="profile-note">Este horario es informativo y no modifica tu disponibilidad en Google Calendar.</p>
-                            </label>
-                            <label class="wide profile-block">Aviso del consultorio
-                                <textarea name="aviso_consultorio" id="profile-aviso-consultorio" placeholder="Ej. La doctora estar&aacute; de vacaciones del 16 de agosto al 16 de septiembre."></textarea>
-                                <p class="profile-note">Puedes mostrarlo temporalmente en el portal, chatbot o p&aacute;gina web.</p>
-                            </label>
-                            <label>Quitar aviso autom&aacute;ticamente
-                                <input type="datetime-local" name="aviso_expira_en" id="profile-aviso-expira">
-                            </label>
-                            <label class="checkbox-row">
-                                <input type="checkbox" id="profile-aviso-activo">
-                                Aviso activo
-                            </label>
-                            <label class="wide profile-block">Mostrar aviso en
-                                <div class="payment-options" id="profile-aviso-canales">
-                                    <label><input type="checkbox" value="portal"> Portal paciente</label>
-                                    <label><input type="checkbox" value="chatbot"> Chatbot</label>
-                                    <label><input type="checkbox" value="web"> P&aacute;gina web</label>
-                                </div>
-                            </label>
-                            <label class="wide" style="display:none;">Calendar booking URL
-                                <div class="field-readonly" id="profile-calendar">-</div>
-                            </label>
-                            <button class="service-btn wide" type="submit">Guardar perfil</button>
-                        </form>
-                    </div>
-                    <div id="profile-status" style="margin-top:10px;color:var(--color-texto-suave);font-size:0.86rem;"></div>
-                    <section class="profile-block" id="recipe-professional-profile" hidden style="margin-top:24px;border-top:1px solid var(--color-borde);padding-top:22px;">
+                            </form>
+                    <section class="profile-block profile-editor-panel" id="recipe-professional-profile" data-profile-panel="recipes" aria-labelledby="profile-heading-recipes" hidden>
                         <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;">
                             <div>
                                 <p class="section-title">Recetas</p>
-                                <h3 class="shop-title">Datos profesionales para recetas</h3>
+                                <h3 class="shop-title" id="profile-heading-recipes">Datos profesionales para recetas</h3>
                                 <p class="profile-note" style="max-width:680px;">Estos datos solo se imprimen en recetas y no se publican en Doko. Son una copia privada e independiente de tu perfil público.</p>
                             </div>
                             <button class="service-action" id="recipe-use-public-suggestions" type="button">Usar datos actuales como base</button>
@@ -3115,8 +3287,9 @@
                         </form>
                         <div id="recipe-professional-status" style="margin-top:10px;color:var(--color-texto-suave);font-size:0.86rem;"></div>
                     </section>
-                    <div class="profile-services">
+                    <section class="profile-services profile-editor-panel" id="profile-panel-services" data-profile-panel="services" aria-labelledby="profile-heading-services" hidden>
                         <p class="section-title">Servicios del consultorio</p>
+                        <h3 class="shop-title" id="profile-heading-services">Servicios</h3>
                         <div class="services-layout">
                             <form id="service-form" class="service-form">
                                 <input type="hidden" id="service-id-editando">
@@ -3142,6 +3315,8 @@
                                 <div id="service-status" style="color:var(--color-texto-suave);font-size:0.86rem;"></div>
                             </form>
                             <ul class="service-list" id="service-list"></ul>
+                        </div>
+                    </section>
                         </div>
                     </div>
                 </div>
@@ -3591,6 +3766,89 @@
             if (targetId === 'recetas-section') window.DokoRecetasPanel?.open();
         }
 
+        const PROFILE_PUBLIC_SECTIONS = new Set(['identity', 'operations', 'appearance']);
+        let activeProfileSection = 'identity';
+
+        window.mostrarSeccionPerfil = function(sectionName, options = {}) {
+            const requested = String(sectionName || 'identity');
+            const requestedButton = document.querySelector(`[data-profile-target="${requested}"]`);
+            const requestedPanel = document.querySelector(`[data-profile-panel="${requested}"]`);
+            const recipeUnavailable = requested === 'recipes' && (!requestedButton || requestedButton.hidden);
+            const targetName = requestedPanel && !recipeUnavailable ? requested : 'identity';
+            const targetPanel = document.querySelector(`[data-profile-panel="${targetName}"]`);
+            const profileForm = document.getElementById('profile-form');
+
+            activeProfileSection = targetName;
+            if (profileForm) profileForm.hidden = !PROFILE_PUBLIC_SECTIONS.has(targetName);
+
+            document.querySelectorAll('[data-profile-panel]').forEach(panel => {
+                panel.hidden = panel.dataset.profilePanel !== targetName;
+            });
+            document.querySelectorAll('[data-profile-target]').forEach(button => {
+                const isActive = button.dataset.profileTarget === targetName;
+                button.classList.toggle('active', isActive);
+                if (isActive) button.setAttribute('aria-current', 'page');
+                else button.removeAttribute('aria-current');
+            });
+
+            const mobileSelector = document.getElementById('profile-section-select');
+            if (mobileSelector) mobileSelector.value = targetName;
+
+            if (options.focus && targetPanel) {
+                targetPanel.setAttribute('tabindex', '-1');
+                targetPanel.focus({ preventScroll: true });
+                targetPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        };
+
+        window.setRecipeProfileAvailable = function(enabled) {
+            const available = Boolean(enabled);
+            const recipeButton = document.querySelector('[data-profile-target="recipes"]');
+            const recipeOption = document.querySelector('#profile-section-select option[value="recipes"]');
+            if (recipeButton) recipeButton.hidden = !available;
+            if (recipeOption) {
+                recipeOption.hidden = !available;
+                recipeOption.disabled = !available;
+            }
+            if (!available && activeProfileSection === 'recipes') {
+                window.mostrarSeccionPerfil('identity');
+            }
+        };
+
+        document.querySelectorAll('[data-profile-target]').forEach(button => {
+            button.addEventListener('click', () => {
+                window.mostrarSeccionPerfil(button.dataset.profileTarget, { focus: true });
+            });
+        });
+
+        const profileSectionSelector = document.getElementById('profile-section-select');
+        if (profileSectionSelector) {
+            profileSectionSelector.addEventListener('change', event => {
+                window.mostrarSeccionPerfil(event.target.value, { focus: true });
+            });
+        }
+
+        const profileSectionNav = document.querySelector('.profile-editor-nav');
+        if (profileSectionNav) {
+            profileSectionNav.addEventListener('keydown', event => {
+                if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+                const buttons = Array.from(profileSectionNav.querySelectorAll('[data-profile-target]'))
+                    .filter(button => !button.hidden);
+                if (!buttons.length) return;
+                const currentIndex = Math.max(0, buttons.indexOf(document.activeElement));
+                let nextIndex = currentIndex;
+                if (event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % buttons.length;
+                if (event.key === 'ArrowUp') nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+                if (event.key === 'Home') nextIndex = 0;
+                if (event.key === 'End') nextIndex = buttons.length - 1;
+                event.preventDefault();
+                buttons[nextIndex].focus();
+                buttons[nextIndex].click();
+            });
+        }
+
+        window.mostrarSeccionPerfil('identity');
+
         document.querySelectorAll('.doctor-nav[data-panel-target]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const targetId = btn.dataset.panelTarget;
@@ -3602,6 +3860,9 @@
                 if (window.DokoPanelAssistant && document.body.classList.contains('panel-assistant-open')) {
                     window.DokoPanelAssistant.navigateTo(targetId);
                     return;
+                }
+                if (targetId === 'perfil-section') {
+                    window.mostrarSeccionPerfil('identity');
                 }
                 mostrarVistaDoctor(targetId);
             });

@@ -21,6 +21,14 @@ from agentes.asistente_panel import (
     respuesta_desde_explicacion,
 )
 from agentes.asistente_uso import finalizar_gemini, hash_actor, registrar_regla, reservar_gemini
+from agentes.contexto_asistente import (
+    CONTEXT_KEY,
+    contexto_habilitado_para_doctor,
+    crear_contexto,
+    huella_contextual,
+    resolver_continuidad,
+    validar_contexto,
+)
 from helpers.calendar_events import MARKER_PREFIX, actualizar_evento_doko, borrar_evento_doko, crear_evento_doko, leer_marcador_doko, marcar_evento_confirmado_doko
 from helpers.db import get_connection
 from helpers.google_auth import TokenNoEncontrado, get_valid_token
@@ -809,10 +817,36 @@ def consultar_asistente_panel():
             actor_rol,
             getattr(request, "jwt_id_usuario", None),
         )
+        contexto_habilitado = contexto_habilitado_para_doctor(
+            correo_doctor,
+            config_bunker.PANEL_ASSISTANT_CONTEXT_DEMO_EMAIL,
+        )
+        contexto_valido = None
+        actor_context_hash = None
+        doctor_context_hash = None
+        id_radar_context_hash = None
+        if contexto_habilitado:
+            actor_context_hash = huella_contextual(actor, config_bunker.SECRET_KEY)
+            doctor_context_hash = huella_contextual(correo_doctor, config_bunker.SECRET_KEY)
+            id_radar_context_hash = huella_contextual(id_radar, config_bunker.SECRET_KEY)
+            contexto_valido = validar_contexto(
+                session.get(CONTEXT_KEY),
+                actor_hash=actor_context_hash or "",
+                doctor_hash=doctor_context_hash or "",
+                id_radar_hash=id_radar_context_hash,
+                evento_vigente=bool(evento) if id_radar else True,
+            )
+            if session.get(CONTEXT_KEY) and not contexto_valido:
+                session.pop(CONTEXT_KEY, None)
         busqueda_habilitada = _busqueda_asistente_habilitada(correo_doctor)
-        categoria = clasificar_local(pregunta)
+        categoria = clasificar_local(
+            pregunta,
+            continuidad_edicion=contexto_habilitado,
+        )
         accion_busqueda = interpretar_busqueda_agenda(pregunta) if busqueda_habilitada else None
         if accion_busqueda:
+            if contexto_habilitado:
+                session.pop(CONTEXT_KEY, None)
             duracion_ms = int((time.monotonic() - inicio_consulta) * 1000)
             registrar_regla(correo_doctor, actor, actor_rol, "buscar_agenda", duracion_ms)
             if accion_busqueda.get("tipo") == "aclarar_busqueda":
@@ -846,6 +880,21 @@ def consultar_asistente_panel():
             })
         fuente = "reglas"
         uso_ia = {"gemini": False}
+        categoria, contexto_usado, contexto_consumido = resolver_continuidad(
+            habilitado=contexto_habilitado,
+            pregunta=pregunta,
+            categoria_actual=categoria,
+            contexto_valido=contexto_valido,
+        )
+        if contexto_habilitado:
+            if contexto_usado and contexto_consumido:
+                session[CONTEXT_KEY] = contexto_consumido
+            elif contexto_usado:
+                session.pop(CONTEXT_KEY, None)
+            elif contexto_valido:
+                session.pop(CONTEXT_KEY, None)
+        if contexto_usado:
+            fuente = "contexto_reglas"
 
         if not categoria:
             paquete = construir_paquete_intencion(pregunta, contexto_interfaz)
@@ -879,15 +928,29 @@ def consultar_asistente_panel():
             else:
                 categoria = "fuera_alcance"
 
+        if contexto_habilitado and not contexto_usado:
+            contexto_nuevo = crear_contexto(
+                actor_hash=actor_context_hash or "",
+                doctor_hash=doctor_context_hash or "",
+                categoria=categoria,
+                origen=fuente,
+                id_radar_hash=id_radar_context_hash,
+            )
+            if contexto_nuevo:
+                session[CONTEXT_KEY] = contexto_nuevo
+            else:
+                session.pop(CONTEXT_KEY, None)
+
         explicacion = explicacion_operativa(
             categoria,
             modo_confirmacion,
             evento,
             contexto_interfaz=contexto_interfaz,
             confirmacion_dias_habiles=confirmacion_dias_habiles,
+            continuidad_edicion=contexto_habilitado,
         )
         respuesta = respuesta_desde_explicacion(explicacion)
-        if fuente == "reglas":
+        if fuente in {"reglas", "contexto_reglas"}:
             registrar_regla(
                 correo_doctor,
                 actor,

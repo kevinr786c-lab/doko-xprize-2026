@@ -1,6 +1,6 @@
 # Production Evidence Index
 
-This index lists the public, sanitized evidence included in the repository.
+This index lists the sanitized review evidence included in the repository.
 Confidential financial and customer evidence is submitted only through
 Devpost's judge-facing channels.
 

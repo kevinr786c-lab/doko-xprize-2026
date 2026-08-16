@@ -71,6 +71,12 @@ PANEL_ASSISTANT_SEARCH_DOCTORS = {
     ).split(',')
     if correo.strip()
 }
+# Primera fase de memoria contextual: un unico correo exacto de Dr. Demo.
+# Vacio mantiene el comportamiento historico para todas las doctoras.
+PANEL_ASSISTANT_CONTEXT_DEMO_EMAIL = os.environ.get(
+    'PANEL_ASSISTANT_CONTEXT_DEMO_EMAIL',
+    '',
+).strip().lower()
 GEMINI_INPUT_USD_PER_MILLION = float(
     os.environ.get('GEMINI_INPUT_USD_PER_MILLION', '0.30')
 )

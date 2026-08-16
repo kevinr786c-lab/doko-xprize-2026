@@ -33,7 +33,7 @@ service.
 
 The payment for that prior Calendar work is excluded from hackathon revenue.
 The abandoned March archive contains obsolete credentials and service-account
-material; it is excluded from this repository and must never be used as public
+material and is therefore excluded from this repository and from submission
 evidence.
 
 Before Doko, I also spoke with a friend who independently sells supplies under
@@ -184,7 +184,7 @@ safety, cost, and maintainability are validated.
 
 ## Submission evidence boundaries
 
-### Public repository and project page
+### Review repository and project page
 
 - Current source code and technical documentation.
 - This project-evolution record.
